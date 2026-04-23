@@ -9,6 +9,7 @@ runtime dependencies are also listed in `requirements.txt`.
 
 ```bash
 pip install -r requirements.txt
+pip install -e .
 ```
 
 or install the package directly:

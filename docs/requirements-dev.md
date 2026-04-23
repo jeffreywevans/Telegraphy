@@ -9,6 +9,7 @@ For requirements-file-based workflows, development dependencies are listed in
 
 ```bash
 pip install -r requirements-dev.txt
+pip install -e . --no-deps
 ```
 
 or install editable package + extras:

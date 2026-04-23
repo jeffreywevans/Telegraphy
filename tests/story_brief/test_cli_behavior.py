@@ -16,6 +16,8 @@ from commuted_calligraphy.story_brief.generate_story_brief import (
     sanitize_filename,
 )
 
+pytestmark = pytest.mark.integration
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = REPO_ROOT / "commuted_calligraphy" / "story_brief" / "generate_story_brief.py"
 

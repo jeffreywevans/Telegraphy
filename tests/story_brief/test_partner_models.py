@@ -186,6 +186,7 @@ def _build_cut_points(seed: int, all_days: int, min_cuts: int, max_cuts: int) ->
     return [0, *sorted(boundaries), all_days]
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize("seed", range(30))
 def test_parse_partner_distribution_payload_randomized_era_boundaries_cover_every_day(
     seed: int,
@@ -237,6 +238,7 @@ def test_parse_partner_distribution_payload_randomized_era_boundaries_cover_ever
         assert len(jordan_covering) == 1
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize("seed", range(20))
 def test_parse_partner_distribution_payload_rejects_randomized_casefold_duplicates(
     seed: int,
@@ -283,6 +285,7 @@ def test_parse_partner_distribution_payload_rejects_randomized_casefold_duplicat
         )
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize("seed", range(20))
 def test_parse_partner_distribution_payload_zero_weight_property_cases(seed: int) -> None:
     start = date(2000, 1, 1)
@@ -311,6 +314,7 @@ def test_parse_partner_distribution_payload_zero_weight_property_cases(seed: int
         )
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize("seed", range(20))
 def test_parse_partner_distribution_payload_randomized_reciprocal_partner_weights_round_trip(
     seed: int,

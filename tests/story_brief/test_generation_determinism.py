@@ -35,6 +35,7 @@ def test_explicit_date_out_of_range_fails() -> None:
         pick_story_fields(random.Random(1), selected_date=date(1900, 1, 1))
 
 
+@pytest.mark.slow
 def test_selected_characters_are_valid_for_time_period_year() -> None:
     availability = {
         name: (start, end)
@@ -78,6 +79,7 @@ def test_weather_value_is_from_allowed_pool() -> None:
         assert fields["weather"] in allowed
 
 
+@pytest.mark.slow
 def test_sexual_scene_tags_follow_count_and_group_rules() -> None:
     tag_groups = get_data()["sexual_scene_tag_groups"]
     tag_to_group = {

@@ -1,4 +1,4 @@
-from commuted_calligraphy.story_brief.generate_story_brief import (
+from telegraphy.story_brief.generate_story_brief import (
     get_data,
     render_title,
     to_markdown,
@@ -136,7 +136,7 @@ def test_to_markdown_calls_get_data_once(monkeypatch) -> None:
         return data
 
     monkeypatch.setattr(
-        "commuted_calligraphy.story_brief.generate_story_brief.get_data",
+        "telegraphy.story_brief.generate_story_brief.get_data",
         fake_get_data,
     )
 

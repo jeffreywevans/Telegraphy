@@ -5,7 +5,7 @@ from typing import Callable
 
 import pytest
 
-from commuted_calligraphy.story_brief.partner_models import (
+from telegraphy.story_brief.partner_models import (
     CharacterPartnerDistribution,
     PartnerDistributionDataset,
     PartnerEra,

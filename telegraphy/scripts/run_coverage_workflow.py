@@ -25,7 +25,7 @@ def main() -> int:
             sys.executable,
             "-m",
             "pytest",
-            "--cov=commuted_calligraphy",
+            "--cov=telegraphy",
             f"--cov-config={coverage_config_file}",
             "--cov-branch",
             "--cov-report=",

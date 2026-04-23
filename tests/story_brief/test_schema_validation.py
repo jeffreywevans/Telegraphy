@@ -2,7 +2,7 @@ from datetime import timedelta
 
 import pytest
 
-from commuted_calligraphy.story_brief.generate_story_brief import (
+from telegraphy.story_brief.generate_story_brief import (
     lint_story_data,
     load_story_data,
     validate_story_data,

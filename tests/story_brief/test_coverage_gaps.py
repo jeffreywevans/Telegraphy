@@ -6,9 +6,9 @@ from typing import Callable
 
 import pytest
 
-from commuted_calligraphy.story_brief import generate_story_brief as story_brief
-from commuted_calligraphy.story_brief.generate_story_brief import DatasetLintReport
-from commuted_calligraphy.story_brief.partner_models import parse_partner_distribution_payload
+from telegraphy.story_brief import generate_story_brief as story_brief
+from telegraphy.story_brief.generate_story_brief import DatasetLintReport
+from telegraphy.story_brief.partner_models import parse_partner_distribution_payload
 
 
 def test_emit_lint_report_prints_sections(capsys: pytest.CaptureFixture[str]) -> None:
@@ -65,7 +65,7 @@ def test_data_file_falls_back_to_repo_relative_when_resources_unavailable(
     repo_relative.parent.mkdir(parents=True)
 
     monkeypatch.setattr(story_brief, "__file__", str(tmp_path / "generate_story_brief.py"))
-    monkeypatch.setattr(story_brief, "__package__", "commuted_calligraphy.story_brief")
+    monkeypatch.setattr(story_brief, "__package__", "telegraphy.story_brief")
 
     def raise_missing(_package: str) -> object:
         raise ModuleNotFoundError("no package resources")

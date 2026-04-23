@@ -70,7 +70,7 @@ Quality has **improved** over recent iterations (especially around schema checks
 - **Validation guidance could be more discoverable.**
   - Users likely discover malformed data only when running generator/tests.
   - **Recommendation:** add a first-class CLI command (or mode), e.g.:
-    - `python commuted_calligraphy/story_brief/generate_story_brief.py --validate-data`
+    - `python telegraphy/story_brief/generate_story_brief.py --validate-data`
     - output concise pass/fail summary and top actionable fixes.
 
 ### 5) Documentation Quality

@@ -1,10 +1,7 @@
-import json
-from copy import deepcopy
 from datetime import timedelta
 
 import pytest
 
-from commuted_calligraphy.story_brief import generate_story_brief as story_brief
 from commuted_calligraphy.story_brief.generate_story_brief import (
     lint_story_data,
     load_story_data,
@@ -12,20 +9,12 @@ from commuted_calligraphy.story_brief.generate_story_brief import (
     validate_story_data_strict,
 )
 
-
-def load_all():
-    titles = json.loads(story_brief._data_file("titles.json").read_text(encoding="utf-8"))
-    entities = json.loads(story_brief._data_file("entities.json").read_text(encoding="utf-8"))
-    prompts = json.loads(story_brief._data_file("prompts.json").read_text(encoding="utf-8"))
-    config = json.loads(story_brief._data_file("config.json").read_text(encoding="utf-8"))
-    partner_distributions = json.loads(
-        story_brief._data_file("partner_distributions.json").read_text(encoding="utf-8")
-    )
-    return titles, entities, prompts, config, partner_distributions
-
-
-def test_schema_validation_accepts_current_data() -> None:
-    titles, entities, prompts, config, partner_distributions = load_all()
+def test_schema_validation_accepts_current_data(story_dataset_payloads) -> None:
+    titles = story_dataset_payloads["titles"]
+    entities = story_dataset_payloads["entities"]
+    prompts = story_dataset_payloads["prompts"]
+    config = story_dataset_payloads["config"]
+    partner_distributions = story_dataset_payloads["partner_distributions"]
     validate_story_data(titles, entities, prompts, config, partner_distributions)
 
 
@@ -99,23 +88,26 @@ def test_schema_validation_accepts_current_data() -> None:
         ),
     ],
 )
-def test_schema_validation_rejects_bad_data(mutator, expected_msg: str) -> None:
-    titles, entities, prompts, config, partner_distributions = load_all()
-    titles = deepcopy(titles)
-    entities = deepcopy(entities)
-    prompts = deepcopy(prompts)
-    config = deepcopy(config)
-
+def test_schema_validation_rejects_bad_data(mutator, expected_msg: str, story_dataset_payloads) -> None:
+    titles = story_dataset_payloads["titles"]
+    entities = story_dataset_payloads["entities"]
+    prompts = story_dataset_payloads["prompts"]
+    config = story_dataset_payloads["config"]
+    partner_distributions = story_dataset_payloads["partner_distributions"]
     mutator(titles, entities, prompts, config)
 
     with pytest.raises(ValueError, match=expected_msg):
         validate_story_data(titles, entities, prompts, config, partner_distributions)
 
 
-def test_schema_validation_allows_disjoint_availability_windows_for_same_name() -> None:
-    titles, entities, prompts, config, partner_distributions = load_all()
-    entities = deepcopy(entities)
-    partner_distributions = deepcopy(partner_distributions)
+def test_schema_validation_allows_disjoint_availability_windows_for_same_name(
+    story_dataset_payloads,
+) -> None:
+    titles = story_dataset_payloads["titles"]
+    entities = story_dataset_payloads["entities"]
+    prompts = story_dataset_payloads["prompts"]
+    config = story_dataset_payloads["config"]
+    partner_distributions = story_dataset_payloads["partner_distributions"]
     entities["character_availability"] = [
         ["Alex", "2000-01-01", "2000-01-31"],
         ["Alex", "2000-03-01", "2000-03-31"],
@@ -151,18 +143,24 @@ def test_schema_validation_allows_disjoint_availability_windows_for_same_name() 
     validate_story_data(titles, entities, prompts, config, partner_distributions)
 
 
-def test_schema_validation_rejects_single_sexual_scene_tag_group() -> None:
-    titles, entities, prompts, config, partner_distributions = load_all()
-    config = deepcopy(config)
+def test_schema_validation_rejects_single_sexual_scene_tag_group(story_dataset_payloads) -> None:
+    titles = story_dataset_payloads["titles"]
+    entities = story_dataset_payloads["entities"]
+    prompts = story_dataset_payloads["prompts"]
+    config = story_dataset_payloads["config"]
+    partner_distributions = story_dataset_payloads["partner_distributions"]
     config["sexual_scene_tag_groups"] = {"tone": ["tender", "passionate"]}
 
     with pytest.raises(ValueError, match="at least 2 groups"):
         validate_story_data(titles, entities, prompts, config, partner_distributions)
 
 
-def test_schema_validation_rejects_too_many_sexual_scene_tag_groups() -> None:
-    titles, entities, prompts, config, partner_distributions = load_all()
-    config = deepcopy(config)
+def test_schema_validation_rejects_too_many_sexual_scene_tag_groups(story_dataset_payloads) -> None:
+    titles = story_dataset_payloads["titles"]
+    entities = story_dataset_payloads["entities"]
+    prompts = story_dataset_payloads["prompts"]
+    config = story_dataset_payloads["config"]
+    partner_distributions = story_dataset_payloads["partner_distributions"]
     config["sexual_scene_tag_groups"] = {
         f"group_{index}": [f"tag_{index}_a", f"tag_{index}_b"]
         for index in range(11)
@@ -172,9 +170,12 @@ def test_schema_validation_rejects_too_many_sexual_scene_tag_groups() -> None:
         validate_story_data(titles, entities, prompts, config, partner_distributions)
 
 
-def test_schema_validation_rejects_duplicate_partners_in_single_era() -> None:
-    titles, entities, prompts, config, partner_distributions = load_all()
-    partner_distributions = deepcopy(partner_distributions)
+def test_schema_validation_rejects_duplicate_partners_in_single_era(story_dataset_payloads) -> None:
+    titles = story_dataset_payloads["titles"]
+    entities = story_dataset_payloads["entities"]
+    prompts = story_dataset_payloads["prompts"]
+    config = story_dataset_payloads["config"]
+    partner_distributions = story_dataset_payloads["partner_distributions"]
     partner_distributions["partner_distributions"][0]["eras"][0]["partners"] = [
         {"partner": "Jordan", "weight": 0.7},
         {"partner": "jordan", "weight": 0.3},

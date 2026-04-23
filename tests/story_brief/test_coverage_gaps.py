@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import date
 from pathlib import Path
+from typing import Callable
 
 import pytest
 
@@ -84,64 +85,47 @@ def _parse_payload(payload: dict[str, object], character_rows: list[tuple[str, d
     )
 
 
-def test_partner_payload_rejects_blank_dataset_version(
-    partner_payload_factory, partner_character_rows
-) -> None:
-    payload = partner_payload_factory()
+def _mutate_blank_dataset_version(payload: dict[str, object]) -> None:
     payload["dataset_version"] = "   "
 
-    with pytest.raises(ValueError, match="dataset_version"):
-        _parse_payload(payload, partner_character_rows)
 
-
-def test_partner_payload_rejects_non_overlapping_date_range(
-    partner_payload_factory, partner_character_rows
-) -> None:
-    payload = partner_payload_factory()
+def _mutate_non_overlapping_date_range(payload: dict[str, object]) -> None:
     payload["date_start"] = "1990-01-01"
     payload["date_end"] = "1990-12-31"
 
-    with pytest.raises(ValueError, match="must overlap"):
-        _parse_payload(payload, partner_character_rows)
+
+def _mutate_unknown_character(payload: dict[str, object]) -> None:
+    payload["partner_distributions"][0]["character"] = "Pat"
 
 
-def test_partner_payload_rejects_unknown_character(
-    partner_payload_factory, partner_character_rows
-) -> None:
-    payload = partner_payload_factory()
-    entries = list(payload["partner_distributions"])
-    alex = dict(entries[0])
-    alex["character"] = "Pat"
-    entries[0] = alex
-    payload["partner_distributions"] = entries
-
-    with pytest.raises(ValueError, match="unknown character"):
-        _parse_payload(payload, partner_character_rows)
-
-
-def test_partner_payload_rejects_missing_character_coverage(
-    partner_payload_factory, partner_character_rows
-) -> None:
-    payload = partner_payload_factory()
+def _mutate_missing_character_coverage(payload: dict[str, object]) -> None:
     payload["partner_distributions"] = [payload["partner_distributions"][0]]
 
-    with pytest.raises(ValueError, match="missing characters"):
-        _parse_payload(payload, partner_character_rows)
+
+def _mutate_partner_weight_bool(payload: dict[str, object]) -> None:
+    payload["partner_distributions"][0]["eras"][0]["partners"] = [
+        {"partner": "Jordan", "weight": True}
+    ]
 
 
-def test_partner_payload_rejects_partner_weight_bool(
-    partner_payload_factory, partner_character_rows
+@pytest.mark.parametrize(
+    ("mutator", "message"),
+    [
+        (_mutate_blank_dataset_version, "dataset_version"),
+        (_mutate_non_overlapping_date_range, "must overlap"),
+        (_mutate_unknown_character, "unknown character"),
+        (_mutate_missing_character_coverage, "missing characters"),
+        (_mutate_partner_weight_bool, "weight must be a real number"),
+    ],
+)
+def test_partner_payload_validation_error_cases_are_parameterized(
+    mutator: Callable[[dict[str, object]], None],
+    message: str,
+    partner_payload_factory,
+    partner_character_rows,
 ) -> None:
     payload = partner_payload_factory()
-    entries = list(payload["partner_distributions"])
-    alex = dict(entries[0])
-    eras = list(alex["eras"])
-    era = dict(eras[0])
-    era["partners"] = [{"partner": "Jordan", "weight": True}]
-    eras[0] = era
-    alex["eras"] = eras
-    entries[0] = alex
-    payload["partner_distributions"] = entries
+    mutator(payload)
 
-    with pytest.raises(ValueError, match="weight must be a real number"):
+    with pytest.raises(ValueError, match=message):
         _parse_payload(payload, partner_character_rows)

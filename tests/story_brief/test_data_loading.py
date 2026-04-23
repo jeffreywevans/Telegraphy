@@ -96,7 +96,7 @@ def test_env_override_loads_dataset_from_custom_directory(
     data_dir.mkdir()
     _write_minimal_dataset(data_dir)
 
-    monkeypatch.setenv("COMMUTED_STORY_BRIEF_DATA_DIR", str(data_dir))
+    monkeypatch.setenv("TELEGRAPHY_DATA_DIR", str(data_dir))
     story_brief.get_data.cache_clear()
     loaded = story_brief.load_story_data()
 
@@ -112,7 +112,7 @@ def test_env_override_rejects_unresolved_title_token(
     _write_minimal_dataset(data_dir)
     _write_payload(data_dir / "titles.json", {"titles": ["Oops @protagnoist"]})
 
-    monkeypatch.setenv("COMMUTED_STORY_BRIEF_DATA_DIR", str(data_dir))
+    monkeypatch.setenv("TELEGRAPHY_DATA_DIR", str(data_dir))
     story_brief.get_data.cache_clear()
 
     with pytest.raises(ValueError, match="unsupported token"):
@@ -136,7 +136,7 @@ def test_load_story_data_strips_availability_names(
         },
     )
 
-    monkeypatch.setenv("COMMUTED_STORY_BRIEF_DATA_DIR", str(data_dir))
+    monkeypatch.setenv("TELEGRAPHY_DATA_DIR", str(data_dir))
     story_brief.get_data.cache_clear()
     loaded = story_brief.load_story_data()
 

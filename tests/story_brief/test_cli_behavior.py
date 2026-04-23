@@ -87,7 +87,7 @@ def run_cli(
 ) -> subprocess.CompletedProcess[str]:
     env = os.environ.copy()
     if data_dir is not None:
-        env["COMMUTED_STORY_BRIEF_DATA_DIR"] = str(data_dir)
+        env["TELEGRAPHY_DATA_DIR"] = str(data_dir)
     if env_overrides:
         env.update(env_overrides)
     return subprocess.run(
@@ -267,7 +267,7 @@ def test_cli_handles_missing_dataset_override_without_traceback(tmp_path: Path) 
     result = run_cli(
         "--print-only",
         cwd=tmp_path,
-        env_overrides={"COMMUTED_STORY_BRIEF_DATA_DIR": str(missing_dir)},
+        env_overrides={"TELEGRAPHY_DATA_DIR": str(missing_dir)},
     )
     assert_cli_error_without_traceback(result, "Failed to load story brief dataset file")
 

@@ -3,9 +3,9 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "commuted-calligraphy"
+name = "telegraphy"
 version = "0.1.0"
-description = "Commuted Calligraphy story brief generator"
+description = "Telegraphy story brief generator"
 license = { file = "LICENSE" }
 readme = "readme.md"
 requires-python = ">=3.12"

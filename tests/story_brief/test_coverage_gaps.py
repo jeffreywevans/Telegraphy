@@ -40,7 +40,7 @@ def test_data_file_uses_env_override_with_expanduser(
     override.mkdir(parents=True)
 
     monkeypatch.setenv("HOME", str(home))
-    monkeypatch.setenv("COMMUTED_STORY_BRIEF_DATA_DIR", "~/dataset")
+    monkeypatch.setenv("TELEGRAPHY_DATA_DIR", "~/dataset")
 
     resolved = story_brief._data_file("titles.json")
     assert Path(resolved) == override / "titles.json"

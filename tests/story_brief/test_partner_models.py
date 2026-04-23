@@ -1,5 +1,7 @@
 import hashlib
+from copy import deepcopy
 from datetime import date, timedelta
+from typing import Callable
 
 import pytest
 
@@ -10,61 +12,73 @@ from commuted_calligraphy.story_brief.partner_models import (
     parse_partner_distribution_payload,
 )
 
-
-@pytest.fixture
-def partner_payload() -> dict[str, object]:
-    return {
-        "schema_version": 1,
-        "dataset_version": "test-dataset",
-        "date_start": "2000-01-01",
-        "date_end": "2000-12-31",
-        "partner_distributions": [
+def _build_partner_payload(partner_payload_factory) -> dict[str, object]:
+    return partner_payload_factory(
+        alex_eras=[
             {
-                "character": "Alex",
                 "date_start": "2000-01-01",
-                "date_end": "2000-12-31",
-                "eras": [
-                    {
-                        "date_start": "2000-01-01",
-                        "date_end": "2000-06-30",
-                        "partners": [{"partner": "Jordan", "weight": 1.0}],
-                    },
-                    {
-                        "date_start": "2000-07-01",
-                        "date_end": "2000-12-31",
-                        "partners": [],
-                    },
-                ],
+                "date_end": "2000-06-30",
+                "partners": [{"partner": "Jordan", "weight": 1.0}],
             },
             {
-                "character": "Jordan",
-                "date_start": "2000-01-01",
+                "date_start": "2000-07-01",
                 "date_end": "2000-12-31",
-                "eras": [
-                    {
-                        "date_start": "2000-01-01",
-                        "date_end": "2000-12-31",
-                        "partners": [{"partner": "Alex", "weight": 1.0}],
-                    }
-                ],
+                "partners": [],
             },
         ],
-    }
+        jordan_eras=[
+            {
+                "date_start": "2000-01-01",
+                "date_end": "2000-12-31",
+                "partners": [{"partner": "Alex", "weight": 1.0}],
+            }
+        ],
+    )
+
+
+def _parse_payload(payload: dict[str, object], partner_character_rows: list[tuple[str, date, date]]):
+    return parse_partner_distribution_payload(
+        payload,
+        config_start=date(2000, 1, 1),
+        config_end=date(2000, 12, 31),
+        character_rows=partner_character_rows,
+        partner_distributions_key="partner_distributions",
+    )
+
+
+def _mutate_duplicate_partners(payload: dict[str, object]) -> None:
+    entries = payload["partner_distributions"]
+    entries[0]["eras"][0]["partners"] = [
+        {"partner": "Jordan", "weight": 0.7},
+        {"partner": "jordan", "weight": 0.3},
+    ]
+
+
+def _mutate_non_object_entry(payload: dict[str, object]) -> None:
+    payload["partner_distributions"] = ["bad-entry"]
+
+
+def _mutate_overlapping_eras(payload: dict[str, object]) -> None:
+    entries = payload["partner_distributions"]
+    entries[0]["eras"] = [
+        {
+            "date_start": "2000-01-01",
+            "date_end": "2000-06-30",
+            "partners": [{"partner": "Jordan", "weight": 1.0}],
+        },
+        {
+            "date_start": "2000-06-30",
+            "date_end": "2000-12-31",
+            "partners": [{"partner": "Jordan", "weight": 1.0}],
+        },
+    ]
 
 
 def test_parse_partner_distribution_payload_returns_typed_dataset(
-    partner_payload: dict[str, object],
+    partner_payload_factory,
+    partner_character_rows,
 ) -> None:
-    dataset = parse_partner_distribution_payload(
-        partner_payload,
-        config_start=date(2000, 1, 1),
-        config_end=date(2000, 12, 31),
-        character_rows=[
-            ("Alex", date(2000, 1, 1), date(2000, 12, 31)),
-            ("Jordan", date(2000, 1, 1), date(2000, 12, 31)),
-        ],
-        partner_distributions_key="partner_distributions",
-    )
+    dataset = _parse_payload(_build_partner_payload(partner_payload_factory), partner_character_rows)
 
     assert isinstance(dataset, PartnerDistributionDataset)
     assert set(dataset.by_character) == {"Alex", "Jordan"}
@@ -78,18 +92,10 @@ def test_parse_partner_distribution_payload_returns_typed_dataset(
 
 
 def test_parse_partner_distribution_payload_round_trips_to_legacy_index(
-    partner_payload: dict[str, object],
+    partner_payload_factory,
+    partner_character_rows,
 ) -> None:
-    dataset = parse_partner_distribution_payload(
-        partner_payload,
-        config_start=date(2000, 1, 1),
-        config_end=date(2000, 12, 31),
-        character_rows=[
-            ("Alex", date(2000, 1, 1), date(2000, 12, 31)),
-            ("Jordan", date(2000, 1, 1), date(2000, 12, 31)),
-        ],
-        partner_distributions_key="partner_distributions",
-    )
+    dataset = _parse_payload(_build_partner_payload(partner_payload_factory), partner_character_rows)
 
     legacy_index = dataset.to_legacy_index()
 
@@ -98,87 +104,25 @@ def test_parse_partner_distribution_payload_round_trips_to_legacy_index(
     assert legacy_index["Alex"][1]["partners"] == []
 
 
-def test_parse_partner_distribution_payload_rejects_duplicate_partners_casefolded(
-    partner_payload: dict[str, object],
+@pytest.mark.parametrize(
+    ("mutator", "message"),
+    [
+        (_mutate_duplicate_partners, "contains duplicate partner"),
+        (_mutate_non_object_entry, "must be an object"),
+        (_mutate_overlapping_eras, "overlapping or unsorted ranges"),
+    ],
+)
+def test_parse_partner_distribution_payload_rejects_invalid_shapes(
+    mutator: Callable[[dict[str, object]], None],
+    message: str,
+    partner_payload_factory,
+    partner_character_rows,
 ) -> None:
-    payload = dict(partner_payload)
-    entries = list(payload["partner_distributions"])
-    alex = dict(entries[0])
-    eras = list(alex["eras"])
-    first_era = dict(eras[0])
-    first_era["partners"] = [
-        {"partner": "Jordan", "weight": 0.7},
-        {"partner": "jordan", "weight": 0.3},
-    ]
-    eras[0] = first_era
-    alex["eras"] = eras
-    entries[0] = alex
-    payload["partner_distributions"] = entries
+    payload = deepcopy(_build_partner_payload(partner_payload_factory))
+    mutator(payload)
 
-    with pytest.raises(ValueError, match="contains duplicate partner"):
-        parse_partner_distribution_payload(
-            payload,
-            config_start=date(2000, 1, 1),
-            config_end=date(2000, 12, 31),
-            character_rows=[
-                ("Alex", date(2000, 1, 1), date(2000, 12, 31)),
-                ("Jordan", date(2000, 1, 1), date(2000, 12, 31)),
-            ],
-            partner_distributions_key="partner_distributions",
-        )
-
-
-def test_parse_partner_distribution_payload_rejects_non_object_entry(
-    partner_payload: dict[str, object],
-) -> None:
-    payload = dict(partner_payload)
-    payload["partner_distributions"] = ["bad-entry"]
-
-    with pytest.raises(ValueError, match="must be an object"):
-        parse_partner_distribution_payload(
-            payload,
-            config_start=date(2000, 1, 1),
-            config_end=date(2000, 12, 31),
-            character_rows=[
-                ("Alex", date(2000, 1, 1), date(2000, 12, 31)),
-                ("Jordan", date(2000, 1, 1), date(2000, 12, 31)),
-            ],
-            partner_distributions_key="partner_distributions",
-        )
-
-
-def test_parse_partner_distribution_payload_rejects_overlapping_eras(
-    partner_payload: dict[str, object],
-) -> None:
-    payload = dict(partner_payload)
-    entries = list(payload["partner_distributions"])
-    alex = dict(entries[0])
-    alex["eras"] = [
-        {
-            "date_start": "2000-01-01",
-            "date_end": "2000-06-30",
-            "partners": [{"partner": "Jordan", "weight": 1.0}],
-        },
-        {
-            "date_start": "2000-06-30",
-            "date_end": "2000-12-31",
-            "partners": [{"partner": "Jordan", "weight": 1.0}],
-        },
-    ]
-    entries[0] = alex
-    payload["partner_distributions"] = entries
-
-    with pytest.raises(ValueError, match="overlapping or unsorted ranges"):
-        parse_partner_distribution_payload(
-            payload,
-            config_start=date(2000, 1, 1),
-            config_end=date(2000, 12, 31),
-            character_rows=[
-                ("Alex", date(2000, 1, 1), date(2000, 12, 31)),
-                ("Jordan", date(2000, 1, 1), date(2000, 12, 31)),
-            ],
-            partner_distributions_key="partner_distributions",
-        )
+    with pytest.raises(ValueError, match=message):
+        _parse_payload(payload, partner_character_rows)
 
 
 def _build_payload_with_eras(
@@ -242,6 +186,7 @@ def _build_cut_points(seed: int, all_days: int, min_cuts: int, max_cuts: int) ->
     return [0, *sorted(boundaries), all_days]
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize("seed", range(30))
 def test_parse_partner_distribution_payload_randomized_era_boundaries_cover_every_day(
     seed: int,
@@ -293,6 +238,7 @@ def test_parse_partner_distribution_payload_randomized_era_boundaries_cover_ever
         assert len(jordan_covering) == 1
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize("seed", range(20))
 def test_parse_partner_distribution_payload_rejects_randomized_casefold_duplicates(
     seed: int,
@@ -339,6 +285,7 @@ def test_parse_partner_distribution_payload_rejects_randomized_casefold_duplicat
         )
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize("seed", range(20))
 def test_parse_partner_distribution_payload_zero_weight_property_cases(seed: int) -> None:
     start = date(2000, 1, 1)
@@ -367,6 +314,7 @@ def test_parse_partner_distribution_payload_zero_weight_property_cases(seed: int
         )
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize("seed", range(20))
 def test_parse_partner_distribution_payload_randomized_reciprocal_partner_weights_round_trip(
     seed: int,

@@ -1,12 +1,13 @@
 # Runtime Dependencies
 
-`pyproject.toml` is the single source of truth for runtime dependencies via
+`pyproject.toml` is the source of truth for runtime dependencies via
 `[project.dependencies]`.
 
-`requirements.txt` exists for environments and tooling that require a
-requirements file (for example, some CI systems and security scanners). Keep it
-in sync with `pyproject.toml` and include `.` so `pip install -r requirements.txt`
-installs this package and its runtime dependencies.
+requirements.txt is a compatibility file for environments and tooling that
+require a requirements file (for example, some CI systems and security
+scanners). It is a mirror of [project.dependencies] in pyproject.toml.
+Note that it no longer installs the package itself; use pip install . to
+install the project. Keep both files in sync to avoid dependency drift.
 
 ## Install
 

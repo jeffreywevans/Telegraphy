@@ -195,17 +195,27 @@ def test_default_filename_uses_story_time_period_date(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize(
-    ("args", "expected_message"),
+    ("args", "expected_message", "expected_returncode_nonzero"),
     [
-        (("--date", "01-01-2000", "--print-only"), "--date must be in YYYY-MM-DD format"),
-        (("--date", "1900-01-01", "--print-only"), "outside available range"),
+        (
+            ("--date", "01-01-2000", "--print-only"),
+            "--date must be in YYYY-MM-DD format",
+            True,
+        ),
+        (("--date", "1900-01-01", "--print-only"), "outside available range", True),
     ],
 )
 def test_cli_invalid_inputs_show_user_friendly_error(
-    tmp_path: Path, args: tuple[str, ...], expected_message: str
+    tmp_path: Path,
+    args: tuple[str, ...],
+    expected_message: str,
+    expected_returncode_nonzero: bool,
 ) -> None:
     result = run_cli(*args, cwd=tmp_path)
-    assert_cli_error_without_traceback(result, expected_message)
+    combined = result.stdout + result.stderr
+    assert (result.returncode != 0) is expected_returncode_nonzero
+    assert expected_message in combined
+    assert "Traceback" not in combined
 
 
 def test_cli_validate_strict_flag_accepts_current_dataset_range(tmp_path: Path) -> None:

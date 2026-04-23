@@ -68,6 +68,11 @@ PROMPT_LIST_KEYS_SET = frozenset(PROMPT_LIST_KEYS)
 CHARACTER_AVAILABILITY_KEY = "character_availability"
 SETTING_AVAILABILITY_KEY = "setting_availability"
 PARTNER_DISTRIBUTIONS_KEY = "partner_distributions"
+TITLES_FILENAME = "titles.json"
+ENTITIES_FILENAME = "entities.json"
+PROMPTS_FILENAME = "prompts.json"
+CONFIG_FILENAME = "config.json"
+PARTNER_DISTRIBUTIONS_FILENAME = "partner_distributions.json"
 ENTITY_AVAILABILITY_KEYS = frozenset(
     {
         CHARACTER_AVAILABILITY_KEY,
@@ -459,11 +464,11 @@ def validate_story_data(
 
 def load_story_data() -> dict[str, Any]:
     try:
-        titles = _load_json(_data_file("titles.json"))
-        entities = _load_json(_data_file("entities.json"))
-        prompts = _load_json(_data_file("prompts.json"))
-        config = _load_json(_data_file("config.json"))
-        partner_distributions = _load_json(_data_file("partner_distributions.json"))
+        titles = _load_json(_data_file(TITLES_FILENAME))
+        entities = _load_json(_data_file(ENTITIES_FILENAME))
+        prompts = _load_json(_data_file(PROMPTS_FILENAME))
+        config = _load_json(_data_file(CONFIG_FILENAME))
+        partner_distributions = _load_json(_data_file(PARTNER_DISTRIBUTIONS_FILENAME))
     except FileNotFoundError as exc:
         missing_name = Path(exc.filename).name if exc.filename else "unknown file"
         location = (

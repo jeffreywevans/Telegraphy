@@ -3,13 +3,13 @@
 This project defines runtime dependencies in `pyproject.toml` under `[project.dependencies]`.
 
 For environments that install with requirements files (for example, some CI systems),
-`requirements.txt` references the local project so dependency resolution comes from
-`pyproject.toml` as the single source of truth.
+`requirements.txt` lists direct runtime dependencies for environments that require
+a requirements file.
 
 ## Install
 
 ```bash
-pip install -r requirements.txt
+pip install .
 ```
 
 For editable local development installs, use:

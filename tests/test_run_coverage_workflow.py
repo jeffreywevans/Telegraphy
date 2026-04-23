@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import subprocess
 
-from commuted_calligraphy.scripts import run_coverage_workflow
+from telegraphy.scripts import run_coverage_workflow
 
 
 def _completed(rc: int) -> subprocess.CompletedProcess[str]:

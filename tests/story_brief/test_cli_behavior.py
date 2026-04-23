@@ -10,8 +10,8 @@ from collections.abc import Callable
 
 import pytest
 
-from commuted_calligraphy.story_brief import generate_story_brief as story_cli
-from commuted_calligraphy.story_brief.generate_story_brief import (
+from telegraphy.story_brief import generate_story_brief as story_cli
+from telegraphy.story_brief.generate_story_brief import (
     build_auto_filename,
     sanitize_filename,
 )
@@ -20,7 +20,7 @@ from tests.conftest import patch_json
 pytestmark = pytest.mark.integration
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-SCRIPT = REPO_ROOT / "commuted_calligraphy" / "story_brief" / "generate_story_brief.py"
+SCRIPT = REPO_ROOT / "telegraphy" / "story_brief" / "generate_story_brief.py"
 
 
 def assert_cli_error_without_traceback(

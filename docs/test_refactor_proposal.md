@@ -32,7 +32,7 @@ A number of CLI tests assert the same shape:
 Add fixtures/helpers:
 
 - `@pytest.fixture def source_story_data_dir() -> Path`
-  - returns canonical data directory (`commuted_calligraphy/story_brief/data`)
+  - returns canonical data directory (`telegraphy/story_brief/data`)
 
 - `def clone_story_dataset(destination: Path) -> Path`
   - copies the five JSON files to `destination`

@@ -4,7 +4,7 @@ from datetime import date
 
 import pytest
 
-from commuted_calligraphy.story_brief.generate_story_brief import get_data, pick_story_fields
+from telegraphy.story_brief.generate_story_brief import get_data, pick_story_fields
 
 
 def test_same_seed_is_deterministic() -> None:
@@ -59,7 +59,7 @@ def test_selected_characters_are_valid_for_time_period_year() -> None:
 def test_duplicate_character_rows_require_two_distinct_names(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from commuted_calligraphy.story_brief import generate_story_brief as story_brief
+    from telegraphy.story_brief import generate_story_brief as story_brief
 
     data = dict(story_brief.get_data())
     data["character_availability"] = [
@@ -110,7 +110,7 @@ def test_sexual_scene_tags_follow_count_and_group_rules() -> None:
 def test_non_none_sexual_content_with_positive_partner_weight_requires_partner_string(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from commuted_calligraphy.story_brief import generate_story_brief as story_brief
+    from telegraphy.story_brief import generate_story_brief as story_brief
 
     data = deepcopy(story_brief.get_data())
     selected_date = date(2000, 1, 1)
@@ -150,7 +150,7 @@ def test_non_none_sexual_content_with_positive_partner_weight_requires_partner_s
 def test_seed_output_is_stable_when_option_pool_order_changes(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from commuted_calligraphy.story_brief import generate_story_brief as story_brief
+    from telegraphy.story_brief import generate_story_brief as story_brief
 
     baseline_data = deepcopy(story_brief.get_data())
     shuffled_data = deepcopy(baseline_data)
@@ -187,7 +187,7 @@ def test_seed_output_is_stable_when_option_pool_order_changes(
 def test_pick_story_fields_reads_data_once_per_invocation(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from commuted_calligraphy.story_brief import generate_story_brief as story_brief
+    from telegraphy.story_brief import generate_story_brief as story_brief
 
     calls = {"count": 0}
     data = deepcopy(story_brief.get_data())
@@ -205,7 +205,7 @@ def test_pick_story_fields_reads_data_once_per_invocation(
 def test_pick_story_fields_handles_missing_partner_distribution_for_protagonist(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from commuted_calligraphy.story_brief import generate_story_brief as story_brief
+    from telegraphy.story_brief import generate_story_brief as story_brief
 
     selected_date = date(2000, 1, 1)
     data = deepcopy(story_brief.get_data())

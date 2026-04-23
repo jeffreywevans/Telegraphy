@@ -125,7 +125,7 @@ def _data_file(filename: str) -> Any:
       1) COMMUTED_STORY_BRIEF_DATA_DIR env var (custom/system deployments).
       2) Direct-script source checkout fallback (repo-relative `data/`).
       3) Installed package resources under
-         commuted_calligraphy.story_brief.data (packaged installs).
+         telegraphy.story_brief.data (packaged installs).
 
     Why this chain exists:
       - Allows testing against alternate datasets without code changes.
@@ -150,7 +150,7 @@ def _data_file(filename: str) -> Any:
         return repo_relative
 
     try:
-        return files("commuted_calligraphy.story_brief.data").joinpath(filename)
+        return files("telegraphy.story_brief.data").joinpath(filename)
     except (ModuleNotFoundError, FileNotFoundError):
         return repo_relative
 

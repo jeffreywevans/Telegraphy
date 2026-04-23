@@ -2,7 +2,7 @@ import random
 
 import pytest
 
-from commuted_calligraphy.story_brief.generate_story_brief import (
+from telegraphy.story_brief.generate_story_brief import (
     symmetric_peak_weights,
     weighted_choice,
 )

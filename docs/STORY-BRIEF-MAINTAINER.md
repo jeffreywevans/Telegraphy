@@ -8,11 +8,11 @@ This document consolidates maintainer-facing guidance for the story brief system
 
 Use a **small set of domain-based JSON files** (not one giant file, and not one file per key):
 
-- `commuted_calligraphy/story_brief/data/titles.json`
-- `commuted_calligraphy/story_brief/data/entities.json` (characters, settings, availability windows)
-- `commuted_calligraphy/story_brief/data/prompts.json` (conflicts, pressures, endings, style)
-- `commuted_calligraphy/story_brief/data/config.json` (ordered keys, weights, date range, word-count targets)
-- `commuted_calligraphy/story_brief/data/partner_distributions.json` (date-aware weighted `sexual_partner` pools; `[]` indicates celibacy, while omitted era data—a date window not covered by any era—indicates absent data)
+- `telegraphy/story_brief/data/titles.json`
+- `telegraphy/story_brief/data/entities.json` (characters, settings, availability windows)
+- `telegraphy/story_brief/data/prompts.json` (conflicts, pressures, endings, style)
+- `telegraphy/story_brief/data/config.json` (ordered keys, weights, date range, word-count targets)
+- `telegraphy/story_brief/data/partner_distributions.json` (date-aware weighted `sexual_partner` pools; `[]` indicates celibacy, while omitted era data—a date window not covered by any era—indicates absent data)
 
 ### Why this split
 
@@ -28,7 +28,7 @@ Compared with one-file-per-key, domain-based files avoid sprawl while keeping re
 
 ### Practical migration checklist
 
-1. Move constants into `commuted_calligraphy/story_brief/data/*.json`.
+1. Move constants into `telegraphy/story_brief/data/*.json`.
 2. Keep loader validation centralized.
 3. Preserve compatibility aliases during transitional refactors.
 4. Keep smoke tests for loading + seeded generation.
@@ -46,8 +46,8 @@ Compared with one-file-per-key, domain-based files avoid sprawl while keeping re
 
 Treat `pytest -q tests/story_brief` as a required check for any change to:
 
-- `commuted_calligraphy/story_brief/generate_story_brief.py`
-- `commuted_calligraphy/story_brief/data/*.json`
+- `telegraphy/story_brief/generate_story_brief.py`
+- `telegraphy/story_brief/data/*.json`
 - story-brief test modules
 
 ### Test module boundaries
@@ -97,7 +97,7 @@ If adding only a few tests during a change window, prioritize:
 
 ### Project policy
 
-Store and validate versions in `commuted_calligraphy/story_brief/data/config.json`:
+Store and validate versions in `telegraphy/story_brief/data/config.json`:
 
 1. `schema_version` for structure compatibility.
 2. `dataset_version` for content snapshot/version identity.
@@ -111,7 +111,7 @@ Use Git history (and optional release tags) for file-level evolution.
 
 ### Optional enhancement
 
-Maintain a concise data changelog such as `commuted_calligraphy/story_brief/data/CHANGELOG.md` for human-readable release notes.
+Maintain a concise data changelog such as `telegraphy/story_brief/data/CHANGELOG.md` for human-readable release notes.
 
 ## 4) Maintainer workflow summary
 

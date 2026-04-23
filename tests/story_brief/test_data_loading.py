@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from commuted_calligraphy.story_brief import generate_story_brief as story_brief
+from telegraphy.story_brief import generate_story_brief as story_brief
 
 
 def _write_payload(path: Path, payload: object) -> None:

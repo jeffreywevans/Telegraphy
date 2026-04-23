@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "dataset_version": "2026.04.14",
+  "date_start": "1989-12-04",
+  "date_end": "2032-07-23",
+  "sexual_content_options": [
+    "none",
+    "if_creatively_merited",
+    "implied",
+    "required",
+    "central"
+  ],
+  "sexual_content_weights": [
+    0.6,
+    0.1,
+    0.1,
+    0.1,
+    0.1
+  ],
+  "sexual_scene_tag_groups": {
+    "location": [
+      "backstage",
+      "green-room",
+      "hotel-room",
+      "no-tell-motel",
+      "semi-public",
+      "shower",
+      "tour-bus"
+    ],
+    "pacing": [
+      "interrupted",
+      "languid",
+      "marathon",
+      "morning-after",
+      "post-show",
+      "quickie",
+      "rushed",
+      "slow-burn"
+    ],
+    "partner": [
+      "band-mate",
+      "ex",
+      "fan",
+      "groupie",
+      "married",
+      "mutual",
+      "roadie",
+      "voyeuristic"
+    ],
+    "tone": [
+      "detached",
+      "dominating",
+      "guilty",
+      "playful",
+      "power-exchange",
+      "taunting",
+      "teasing",
+      "worshipful"
+    ],
+    "type": [
+      "anal",
+      "awkward",
+      "clumsy",
+      "fun",
+      "mutual-masturbation",
+      "non-penetrative",
+      "oral-only",
+      "raw"
+    ]
+  },
+  "word_count_targets": [
+    3000,
+    4000,
+    5000,
+    6000,
+    6500,
+    7000,
+    8000
+  ],
+  "ordered_keys": [
+    "title",
+    "protagonist",
+    "secondary_character",
+    "time_period",
+    "setting",
+    "weather",
+    "central_conflict",
+    "inciting_pressure",
+    "ending_type",
+    "style_guidance",
+    "sexual_content_level",
+    "sexual_partner",
+    "sexual_scene_tags",
+    "word_count_target"
+  ],
+  "writing_preamble": "Interpret the YAML and write a deliciously wild short story, based on the material. You may indulge yourself in every regard. Use the canon, and writing style guidelines. Before writing the final story, use your writing style-book guidelines: 1. Scene headers use slug format. 2. Dialogue appears only in CHARACTER NAME blocks. 3. No dialogue appears inside prose paragraphs. 4. Character names in dialogue blocks are ALL CAPS."
+}

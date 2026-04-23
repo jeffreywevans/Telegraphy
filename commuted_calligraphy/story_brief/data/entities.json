@@ -1,0 +1,1246 @@
+{
+  "character_availability": [
+    [
+      "Avril Lavigne",
+      "2024-01-01",
+      "2032-07-23"
+    ],
+    [
+      "Bill Davenport",
+      "1989-12-01",
+      "2032-07-23"
+    ],
+    [
+      "Cremeans",
+      "1989-12-01",
+      "2032-07-23"
+    ],
+    [
+      "Gilley",
+      "1989-12-01",
+      "2019-12-01"
+    ],
+    [
+      "Jeff Evans",
+      "1989-12-01",
+      "2032-07-23"
+    ],
+    [
+      "Jeremy Evans",
+      "1989-12-01",
+      "2032-07-23"
+    ],
+    [
+      "Jim Brown",
+      "1989-12-01",
+      "2032-07-23"
+    ],
+    [
+      "Kathy Espich",
+      "1989-12-01",
+      "2011-12-31"
+    ],
+    [
+      "Kendall Weatherby",
+      "1998-04-06",
+      "2032-07-23"
+    ],
+    [
+      "Madeline Quinlan",
+      "2024-01-08",
+      "2032-07-23"
+    ],
+    [
+      "Sarah Malcolm",
+      "1992-01-04",
+      "2024-08-01"
+    ]
+  ],
+  "setting_availability": [
+    [
+      "Alamodome – San Antonio, TX, USA",
+      "1995-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Allegiant Stadium – Las Vegas, NV, USA",
+      "2020-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Allstate Arena – Rosemont, IL, USA",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Ameris Bank Amphitheatre – Alpharetta, GA, USA",
+      "2008-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Ann Arbor, MI, USA",
+      "1989-12-04",
+      "1992-12-31"
+    ],
+    [
+      "Astrodome – Houston, TX, USA",
+      "1995-01-01",
+      "2008-12-31"
+    ],
+    [
+      "AT&T Stadium – Arlington, TX, USA",
+      "2009-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Athens, OH, USA",
+      "1989-12-04",
+      "1992-12-31"
+    ],
+    [
+      "Atlanta, GA, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Austin, TX, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Ball Arena – Denver, CO, USA",
+      "1999-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Baltimore, MD, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "BankNH Pavilion – Gilford, NH, USA",
+      "1996-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Barclays Center – Brooklyn, NY, USA",
+      "2012-01-01",
+      "2032-12-31"
+    ],
+    [
+      "BC Place – Vancouver, BC, Canada",
+      "1995-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Bell Centre – Montreal, QC, Canada",
+      "1996-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Bellefontaine, OH, USA",
+      "1989-12-04",
+      "1992-12-31"
+    ],
+    [
+      "Birmingham, AL, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Blossom Music Center – Cuyahoga Falls, OH, USA",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Bojangles Coliseum – Charlotte, NC, USA",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "BOK Center – Tulsa, OK, USA",
+      "2008-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Bon Secours Wellness Arena – Greenville, SC, USA",
+      "1998-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Boston, MA, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Bridgestone Arena – Nashville, TN, USA",
+      "1996-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Bryce Jordan Center – University Park, PA, USA",
+      "1996-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Budweiser Gardens – London, ON, Canada",
+      "2002-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Budweiser Stage – Toronto, ON, Canada",
+      "1995-01-01",
+      "2027-12-31"
+    ],
+    [
+      "Buffalo Memorial Auditorium – Buffalo, NY, USA",
+      "1993-01-01",
+      "1996-12-31"
+    ],
+    [
+      "Buffalo, NY, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Cajundome – Lafayette, LA, USA",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "California Memorial Stadium – Berkeley, CA, USA",
+      "1995-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Camping World Stadium – Orlando, FL, USA",
+      "1995-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Canada Life Centre – Winnipeg, MB, Canada",
+      "2004-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Canadian Tire Centre – Ottawa, ON, Canada",
+      "1996-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Capital Centre – Landover, MD, USA",
+      "1993-01-01",
+      "2002-12-31"
+    ],
+    [
+      "Capital One Arena – Washington, DC, USA",
+      "1997-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Celina, OH, USA",
+      "1989-12-04",
+      "1992-12-31"
+    ],
+    [
+      "Centre Vidéotron – Québec City, QC, Canada",
+      "2015-01-01",
+      "2032-12-31"
+    ],
+    [
+      "CFG Bank Arena – Baltimore, MD, USA",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Charlotte, NC, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Chase Center – San Francisco, CA, USA",
+      "2019-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Chicago, IL, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Chillicothe, OH, USA",
+      "1989-12-04",
+      "1992-12-31"
+    ],
+    [
+      "Cincinnati, OH, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Cleveland Municipal Stadium – Cleveland, OH, USA",
+      "1995-01-01",
+      "1995-12-31"
+    ],
+    [
+      "Cleveland, OH, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Climate Pledge Arena – Seattle, WA, USA",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Coastal Credit Union Music Park – Raleigh, NC, USA",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Colisée de Québec – Québec City, QC, Canada",
+      "1993-01-01",
+      "2015-12-31"
+    ],
+    [
+      "Colonial Life Arena – Columbia, SC, USA",
+      "2002-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Columbus, OH, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Commonwealth Stadium – Edmonton, AB, Canada",
+      "1995-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Cotton Bowl – Dallas, TX, USA",
+      "1995-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Cow Palace – Daly City, CA, USA",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Dallas, TX, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Dayton, OH, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "DCU Center – Worcester, MA, USA",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Delta Center – Salt Lake City, UT, USA",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Denver, CO, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Desert Diamond Arena – Glendale, AZ, USA",
+      "2003-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Detroit, MI, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Dodger Stadium – Los Angeles, CA, USA",
+      "1995-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Empower Field at Mile High – Denver, CO, USA",
+      "2001-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Enterprise Center – St. Louis, MO, USA",
+      "1994-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Exhibition Stadium – Toronto, ON, Canada",
+      "1995-01-01",
+      "1996-12-31"
+    ],
+    [
+      "Fairfield, OH, USA",
+      "1989-12-04",
+      "1992-12-31"
+    ],
+    [
+      "FedExForum – Memphis, TN, USA",
+      "2004-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Fenway Park – Boston, MA, USA",
+      "1995-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Fiddler’s Green Amphitheatre – Greenwood Village, CO, USA",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Findlay, OH, USA",
+      "1989-12-04",
+      "1992-12-31"
+    ],
+    [
+      "Fiserv Forum – Milwaukee, WI, USA",
+      "2018-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Florence, KY, USA",
+      "1989-12-04",
+      "1992-12-31"
+    ],
+    [
+      "Folsom Field – Boulder, CO, USA",
+      "1995-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Ford Field – Detroit, MI, USA",
+      "2002-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Fresno, CA, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Gainbridge Fieldhouse – Indianapolis, IN, USA",
+      "1999-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Giant Center – Hershey, PA, USA",
+      "2002-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Giants Stadium – East Rutherford, NJ, USA",
+      "1995-01-01",
+      "2010-12-31"
+    ],
+    [
+      "Golden 1 Center – Sacramento, CA, USA",
+      "2016-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Grand Rapids, MI, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Greensboro Coliseum – Greensboro, NC, USA",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Hamilton, OH, USA",
+      "1989-12-04",
+      "1992-12-31"
+    ],
+    [
+      "Hampton Coliseum – Hampton, VA, USA",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Hard Rock Stadium – Miami Gardens, FL, USA",
+      "1995-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Hartford, CT, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Heritage Bank Center – Cincinnati, OH, USA",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Hollywood Bowl – Los Angeles, CA, USA",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Hollywood Casino Amphitheatre – Maryland Heights, MO, USA",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Houston, TX, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Hubert H. Humphrey Metrodome – Minneapolis, MN, USA",
+      "1995-01-01",
+      "2013-12-31"
+    ],
+    [
+      "Husky Stadium – Seattle, WA, USA",
+      "1995-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Indianapolis, IN, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Jacksonville, FL, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Kansas City, MO, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Kent, OH, USA",
+      "1989-12-04",
+      "1992-12-31"
+    ],
+    [
+      "KeyBank Center – Buffalo, NY, USA",
+      "1996-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Kia Forum – Inglewood, CA, USA",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Lakewood Amphitheatre – Atlanta, GA, USA",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Las Vegas, NV, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Legacy Arena – Birmingham, AL, USA",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Lenovo Center – Raleigh, NC, USA",
+      "1999-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Levi’s Stadium – Santa Clara, CA, USA",
+      "2014-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Lima, OH, USA",
+      "1989-12-04",
+      "1992-12-31"
+    ],
+    [
+      "Little Caesars Arena – Detroit, MI, USA",
+      "2017-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Los Angeles Memorial Coliseum – Los Angeles, CA, USA",
+      "1995-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Los Angeles, CA, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Louisville, KY, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Lumen Field – Seattle, WA, USA",
+      "2002-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Madison Square Garden – New York, NY, USA",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Maple Leaf Gardens – Toronto, ON, Canada",
+      "1993-01-01",
+      "1999-12-31"
+    ],
+    [
+      "Marysville, OH, USA",
+      "1989-12-04",
+      "1992-12-31"
+    ],
+    [
+      "Mason, OH, USA",
+      "1989-12-04",
+      "1992-12-31"
+    ],
+    [
+      "Memphis, TN, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Mercedes-Benz Stadium – Atlanta, GA, USA",
+      "2017-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Merriweather Post Pavilion – Columbia, MD, USA",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "MetLife Stadium – East Rutherford, NJ, USA",
+      "2010-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Miami, FL, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Middletown, OH, USA",
+      "1989-12-04",
+      "1992-12-31"
+    ],
+    [
+      "Milwaukee, WI, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Minneapolis, MN, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Mississippi Coast Coliseum – Biloxi, MS, USA",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Moda Center – Portland, OR, USA",
+      "1995-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Mohegan Sun Arena – Uncasville, CT, USA",
+      "2001-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Montgomery, OH, USA",
+      "1989-12-04",
+      "1992-12-31"
+    ],
+    [
+      "Montreal Forum – Montreal, QC, Canada",
+      "1993-01-01",
+      "1996-12-31"
+    ],
+    [
+      "Nashville, TN, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "New Carlisle, OH, USA",
+      "1989-12-04",
+      "1992-12-31"
+    ],
+    [
+      "New York, NY, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Norfolk Scope – Norfolk, VA, USA",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "North Island Credit Union Amphitheatre – Chula Vista, CA, USA",
+      "1998-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Northlands Coliseum – Edmonton, AB, Canada",
+      "1993-01-01",
+      "2018-12-31"
+    ],
+    [
+      "NRG Stadium – Houston, TX, USA",
+      "2002-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Nutter Center – Dayton, OH, USA",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Oak Mountain Amphitheatre – Pelham, AL, USA",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Oakland Arena – Oakland, CA, USA",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Oakland Coliseum – Oakland, CA, USA",
+      "1995-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Oklahoma City, OK, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Olympic Stadium – Montreal, QC, Canada",
+      "1995-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Oracle Park – San Francisco, CA, USA",
+      "2000-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Orange Bowl – Miami, FL, USA",
+      "1995-01-01",
+      "2008-12-31"
+    ],
+    [
+      "Orlando, FL, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Over-the-Rhine, OH, USA",
+      "1999-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Pacific Coliseum – Vancouver, BC, Canada",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Pechanga Arena – San Diego, CA, USA",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Philadelphia, PA, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Phoenix, AZ, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "PHX Arena – Phoenix, AZ, USA",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Pine Knob Music Theatre – Clarkston, MI, USA",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Pinnacle Bank Arena – Lincoln, NE, USA",
+      "2013-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Piqua, OH, USA",
+      "1989-12-04",
+      "1992-12-31"
+    ],
+    [
+      "Pittsburgh, PA, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "PNC Bank Arts Center – Holmdel, NJ, USA",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "PNC Music Pavilion – Charlotte, NC, USA",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Pontiac Silverdome – Pontiac, MI, USA",
+      "1995-01-01",
+      "2013-12-31"
+    ],
+    [
+      "Port Clinton, OH, USA",
+      "1989-12-04",
+      "1992-12-31"
+    ],
+    [
+      "Portland, OR, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Powell, OH, USA",
+      "1989-12-04",
+      "1992-12-31"
+    ],
+    [
+      "PPL Center – Allentown, PA, USA",
+      "2014-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Providence, RI, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Prudential Center – Newark, NJ, USA",
+      "2007-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Raleigh, NC, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Red Rocks Amphitheatre – Morrison, CO, USA",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Reunion Arena – Dallas, TX, USA",
+      "1993-01-01",
+      "2008-12-31"
+    ],
+    [
+      "RFK Stadium – Washington, DC, USA",
+      "1995-01-01",
+      "2019-12-31"
+    ],
+    [
+      "Richfield Coliseum – Richfield, OH, USA",
+      "1993-01-01",
+      "1994-12-31"
+    ],
+    [
+      "Richmond, IN, USA",
+      "1989-12-04",
+      "1992-12-31"
+    ],
+    [
+      "Richmond, VA, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Riverbend Music Center – Cincinnati, OH, USA",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Riverside, CA, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Rochester, NY, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Rocket Arena – Cleveland, OH, USA",
+      "1994-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Rogers Arena – Vancouver, BC, Canada",
+      "1995-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Rogers Centre – Toronto, ON, Canada",
+      "1995-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Rogers Place – Edmonton, AB, Canada",
+      "2016-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Rose Bowl – Pasadena, CA, USA",
+      "1995-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Sacramento, CA, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Salt Lake City, UT, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Sam Boyd Stadium – Whitney, NV, USA",
+      "1995-01-01",
+      "2020-12-31"
+    ],
+    [
+      "San Antonio, TX, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "San Diego Stadium – San Diego, CA, USA",
+      "1995-01-01",
+      "2020-12-31"
+    ],
+    [
+      "San Diego, CA, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "San Francisco, CA, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "San Jose, CA, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Sandusky, OH, USA",
+      "1989-12-04",
+      "1992-12-31"
+    ],
+    [
+      "SaskTel Centre – Saskatoon, SK, Canada",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Scotiabank Arena – Toronto, ON, Canada",
+      "1999-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Scotiabank Saddledome – Calgary, AB, Canada",
+      "1993-01-01",
+      "2027-12-31"
+    ],
+    [
+      "Seattle Kingdome – Seattle, WA, USA",
+      "1995-01-01",
+      "2000-12-31"
+    ],
+    [
+      "Seattle, WA, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Shea Stadium – Queens, NY, USA",
+      "1995-01-01",
+      "2008-12-31"
+    ],
+    [
+      "Shoreline Amphitheatre – Mountain View, CA, USA",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Sidney, OH, USA",
+      "1989-12-04",
+      "1992-12-31"
+    ],
+    [
+      "Smoothie King Center – New Orleans, LA, USA",
+      "1999-01-01",
+      "2032-12-31"
+    ],
+    [
+      "SoFi Stadium – Inglewood, CA, USA",
+      "2020-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Soldier Field – Chicago, IL, USA",
+      "1995-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Springfield, OH, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "St. Louis, MO, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Stanford Stadium – Stanford, CA, USA",
+      "1995-01-01",
+      "2032-12-31"
+    ],
+    [
+      "State Farm Arena – Atlanta, GA, USA",
+      "1999-01-01",
+      "2032-12-31"
+    ],
+    [
+      "State Farm Stadium – Glendale, AZ, USA",
+      "2006-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Sun Devil Stadium – Tempe, AZ, USA",
+      "1995-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Superdome – New Orleans, LA, USA",
+      "1995-01-01",
+      "2032-12-31"
+    ],
+    [
+      "T-Mobile Arena – Las Vegas, NV, USA",
+      "2016-01-01",
+      "2032-12-31"
+    ],
+    [
+      "T-Mobile Center – Kansas City, MO, USA",
+      "2007-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Tacoma Dome – Tacoma, WA, USA",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Tampa, FL, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Target Center – Minneapolis, MN, USA",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "TD Garden – Boston, MA, USA",
+      "1995-01-01",
+      "2032-12-31"
+    ],
+    [
+      "The Omni – Atlanta, GA, USA",
+      "1993-01-01",
+      "1997-12-31"
+    ],
+    [
+      "The Spectrum – Philadelphia, PA, USA",
+      "1993-01-01",
+      "2009-12-31"
+    ],
+    [
+      "Thompson–Boling Arena – Knoxville, TN, USA",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Three Rivers Stadium – Pittsburgh, PA, USA",
+      "1995-01-01",
+      "2000-12-31"
+    ],
+    [
+      "Tipp City, OH, USA",
+      "1989-12-04",
+      "1992-12-31"
+    ],
+    [
+      "Toledo, OH, USA",
+      "1989-12-04",
+      "1992-12-31"
+    ],
+    [
+      "Troy, OH, USA",
+      "1989-12-04",
+      "1992-12-31"
+    ],
+    [
+      "Tucson, AZ, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Tulsa, OK, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "U.S. Bank Stadium – Minneapolis, MN, USA",
+      "2016-01-01",
+      "2032-12-31"
+    ],
+    [
+      "UBS Arena – Elmont, NY, USA",
+      "2021-01-01",
+      "2032-12-31"
+    ],
+    [
+      "United Center – Chicago, IL, USA",
+      "1994-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Utah First Credit Union Amphitheatre – West Valley City, UT, USA",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Vandalia, OH, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Veterans Stadium – Philadelphia, PA, USA",
+      "1995-01-01",
+      "2003-12-31"
+    ],
+    [
+      "Virginia Beach, VA, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "VyStar Veterans Memorial Arena – Jacksonville, FL, USA",
+      "2003-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Wapakoneta, OH, USA",
+      "1989-12-04",
+      "1992-12-31"
+    ],
+    [
+      "Washington Court House, OH, USA",
+      "1989-12-04",
+      "1992-12-31"
+    ],
+    [
+      "Washington, DC, USA",
+      "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Wells Fargo Center – Philadelphia, PA, USA",
+      "1996-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Wheeling, WV, USA",
+      "1989-12-04",
+      "1992-12-31"
+    ],
+    [
+      "Winnipeg Arena – Winnipeg, MB, Canada",
+      "1993-01-01",
+      "2004-12-31"
+    ],
+    [
+      "Wooster, OH, USA",
+      "1989-12-04",
+      "1992-12-31"
+    ],
+    [
+      "Wrigley Field – Chicago, IL, USA",
+      "1995-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Xcel Energy Center – St. Paul, MN, USA",
+      "2000-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Xfinity Center – Mansfield, MA, USA",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Yankee Stadium – Bronx, NY, USA",
+      "2009-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Zanesville, OH, USA",
+      "1989-12-04",
+      "1992-12-31"
+    ]
+  ]
+}

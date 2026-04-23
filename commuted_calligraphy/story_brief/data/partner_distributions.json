@@ -1,0 +1,711 @@
+{
+  "schema_version": 1,
+  "dataset_version": "2026.04.14",
+  "date_start": "1989-12-04",
+  "date_end": "2032-07-23",
+  "model_definition": "Default partner distribution within the narrated canon window.",
+  "counting_policy": [
+    "Percentages model baseline partner distribution, not every singular event.",
+    "One-off exceptions may be canon without changing baseline weights.",
+    "Planned but unwritten canon events are excluded.",
+    "Post-story developments may be excluded even if later canon references exist.",
+    "An empty partners array means 0% counted partner activity within the modeled canon window."
+  ],
+  "placeholder_partner_keys": {
+    "third_party_male": "Unnamed or non-canonical male partner(s).",
+    "third_party_female": "Unnamed or non-canonical female partner(s).",
+    "lower_profile_female_celebrity": "Lower profile female celebrity partner(s), unnamed at this level.",
+    "lower_profile_celebrity": "Lower profile celebrity partner(s), gender unspecified at this level."
+  },
+  "partner_distributions": [
+    {
+      "character": "Avril Lavigne",
+      "date_start": "2024-01-01",
+      "date_end": "2032-07-23",
+      "eras": [
+        {
+          "date_start": "2024-01-01",
+          "date_end": "2026-12-31",
+          "partners": [
+            {
+              "partner": "third_party_male",
+              "weight": 0.8
+            },
+            {
+              "partner": "Jeff Evans",
+              "weight": 0.2
+            }
+          ]
+        },
+        {
+          "date_start": "2027-01-01",
+          "date_end": "2032-07-23",
+          "partners": [
+            {
+              "partner": "third_party_male",
+              "weight": 1.0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "character": "Bill Davenport",
+      "date_start": "1989-12-04",
+      "date_end": "2032-07-23",
+      "eras": [
+        {
+          "date_start": "1989-12-04",
+          "date_end": "2032-07-23",
+          "partners": [
+            {
+              "partner": "third_party_female",
+              "weight": 0.85
+            },
+            {
+              "partner": "third_party_male",
+              "weight": 0.1
+            },
+            {
+              "partner": "Jeremy Evans",
+              "weight": 0.05
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "character": "Cremeans",
+      "date_start": "1989-12-04",
+      "date_end": "2032-07-23",
+      "eras": [
+        {
+          "date_start": "1994-07-24",
+          "date_end": "2021-05-23",
+          "partners": [
+            {
+              "partner": "Jen Cremeans",
+              "weight": 1.0
+            }
+          ]
+        },
+        {
+          "date_start": "2021-05-24",
+          "date_end": "2032-07-23",
+          "partners": []
+        }
+      ]
+    },
+    {
+      "character": "Gilley",
+      "date_start": "1989-12-04",
+      "date_end": "2019-12-01",
+      "eras": [
+        {
+          "date_start": "1989-12-04",
+          "date_end": "1992-12-31",
+          "partners": [
+            {
+              "partner": "third_party_female",
+              "weight": 0.7
+            },
+            {
+              "partner": "Kathy Espich",
+              "weight": 0.3
+            }
+          ]
+        },
+        {
+          "date_start": "1993-01-01",
+          "date_end": "2000-12-31",
+          "partners": [
+            {
+              "partner": "third_party_female",
+              "weight": 0.6
+            },
+            {
+              "partner": "Sarah Malcolm",
+              "weight": 0.25
+            },
+            {
+              "partner": "lower_profile_female_celebrity",
+              "weight": 0.1
+            },
+            {
+              "partner": "Kathy Espich",
+              "weight": 0.05
+            }
+          ]
+        },
+        {
+          "date_start": "2001-01-01",
+          "date_end": "2012-12-31",
+          "partners": [
+            {
+              "partner": "third_party_female",
+              "weight": 0.6
+            },
+            {
+              "partner": "Sarah Malcolm",
+              "weight": 0.25
+            },
+            {
+              "partner": "lower_profile_female_celebrity",
+              "weight": 0.15
+            }
+          ]
+        },
+        {
+          "date_start": "2013-01-01",
+          "date_end": "2019-12-01",
+          "partners": [
+            {
+              "partner": "third_party_female",
+              "weight": 0.5
+            },
+            {
+              "partner": "Sarah Malcolm",
+              "weight": 0.3
+            },
+            {
+              "partner": "lower_profile_female_celebrity",
+              "weight": 0.2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "character": "Jeff Evans",
+      "date_start": "1989-12-04",
+      "date_end": "2032-07-23",
+      "eras": [
+        {
+          "date_start": "1989-12-04",
+          "date_end": "1992-12-31",
+          "partners": [
+            {
+              "partner": "Kathy Espich",
+              "weight": 0.5
+            },
+            {
+              "partner": "third_party_female",
+              "weight": 0.5
+            }
+          ]
+        },
+        {
+          "date_start": "1993-01-01",
+          "date_end": "1994-12-31",
+          "partners": [
+            {
+              "partner": "Kathy Espich",
+              "weight": 0.5
+            },
+            {
+              "partner": "Dawn",
+              "weight": 0.2
+            },
+            {
+              "partner": "third_party_female",
+              "weight": 0.2
+            },
+            {
+              "partner": "Ha-Yoon",
+              "weight": 0.1
+            }
+          ]
+        },
+        {
+          "date_start": "1995-01-01",
+          "date_end": "2007-12-31",
+          "partners": [
+            {
+              "partner": "Nettie Barrow",
+              "weight": 0.4
+            },
+            {
+              "partner": "Kathy Espich",
+              "weight": 0.4
+            },
+            {
+              "partner": "third_party_female",
+              "weight": 0.2
+            }
+          ]
+        },
+        {
+          "date_start": "2008-01-01",
+          "date_end": "2009-12-31",
+          "partners": [
+            {
+              "partner": "Kathy Espich",
+              "weight": 0.8
+            },
+            {
+              "partner": "third_party_female",
+              "weight": 0.1
+            },
+            {
+              "partner": "lower_profile_female_celebrity",
+              "weight": 0.1
+            }
+          ]
+        },
+        {
+          "date_start": "2010-01-01",
+          "date_end": "2010-12-31",
+          "partners": [
+            {
+              "partner": "Sherry Greene",
+              "weight": 1.0
+            }
+          ]
+        },
+        {
+          "date_start": "2011-01-01",
+          "date_end": "2011-05-06",
+          "partners": [
+            {
+              "partner": "Sherry Greene",
+              "weight": 1.0
+            }
+          ]
+        },
+        {
+          "date_start": "2011-05-07",
+          "date_end": "2011-12-31",
+          "partners": [
+            {
+              "partner": "Sherry Greene",
+              "weight": 0.2
+            },
+            {
+              "partner": "Kathy Espich",
+              "weight": 0.4
+            },
+            {
+              "partner": "Jodi Dearth",
+              "weight": 0.4
+            }
+          ]
+        },
+        {
+          "date_start": "2012-01-01",
+          "date_end": "2012-12-31",
+          "partners": [
+            {
+              "partner": "Kathy Espich",
+              "weight": 0.5
+            },
+            {
+              "partner": "Jodi Dearth",
+              "weight": 0.5
+            }
+          ]
+        },
+        {
+          "date_start": "2013-01-01",
+          "date_end": "2020-12-31",
+          "partners": [
+            {
+              "partner": "third_party_female",
+              "weight": 0.5
+            },
+            {
+              "partner": "Jodi Dearth",
+              "weight": 0.2
+            },
+            {
+              "partner": "lower_profile_female_celebrity",
+              "weight": 0.3
+            }
+          ]
+        },
+        {
+          "date_start": "2021-01-01",
+          "date_end": "2024-12-31",
+          "partners": [
+            {
+              "partner": "third_party_female",
+              "weight": 0.8
+            },
+            {
+              "partner": "Jodi Dearth",
+              "weight": 0.1
+            },
+            {
+              "partner": "lower_profile_female_celebrity",
+              "weight": 0.1
+            }
+          ]
+        },
+        {
+          "date_start": "2025-01-01",
+          "date_end": "2026-12-31",
+          "partners": [
+            {
+              "partner": "third_party_female",
+              "weight": 0.4
+            },
+            {
+              "partner": "Jodi Dearth",
+              "weight": 0.2
+            },
+            {
+              "partner": "lower_profile_female_celebrity",
+              "weight": 0.3
+            },
+            {
+              "partner": "Avril Lavigne",
+              "weight": 0.1
+            }
+          ]
+        },
+        {
+          "date_start": "2027-01-01",
+          "date_end": "2032-07-23",
+          "partners": [
+            {
+              "partner": "third_party_female",
+              "weight": 0.5
+            },
+            {
+              "partner": "lower_profile_female_celebrity",
+              "weight": 0.3
+            },
+            {
+              "partner": "Jodi Dearth",
+              "weight": 0.2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "character": "Jeremy Evans",
+      "date_start": "1989-12-04",
+      "date_end": "2032-07-23",
+      "eras": [
+        {
+          "date_start": "1989-12-04",
+          "date_end": "1990-12-31",
+          "partners": []
+        },
+        {
+          "date_start": "1991-01-01",
+          "date_end": "1993-12-31",
+          "partners": [
+            {
+              "partner": "Devon Evans",
+              "weight": 0.7
+            },
+            {
+              "partner": "third_party_female",
+              "weight": 0.3
+            }
+          ]
+        },
+        {
+          "date_start": "1994-01-01",
+          "date_end": "1996-12-31",
+          "partners": [
+            {
+              "partner": "third_party_female",
+              "weight": 1.0
+            }
+          ]
+        },
+        {
+          "date_start": "1997-01-01",
+          "date_end": "2025-12-31",
+          "partners": [
+            {
+              "partner": "Charlotte Evans",
+              "weight": 0.85
+            },
+            {
+              "partner": "third_party_female",
+              "weight": 0.15
+            }
+          ]
+        },
+        {
+          "date_start": "2026-01-01",
+          "date_end": "2032-07-23",
+          "partners": [
+            {
+              "partner": "third_party_female",
+              "weight": 1.0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "character": "Jim Brown",
+      "date_start": "1989-12-04",
+      "date_end": "2032-07-23",
+      "eras": [
+        {
+          "date_start": "1989-12-04",
+          "date_end": "1997-12-31",
+          "partners": [
+            {
+              "partner": "third_party_female",
+              "weight": 1.0
+            }
+          ]
+        },
+        {
+          "date_start": "1998-01-01",
+          "date_end": "2032-07-23",
+          "partners": [
+            {
+              "partner": "Kendall Weatherby",
+              "weight": 0.85
+            },
+            {
+              "partner": "third_party_female",
+              "weight": 0.15
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "character": "Kathy Espich",
+      "date_start": "1989-12-04",
+      "date_end": "2011-12-31",
+      "eras": [
+        {
+          "date_start": "1989-12-04",
+          "date_end": "1992-12-31",
+          "partners": [
+            {
+              "partner": "Gilley",
+              "weight": 0.5
+            },
+            {
+              "partner": "Jeff Evans",
+              "weight": 0.2
+            },
+            {
+              "partner": "third_party_male",
+              "weight": 0.3
+            }
+          ]
+        },
+        {
+          "date_start": "1993-01-01",
+          "date_end": "1997-12-31",
+          "partners": [
+            {
+              "partner": "Jeff Evans",
+              "weight": 0.5
+            },
+            {
+              "partner": "third_party_male",
+              "weight": 0.5
+            }
+          ]
+        },
+        {
+          "date_start": "1998-01-01",
+          "date_end": "2003-12-31",
+          "partners": [
+            {
+              "partner": "third_party_female",
+              "weight": 0.5
+            },
+            {
+              "partner": "Jeff Evans",
+              "weight": 0.3
+            },
+            {
+              "partner": "third_party_male",
+              "weight": 0.2
+            }
+          ]
+        },
+        {
+          "date_start": "2004-01-01",
+          "date_end": "2009-12-31",
+          "partners": [
+            {
+              "partner": "third_party_female",
+              "weight": 0.3
+            },
+            {
+              "partner": "third_party_male",
+              "weight": 0.3
+            },
+            {
+              "partner": "Jeff Evans",
+              "weight": 0.3
+            },
+            {
+              "partner": "lower_profile_celebrity",
+              "weight": 0.1
+            }
+          ]
+        },
+        {
+          "date_start": "2010-01-01",
+          "date_end": "2011-12-31",
+          "partners": [
+            {
+              "partner": "Jeff Evans",
+              "weight": 0.5
+            },
+            {
+              "partner": "third_party_male",
+              "weight": 0.3
+            },
+            {
+              "partner": "third_party_female",
+              "weight": 0.1
+            },
+            {
+              "partner": "lower_profile_celebrity",
+              "weight": 0.1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "character": "Kendall Weatherby",
+      "date_start": "1998-04-06",
+      "date_end": "2032-07-23",
+      "eras": [
+        {
+          "date_start": "1998-04-06",
+          "date_end": "2016-12-31",
+          "partners": [
+            {
+              "partner": "Jim Brown",
+              "weight": 0.8
+            },
+            {
+              "partner": "third_party_male",
+              "weight": 0.2
+            }
+          ]
+        },
+        {
+          "date_start": "2017-01-01",
+          "date_end": "2024-12-31",
+          "partners": [
+            {
+              "partner": "Jim Brown",
+              "weight": 1.0
+            }
+          ]
+        },
+        {
+          "date_start": "2025-01-01",
+          "date_end": "2032-07-23",
+          "partners": [
+            {
+              "partner": "Jim Brown",
+              "weight": 0.8
+            },
+            {
+              "partner": "third_party_male",
+              "weight": 0.2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "character": "Madeline Quinlan",
+      "date_start": "2024-01-08",
+      "date_end": "2032-07-23",
+      "eras": [
+        {
+          "date_start": "2024-01-08",
+          "date_end": "2032-07-23",
+          "partners": [
+            {
+              "partner": "third_party_male",
+              "weight": 0.5
+            },
+            {
+              "partner": "third_party_female",
+              "weight": 0.5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "character": "Sarah Malcolm",
+      "date_start": "1992-01-04",
+      "date_end": "2024-08-01",
+      "eras": [
+        {
+          "date_start": "1992-01-04",
+          "date_end": "1995-12-31",
+          "partners": [
+            {
+              "partner": "Gilley",
+              "weight": 0.7
+            },
+            {
+              "partner": "third_party_male",
+              "weight": 0.2
+            },
+            {
+              "partner": "Michael",
+              "weight": 0.1
+            }
+          ]
+        },
+        {
+          "date_start": "1996-01-01",
+          "date_end": "2019-12-31",
+          "partners": [
+            {
+              "partner": "Gilley",
+              "weight": 0.7
+            },
+            {
+              "partner": "third_party_male",
+              "weight": 0.2
+            },
+            {
+              "partner": "Michael",
+              "weight": 0.1
+            }
+          ]
+        },
+        {
+          "date_start": "2020-01-01",
+          "date_end": "2023-12-31",
+          "partners": [
+            {
+              "partner": "Michael",
+              "weight": 0.8
+            },
+            {
+              "partner": "third_party_male",
+              "weight": 0.2
+            }
+          ]
+        },
+        {
+          "date_start": "2024-01-01",
+          "date_end": "2024-08-01",
+          "partners": [
+            {
+              "partner": "Michael",
+              "weight": 1.0
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -8,6 +8,20 @@ on:
 permissions:
   contents: read
 jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - name: Setup Python
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -e .[dev]
+      - name: Run tests
+        run: pytest
+
   sonarqube:
     name: SonarQube
     runs-on: ubuntu-latest

@@ -15,25 +15,24 @@ import pytest
 
 from commuted_calligraphy.story_brief import generate_story_brief as story_brief
 
-_CONFIG_FILENAME = "config.json"
 _STORY_DATASET_FILES = (
-    "titles.json",
-    "entities.json",
-    "prompts.json",
-    _CONFIG_FILENAME,
-    "partner_distributions.json",
+    story_brief.TITLES_FILENAME,
+    story_brief.ENTITIES_FILENAME,
+    story_brief.PROMPTS_FILENAME,
+    story_brief.CONFIG_FILENAME,
+    story_brief.PARTNER_DISTRIBUTIONS_FILENAME,
 )
 
 
 @lru_cache(maxsize=1)
 def _load_story_dataset_payloads() -> dict[str, dict[str, Any]]:
     return {
-        "titles": json.loads(story_brief._data_file("titles.json").read_text(encoding="utf-8")),
-        "entities": json.loads(story_brief._data_file("entities.json").read_text(encoding="utf-8")),
-        "prompts": json.loads(story_brief._data_file("prompts.json").read_text(encoding="utf-8")),
-        "config": json.loads(story_brief._data_file(_CONFIG_FILENAME).read_text(encoding="utf-8")),
-        "partner_distributions": json.loads(
-            story_brief._data_file("partner_distributions.json").read_text(encoding="utf-8")
+        "titles": story_brief._load_json(story_brief._data_file(story_brief.TITLES_FILENAME)),
+        "entities": story_brief._load_json(story_brief._data_file(story_brief.ENTITIES_FILENAME)),
+        "prompts": story_brief._load_json(story_brief._data_file(story_brief.PROMPTS_FILENAME)),
+        "config": story_brief._load_json(story_brief._data_file(story_brief.CONFIG_FILENAME)),
+        "partner_distributions": story_brief._load_json(
+            story_brief._data_file(story_brief.PARTNER_DISTRIBUTIONS_FILENAME)
         ),
     }
 
@@ -107,7 +106,7 @@ def partner_payload_factory() -> Callable[..., dict[str, Any]]:
 @pytest.fixture
 def source_story_data_dir() -> Path:
     """Canonical story dataset directory used by CLI/data tests."""
-    return story_brief._data_file(_CONFIG_FILENAME).parent
+    return story_brief._data_file(story_brief.CONFIG_FILENAME).parent
 
 
 def clone_story_dataset(destination: Path, *, source_story_data_dir: Path) -> Path:

@@ -15,25 +15,14 @@ import pytest
 
 from commuted_calligraphy.story_brief import generate_story_brief as story_brief
 
-_STORY_DATASET_FILES = (
-    story_brief.TITLES_FILENAME,
-    story_brief.ENTITIES_FILENAME,
-    story_brief.PROMPTS_FILENAME,
-    story_brief.CONFIG_FILENAME,
-    story_brief.PARTNER_DISTRIBUTIONS_FILENAME,
-)
+_STORY_DATASET_FILES = tuple(story_brief.STORY_DATASET_FILES.values())
 
 
 @lru_cache(maxsize=1)
 def _load_story_dataset_payloads() -> dict[str, dict[str, Any]]:
     return {
-        "titles": story_brief._load_json(story_brief._data_file(story_brief.TITLES_FILENAME)),
-        "entities": story_brief._load_json(story_brief._data_file(story_brief.ENTITIES_FILENAME)),
-        "prompts": story_brief._load_json(story_brief._data_file(story_brief.PROMPTS_FILENAME)),
-        "config": story_brief._load_json(story_brief._data_file(story_brief.CONFIG_FILENAME)),
-        "partner_distributions": story_brief._load_json(
-            story_brief._data_file(story_brief.PARTNER_DISTRIBUTIONS_FILENAME)
-        ),
+        key: story_brief._load_json(story_brief._data_file(filename))
+        for key, filename in story_brief.STORY_DATASET_FILES.items()
     }
 
 

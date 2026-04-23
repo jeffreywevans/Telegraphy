@@ -73,6 +73,13 @@ ENTITIES_FILENAME = "entities.json"
 PROMPTS_FILENAME = "prompts.json"
 CONFIG_FILENAME = "config.json"
 PARTNER_DISTRIBUTIONS_FILENAME = "partner_distributions.json"
+STORY_DATASET_FILES = {
+    "titles": TITLES_FILENAME,
+    "entities": ENTITIES_FILENAME,
+    "prompts": PROMPTS_FILENAME,
+    "config": CONFIG_FILENAME,
+    "partner_distributions": PARTNER_DISTRIBUTIONS_FILENAME,
+}
 ENTITY_AVAILABILITY_KEYS = frozenset(
     {
         CHARACTER_AVAILABILITY_KEY,
@@ -464,11 +471,10 @@ def validate_story_data(
 
 def load_story_data() -> dict[str, Any]:
     try:
-        titles = _load_json(_data_file(TITLES_FILENAME))
-        entities = _load_json(_data_file(ENTITIES_FILENAME))
-        prompts = _load_json(_data_file(PROMPTS_FILENAME))
-        config = _load_json(_data_file(CONFIG_FILENAME))
-        partner_distributions = _load_json(_data_file(PARTNER_DISTRIBUTIONS_FILENAME))
+        dataset_payloads = {
+            key: _load_json(_data_file(filename))
+            for key, filename in STORY_DATASET_FILES.items()
+        }
     except FileNotFoundError as exc:
         missing_name = Path(exc.filename).name if exc.filename else "unknown file"
         location = (
@@ -480,6 +486,11 @@ def load_story_data() -> dict[str, Any]:
             f"Failed to load story brief dataset file '{missing_name}' from {location}. "
             "Verify the directory exists and contains the required JSON files."
         ) from exc
+    titles = dataset_payloads["titles"]
+    entities = dataset_payloads["entities"]
+    prompts = dataset_payloads["prompts"]
+    config = dataset_payloads["config"]
+    partner_distributions = dataset_payloads["partner_distributions"]
     validated = validate_story_data(titles, entities, prompts, config, partner_distributions)
     prompt_lists = {key: tuple(str(value) for value in prompts[key]) for key in PROMPT_LIST_KEYS}
 

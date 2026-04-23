@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-import json
 import os
 import re
 import subprocess
 import sys
 from datetime import date, datetime
 from pathlib import Path
+from collections.abc import Callable
 
 import pytest
 
@@ -15,6 +15,7 @@ from commuted_calligraphy.story_brief.generate_story_brief import (
     build_auto_filename,
     sanitize_filename,
 )
+from tests.conftest import patch_json
 
 pytestmark = pytest.mark.integration
 
@@ -23,9 +24,14 @@ SCRIPT = REPO_ROOT / "commuted_calligraphy" / "story_brief" / "generate_story_br
 
 
 def run_cli(
-    *args: str, cwd: Path, env_overrides: dict[str, str] | None = None
+    *args: str,
+    cwd: Path,
+    data_dir: Path | None = None,
+    env_overrides: dict[str, str] | None = None,
 ) -> subprocess.CompletedProcess[str]:
     env = os.environ.copy()
+    if data_dir is not None:
+        env["COMMUTED_STORY_BRIEF_DATA_DIR"] = str(data_dir)
     if env_overrides:
         env.update(env_overrides)
     return subprocess.run(
@@ -162,59 +168,53 @@ def test_cli_lint_dataset_flag_reports_results_and_exits_cleanly(tmp_path: Path)
     assert "Traceback" not in combined
 
 
-def test_cli_lint_dataset_takes_precedence_over_validate_strict(tmp_path: Path) -> None:
-    data_dir = tmp_path / "lint-data"
-    data_dir.mkdir()
-    source_data_dir = REPO_ROOT / "commuted_calligraphy" / "story_brief" / "data"
-    for filename in (
-        "titles.json",
-        "entities.json",
-        "prompts.json",
+def test_cli_lint_dataset_takes_precedence_over_validate_strict(
+    cli_dataset_factory: Callable[[str], Path], tmp_path: Path
+) -> None:
+    data_dir = cli_dataset_factory("lint-data")
+    patch_json(
+        data_dir,
         "config.json",
+        lambda config: config.update({"date_start": "2000-01-01", "date_end": "2000-01-01"}),
+    )
+    patch_json(
+        data_dir,
+        "entities.json",
+        lambda entities: entities.update(
+            {
+                "character_availability": [["Only One", "2000-01-01", "2000-01-01"]],
+                "setting_availability": [["Only Place", "2000-01-01", "2000-01-01"]],
+            }
+        ),
+    )
+    patch_json(
+        data_dir,
         "partner_distributions.json",
-    ):
-        payload = json.loads((source_data_dir / filename).read_text(encoding="utf-8"))
-        (data_dir / filename).write_text(
-            json.dumps(payload, indent=2),
-            encoding="utf-8",
-        )
-
-    config_path = data_dir / "config.json"
-    config = json.loads(config_path.read_text(encoding="utf-8"))
-    config["date_start"] = "2000-01-01"
-    config["date_end"] = "2000-01-01"
-    config_path.write_text(json.dumps(config, indent=2), encoding="utf-8")
-
-    entities_path = data_dir / "entities.json"
-    entities = json.loads(entities_path.read_text(encoding="utf-8"))
-    entities["character_availability"] = [["Only One", "2000-01-01", "2000-01-01"]]
-    entities["setting_availability"] = [["Only Place", "2000-01-01", "2000-01-01"]]
-    entities_path.write_text(json.dumps(entities, indent=2), encoding="utf-8")
-    partner_distributions_path = data_dir / "partner_distributions.json"
-    partner_distributions = json.loads(partner_distributions_path.read_text(encoding="utf-8"))
-    partner_distributions["partner_distributions"] = [
-        {
-            "character": "Only One",
-            "date_start": "2000-01-01",
-            "date_end": "2000-01-01",
-            "eras": [
-                {
-                    "date_start": "2000-01-01",
-                    "date_end": "2000-01-01",
-                    "partners": [{"partner": "Nobody", "weight": 1.0}],
-                }
-            ],
-        }
-    ]
-    partner_distributions_path.write_text(
-        json.dumps(partner_distributions, indent=2), encoding="utf-8"
+        lambda payload: payload.update(
+            {
+                "partner_distributions": [
+                    {
+                        "character": "Only One",
+                        "date_start": "2000-01-01",
+                        "date_end": "2000-01-01",
+                        "eras": [
+                            {
+                                "date_start": "2000-01-01",
+                                "date_end": "2000-01-01",
+                                "partners": [{"partner": "Nobody", "weight": 1.0}],
+                            }
+                        ],
+                    }
+                ]
+            }
+        ),
     )
 
     result = run_cli(
         "--validate-strict",
         "--lint-dataset",
         cwd=tmp_path,
-        env_overrides={"COMMUTED_STORY_BRIEF_DATA_DIR": str(data_dir)},
+        data_dir=data_dir,
     )
     assert result.returncode == 1
     combined = result.stdout + result.stderr
@@ -223,32 +223,16 @@ def test_cli_lint_dataset_takes_precedence_over_validate_strict(tmp_path: Path) 
     assert "Strict validation failed" not in combined
 
 
-def test_cli_lint_dataset_handles_invalid_dataset_without_traceback(tmp_path: Path) -> None:
-    data_dir = tmp_path / "invalid-data"
-    data_dir.mkdir()
-    source_data_dir = REPO_ROOT / "commuted_calligraphy" / "story_brief" / "data"
-    for filename in (
-        "titles.json",
-        "entities.json",
-        "prompts.json",
-        "config.json",
-        "partner_distributions.json",
-    ):
-        payload = json.loads((source_data_dir / filename).read_text(encoding="utf-8"))
-        (data_dir / filename).write_text(
-            json.dumps(payload, indent=2),
-            encoding="utf-8",
-        )
-
-    prompts_path = data_dir / "prompts.json"
-    prompts = json.loads(prompts_path.read_text(encoding="utf-8"))
-    prompts.pop("weather")
-    prompts_path.write_text(json.dumps(prompts, indent=2), encoding="utf-8")
+def test_cli_lint_dataset_handles_invalid_dataset_without_traceback(
+    cli_dataset_factory: Callable[[str], Path], tmp_path: Path
+) -> None:
+    data_dir = cli_dataset_factory("invalid-data")
+    patch_json(data_dir, "prompts.json", lambda prompts: prompts.pop("weather"))
 
     result = run_cli(
         "--lint-dataset",
         cwd=tmp_path,
-        env_overrides={"COMMUTED_STORY_BRIEF_DATA_DIR": str(data_dir)},
+        data_dir=data_dir,
     )
     assert result.returncode != 0
     combined = result.stdout + result.stderr

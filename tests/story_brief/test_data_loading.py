@@ -104,6 +104,22 @@ def test_env_override_loads_dataset_from_custom_directory(
     assert loaded["titles"] == ("A Night in @setting",)
 
 
+def test_legacy_env_override_loads_dataset_from_custom_directory(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    data_dir = tmp_path / "override-data"
+    data_dir.mkdir()
+    _write_minimal_dataset(data_dir)
+
+    monkeypatch.delenv("TELEGRAPHY_DATA_DIR", raising=False)
+    monkeypatch.setenv("COMMUTED_STORY_BRIEF_DATA_DIR", str(data_dir))
+    story_brief.get_data.cache_clear()
+    loaded = story_brief.load_story_data()
+
+    assert loaded["dataset_version"] == "test"
+    assert loaded["titles"] == ("A Night in @setting",)
+
+
 def test_env_override_rejects_unresolved_title_token(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

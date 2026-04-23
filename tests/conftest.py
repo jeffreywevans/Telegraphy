@@ -118,7 +118,7 @@ def clone_story_dataset(destination: Path, *, source_story_data_dir: Path) -> Pa
     return destination
 
 
-def patch_json(data_dir: Path, filename: str, mutator: Callable[[dict[str, Any]], None]) -> None:
+def patch_json(data_dir: Path, filename: str, mutator: Callable[[dict[str, Any]], Any]) -> None:
     """Patch a known dataset JSON file in data_dir using an in-place payload mutator."""
     if filename not in _STORY_DATASET_FILES:
         raise ValueError(f"Unsupported dataset file for patching: {filename}")

@@ -173,11 +173,13 @@ def test_cli_lint_dataset_takes_precedence_over_validate_strict(
 ) -> None:
     data_dir = cli_dataset_factory("lint-data")
     patch_json(
-        data_dir / "config.json",
+        data_dir,
+        "config.json",
         lambda config: config.update({"date_start": "2000-01-01", "date_end": "2000-01-01"}),
     )
     patch_json(
-        data_dir / "entities.json",
+        data_dir,
+        "entities.json",
         lambda entities: entities.update(
             {
                 "character_availability": [["Only One", "2000-01-01", "2000-01-01"]],
@@ -186,7 +188,8 @@ def test_cli_lint_dataset_takes_precedence_over_validate_strict(
         ),
     )
     patch_json(
-        data_dir / "partner_distributions.json",
+        data_dir,
+        "partner_distributions.json",
         lambda payload: payload.update(
             {
                 "partner_distributions": [
@@ -224,7 +227,7 @@ def test_cli_lint_dataset_handles_invalid_dataset_without_traceback(
     cli_dataset_factory: Callable[[str], Path], tmp_path: Path
 ) -> None:
     data_dir = cli_dataset_factory("invalid-data")
-    patch_json(data_dir / "prompts.json", lambda prompts: prompts.pop("weather"))
+    patch_json(data_dir, "prompts.json", lambda prompts: prompts.pop("weather"))
 
     result = run_cli(
         "--lint-dataset",

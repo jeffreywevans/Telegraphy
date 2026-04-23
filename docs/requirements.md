@@ -12,7 +12,7 @@ For environments that install with requirements files (for example, some CI syst
 pip install -r requirements.txt
 ```
 
-or install the package directly:
+For editable local development installs, use:
 
 ```bash
 pip install -e .

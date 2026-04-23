@@ -23,6 +23,62 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = REPO_ROOT / "commuted_calligraphy" / "story_brief" / "generate_story_brief.py"
 
 
+def assert_cli_error_without_traceback(
+    result: subprocess.CompletedProcess[str], expected_message: str
+) -> None:
+    """Assert a CLI command failed with a user-facing error and no traceback."""
+    assert result.returncode != 0
+    combined = result.stdout + result.stderr
+    assert expected_message in combined
+    assert "Traceback" not in combined
+
+
+def make_single_character_single_setting_dataset(data_dir: Path) -> None:
+    """Mutate dataset to a single-character/single-setting configuration."""
+    patch_json(
+        data_dir,
+        "config.json",
+        lambda config: config.update({"date_start": "2000-01-01", "date_end": "2000-01-01"}),
+    )
+    patch_json(
+        data_dir,
+        "entities.json",
+        lambda entities: entities.update(
+            {
+                "character_availability": [["Only One", "2000-01-01", "2000-01-01"]],
+                "setting_availability": [["Only Place", "2000-01-01", "2000-01-01"]],
+            }
+        ),
+    )
+    patch_json(
+        data_dir,
+        "partner_distributions.json",
+        lambda payload: payload.update(
+            {
+                "partner_distributions": [
+                    {
+                        "character": "Only One",
+                        "date_start": "2000-01-01",
+                        "date_end": "2000-01-01",
+                        "eras": [
+                            {
+                                "date_start": "2000-01-01",
+                                "date_end": "2000-01-01",
+                                "partners": [{"partner": "Nobody", "weight": 1.0}],
+                            }
+                        ],
+                    }
+                ]
+            }
+        ),
+    )
+
+
+def remove_prompt_key(data_dir: Path, key: str) -> None:
+    """Remove a prompt key from prompts.json."""
+    patch_json(data_dir, "prompts.json", lambda prompts: prompts.pop(key))
+
+
 def run_cli(
     *args: str,
     cwd: Path,
@@ -138,18 +194,18 @@ def test_default_filename_uses_story_time_period_date(tmp_path: Path) -> None:
     assert files[0].name.startswith(f"{match.group(1)} ")
 
 
-def test_cli_rejects_invalid_date_format(tmp_path: Path) -> None:
-    result = run_cli("--date", "01-01-2000", "--print-only", cwd=tmp_path)
-    assert result.returncode != 0
-    assert "--date must be in YYYY-MM-DD format" in (result.stdout + result.stderr)
-
-
-def test_cli_rejects_out_of_range_date_without_traceback(tmp_path: Path) -> None:
-    result = run_cli("--date", "1900-01-01", "--print-only", cwd=tmp_path)
-    assert result.returncode != 0
-    combined = result.stdout + result.stderr
-    assert "outside available range" in combined
-    assert "Traceback" not in combined
+@pytest.mark.parametrize(
+    ("args", "expected_message"),
+    [
+        (("--date", "01-01-2000", "--print-only"), "--date must be in YYYY-MM-DD format"),
+        (("--date", "1900-01-01", "--print-only"), "outside available range"),
+    ],
+)
+def test_cli_invalid_inputs_show_user_friendly_error(
+    tmp_path: Path, args: tuple[str, ...], expected_message: str
+) -> None:
+    result = run_cli(*args, cwd=tmp_path)
+    assert_cli_error_without_traceback(result, expected_message)
 
 
 def test_cli_validate_strict_flag_accepts_current_dataset_range(tmp_path: Path) -> None:
@@ -172,43 +228,7 @@ def test_cli_lint_dataset_takes_precedence_over_validate_strict(
     cli_dataset_factory: Callable[[str], Path], tmp_path: Path
 ) -> None:
     data_dir = cli_dataset_factory("lint-data")
-    patch_json(
-        data_dir,
-        "config.json",
-        lambda config: config.update({"date_start": "2000-01-01", "date_end": "2000-01-01"}),
-    )
-    patch_json(
-        data_dir,
-        "entities.json",
-        lambda entities: entities.update(
-            {
-                "character_availability": [["Only One", "2000-01-01", "2000-01-01"]],
-                "setting_availability": [["Only Place", "2000-01-01", "2000-01-01"]],
-            }
-        ),
-    )
-    patch_json(
-        data_dir,
-        "partner_distributions.json",
-        lambda payload: payload.update(
-            {
-                "partner_distributions": [
-                    {
-                        "character": "Only One",
-                        "date_start": "2000-01-01",
-                        "date_end": "2000-01-01",
-                        "eras": [
-                            {
-                                "date_start": "2000-01-01",
-                                "date_end": "2000-01-01",
-                                "partners": [{"partner": "Nobody", "weight": 1.0}],
-                            }
-                        ],
-                    }
-                ]
-            }
-        ),
-    )
+    make_single_character_single_setting_dataset(data_dir)
 
     result = run_cli(
         "--validate-strict",
@@ -227,17 +247,14 @@ def test_cli_lint_dataset_handles_invalid_dataset_without_traceback(
     cli_dataset_factory: Callable[[str], Path], tmp_path: Path
 ) -> None:
     data_dir = cli_dataset_factory("invalid-data")
-    patch_json(data_dir, "prompts.json", lambda prompts: prompts.pop("weather"))
+    remove_prompt_key(data_dir, "weather")
 
     result = run_cli(
         "--lint-dataset",
         cwd=tmp_path,
         data_dir=data_dir,
     )
-    assert result.returncode != 0
-    combined = result.stdout + result.stderr
-    assert "missing required keys" in combined
-    assert "Traceback" not in combined
+    assert_cli_error_without_traceback(result, "missing required keys")
 
 
 def test_cli_handles_missing_dataset_override_without_traceback(tmp_path: Path) -> None:
@@ -247,10 +264,7 @@ def test_cli_handles_missing_dataset_override_without_traceback(tmp_path: Path) 
         cwd=tmp_path,
         env_overrides={"COMMUTED_STORY_BRIEF_DATA_DIR": str(missing_dir)},
     )
-    assert result.returncode != 0
-    combined = result.stdout + result.stderr
-    assert "Failed to load story brief dataset file" in combined
-    assert "Traceback" not in combined
+    assert_cli_error_without_traceback(result, "Failed to load story brief dataset file")
 
 
 def test_main_print_only_calls_pick_story_fields_with_selected_date(

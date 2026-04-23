@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 from copy import deepcopy
 from datetime import date
+from functools import lru_cache
+from collections.abc import Callable
 from typing import Any
 
 import pytest
@@ -12,6 +14,7 @@ import pytest
 from commuted_calligraphy.story_brief import generate_story_brief as story_brief
 
 
+@lru_cache(maxsize=1)
 def _load_story_dataset_payloads() -> dict[str, dict[str, Any]]:
     return {
         "titles": json.loads(story_brief._data_file("titles.json").read_text(encoding="utf-8")),
@@ -40,7 +43,7 @@ def partner_character_rows() -> list[tuple[str, date, date]]:
 
 
 @pytest.fixture
-def partner_payload_factory():
+def partner_payload_factory() -> Callable[..., dict[str, Any]]:
     """Factory for baseline partner distribution payloads with optional era overrides."""
 
     def _build(
@@ -49,7 +52,7 @@ def partner_payload_factory():
         end_date: str = "2000-12-31",
         alex_eras: list[dict[str, Any]] | None = None,
         jordan_eras: list[dict[str, Any]] | None = None,
-    ) -> dict[str, object]:
+    ) -> dict[str, Any]:
         if alex_eras is None:
             alex_eras = [
                 {

@@ -1,1 +1,1 @@
-"""Commuted Calligraphy package."""
+"""Telegraphy package."""

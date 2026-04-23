@@ -13,7 +13,7 @@ In `tests/story_brief/test_cli_behavior.py`, multiple tests repeat:
 - create temp data dir
 - copy `titles.json`, `entities.json`, `prompts.json`, `config.json`, `partner_distributions.json`
 - mutate one file
-- execute CLI with `COMMUTED_STORY_BRIEF_DATA_DIR`
+- execute CLI with `TELEGRAPHY_DATA_DIR`
 
 ### 2) Ad-hoc mutation blocks inline in tests
 Several tests contain long inline JSON mutation logic that obscures test intent.
@@ -51,7 +51,7 @@ This concentrates file I/O and JSON copy/patch patterns into one place.
 In `tests/story_brief/test_cli_behavior.py`:
 
 - keep `run_cli` but add optional `data_dir` argument
-- if `data_dir` is provided, inject `COMMUTED_STORY_BRIEF_DATA_DIR` automatically
+- if `data_dir` is provided, inject `TELEGRAPHY_DATA_DIR` automatically
 
 This removes repetitive env override construction.
 

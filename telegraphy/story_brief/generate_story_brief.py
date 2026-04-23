@@ -122,7 +122,8 @@ def _data_file(filename: str) -> Any:
     Resolve a story-brief data file.
 
     Resolution order:
-      1) COMMUTED_STORY_BRIEF_DATA_DIR env var (custom/system deployments).
+      1) TELEGRAPHY_DATA_DIR env var (custom/system deployments).
+         Falls back to COMMUTED_STORY_BRIEF_DATA_DIR for backwards compatibility.
       2) Direct-script source checkout fallback (repo-relative `data/`).
       3) Installed package resources under
          telegraphy.story_brief.data (packaged installs).
@@ -132,7 +133,7 @@ def _data_file(filename: str) -> Any:
       - Supports container/ops setups that mount data at runtime.
       - Keeps editable local data working during development.
     """
-    override_raw = os.environ.get("COMMUTED_STORY_BRIEF_DATA_DIR")
+    override_raw = os.environ.get("TELEGRAPHY_DATA_DIR") or os.environ.get("COMMUTED_STORY_BRIEF_DATA_DIR")
     if override_raw:
         if override_raw.startswith("~/") or override_raw == "~":
             home_override = os.environ.get("HOME")
@@ -478,8 +479,8 @@ def load_story_data() -> dict[str, Any]:
     except FileNotFoundError as exc:
         missing_name = Path(exc.filename).name if exc.filename else "unknown file"
         location = (
-            "configured data directory (COMMUTED_STORY_BRIEF_DATA_DIR)"
-            if os.environ.get("COMMUTED_STORY_BRIEF_DATA_DIR")
+            "configured data directory (TELEGRAPHY_DATA_DIR or COMMUTED_STORY_BRIEF_DATA_DIR)"
+            if os.environ.get("TELEGRAPHY_DATA_DIR") or os.environ.get("COMMUTED_STORY_BRIEF_DATA_DIR")
             else "data directory"
         )
         raise ValueError(

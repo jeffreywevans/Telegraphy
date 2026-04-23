@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "commuted-calligraphy"
+version = "0.1.0"
+description = "Commuted Calligraphy story brief generator"
+license = { file = "LICENSE" }
+readme = "readme.md"
+requires-python = ">=3.12"
+dependencies = ["PyYAML>=6.0.3"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "pytest-cov>=5.0", "ruff>=0.8.0"]
+
+[project.scripts]
+story-brief = "commuted_calligraphy.story_brief.generate_story_brief:main"
+
+[tool.setuptools.packages.find]
+include = ["commuted_calligraphy*"]
+
+[tool.setuptools.package-data]
+"commuted_calligraphy.story_brief.data" = ["*.json"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]

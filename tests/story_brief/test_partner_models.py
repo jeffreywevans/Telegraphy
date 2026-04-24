@@ -36,7 +36,9 @@ def _build_partner_payload(partner_payload_factory) -> dict[str, object]:
     )
 
 
-def _parse_payload(payload: dict[str, object], partner_character_rows: list[tuple[str, date, date]]):
+def _parse_payload(
+    payload: dict[str, object], partner_character_rows: list[tuple[str, date, date]]
+):
     return parse_partner_distribution_payload(
         payload,
         config_start=date(2000, 1, 1),
@@ -78,7 +80,9 @@ def test_parse_partner_distribution_payload_returns_typed_dataset(
     partner_payload_factory,
     partner_character_rows,
 ) -> None:
-    dataset = _parse_payload(_build_partner_payload(partner_payload_factory), partner_character_rows)
+    dataset = _parse_payload(
+        _build_partner_payload(partner_payload_factory), partner_character_rows
+    )
 
     assert isinstance(dataset, PartnerDistributionDataset)
     assert set(dataset.by_character) == {"Alex", "Jordan"}
@@ -95,7 +99,9 @@ def test_parse_partner_distribution_payload_round_trips_to_legacy_index(
     partner_payload_factory,
     partner_character_rows,
 ) -> None:
-    dataset = _parse_payload(_build_partner_payload(partner_payload_factory), partner_character_rows)
+    dataset = _parse_payload(
+        _build_partner_payload(partner_payload_factory), partner_character_rows
+    )
 
     legacy_index = dataset.to_legacy_index()
 

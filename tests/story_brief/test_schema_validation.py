@@ -88,7 +88,9 @@ def test_schema_validation_accepts_current_data(story_dataset_payloads) -> None:
         ),
     ],
 )
-def test_schema_validation_rejects_bad_data(mutator, expected_msg: str, story_dataset_payloads) -> None:
+def test_schema_validation_rejects_bad_data(
+    mutator, expected_msg: str, story_dataset_payloads
+) -> None:
     titles = story_dataset_payloads["titles"]
     entities = story_dataset_payloads["entities"]
     prompts = story_dataset_payloads["prompts"]

@@ -163,7 +163,9 @@ def _data_file(filename: str) -> Any:
       - Supports container/ops setups that mount data at runtime.
       - Keeps editable local data working during development.
     """
-    override_raw = os.environ.get("TELEGRAPHY_DATA_DIR") or os.environ.get("COMMUTED_STORY_BRIEF_DATA_DIR")
+    override_raw = os.environ.get("TELEGRAPHY_DATA_DIR") or os.environ.get(
+        "COMMUTED_STORY_BRIEF_DATA_DIR"
+    )
     if override_raw:
         return Path(override_raw).expanduser() / filename
 
@@ -503,7 +505,8 @@ def load_story_data() -> StoryData:
         missing_name = Path(exc.filename).name if exc.filename else "unknown file"
         location = (
             "configured data directory (TELEGRAPHY_DATA_DIR or COMMUTED_STORY_BRIEF_DATA_DIR)"
-            if os.environ.get("TELEGRAPHY_DATA_DIR") or os.environ.get("COMMUTED_STORY_BRIEF_DATA_DIR")
+            if os.environ.get("TELEGRAPHY_DATA_DIR")
+            or os.environ.get("COMMUTED_STORY_BRIEF_DATA_DIR")
             else "data directory"
         )
         raise ValueError(
@@ -929,10 +932,11 @@ def lint_story_data(data: dict[str, Any]) -> DatasetLintReport:
             f"{_format_date_ranges(_coalesce_ranges(thin_setting_ranges))}."
         )
     for protagonist in sorted(partner_data_gap_ranges_by_protagonist):
+        gap_ranges = _coalesce_ranges(partner_data_gap_ranges_by_protagonist[protagonist])
         warnings.append(
             "Partner data coverage gap: protagonist "
             f"'{protagonist}' has no partner era data available on "
-            f"{_format_date_ranges(_coalesce_ranges(partner_data_gap_ranges_by_protagonist[protagonist]))}."
+            f"{_format_date_ranges(gap_ranges)}."
         )
 
     tokens_seen: set[str] = set()
@@ -992,7 +996,8 @@ def pick_story_fields(
     elif not (resolved_data["date_start"] <= selected_date <= resolved_data["date_end"]):
         raise ValueError(
             f"Date {selected_date.isoformat()} is outside available range "
-            f"({resolved_data['date_start'].isoformat()} to {resolved_data['date_end'].isoformat()}). "
+            f"({resolved_data['date_start'].isoformat()} "
+            f"to {resolved_data['date_end'].isoformat()}). "
             "Try a date within the Commuted archive timeline."
         )
     time_period = selected_date.isoformat()

@@ -265,6 +265,32 @@ def test_dataset_lint_reports_coverage_gap_errors() -> None:
     assert any("no available settings" in msg for msg in report.errors)
 
 
+def test_dataset_lint_handles_max_date_boundary_without_excluding_final_day() -> None:
+    max_day = load_story_data()["date_end"].replace(year=9999, month=12, day=31)
+    data = {
+        "date_start": max_day,
+        "date_end": max_day,
+        "character_availability": [
+            ("Only One", max_day, max_day),
+        ],
+        "setting_availability": [],
+        "partner_distributions": {},
+        "titles": ["A Night in @setting"],
+        "central_conflicts": ["One", "Two", "Three"],
+        "inciting_pressures": ["One", "Two", "Three"],
+        "ending_types": ["One", "Two", "Three"],
+        "style_guidance": ["One", "Two", "Three"],
+        "weather": ["One", "Two", "Three"],
+        "word_count_targets": [700, 900, 1200],
+    }
+
+    report = lint_story_data(data)
+
+    assert report.has_errors
+    assert any("fewer than two distinct characters" in msg for msg in report.errors)
+    assert any("no available settings" in msg for msg in report.errors)
+
+
 def test_dataset_lint_reports_non_blocking_warnings() -> None:
     data = load_story_data()
     day = data["date_start"]

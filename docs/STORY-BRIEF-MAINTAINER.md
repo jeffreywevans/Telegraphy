@@ -58,9 +58,9 @@ Keep files separated by behavior area and consolidate only shared fixtures/helpe
 - `test_weighted_choice.py`
 - `test_generation_determinism.py`
 - `test_markdown_output.py`
-- `test_cli_behavior.py`
+- `test_cli_subprocess_behavior.py`
 
-Use shared utilities in `tests/story_brief/conftest.py` and/or a helper module as needed.
+Use shared utilities in `tests/conftest.py` and/or a helper module as needed.
 
 ### High-ROI minimum checks
 

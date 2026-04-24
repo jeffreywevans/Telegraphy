@@ -9,7 +9,7 @@
 ## Current duplication hotspots
 
 ### 1) CLI tests repeatedly clone and mutate dataset files
-In `tests/story_brief/test_cli_behavior.py`, multiple tests repeat:
+In `tests/story_brief/test_cli_subprocess_behavior.py`, multiple tests repeat:
 - create temp data dir
 - copy `titles.json`, `entities.json`, `prompts.json`, `config.json`, `partner_distributions.json`
 - mutate one file
@@ -48,7 +48,7 @@ Add fixtures/helpers:
 This concentrates file I/O and JSON copy/patch patterns into one place.
 
 #### B. Extract CLI command wrapper fixtures
-In `tests/story_brief/test_cli_behavior.py`:
+In `tests/story_brief/test_cli_subprocess_behavior.py`:
 
 - keep `run_cli` but add optional `data_dir` argument
 - if `data_dir` is provided, inject `TELEGRAPHY_DATA_DIR` automatically

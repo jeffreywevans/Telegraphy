@@ -186,23 +186,12 @@ def _resolve_data_dir_override(path_raw: str) -> Path:
         raise ValueError("Configured data directory must not be empty")
     if "\x00" in trimmed:
         raise ValueError("Configured data directory must not contain NUL bytes")
-    if trimmed.startswith("~"):
-        raise ValueError("Configured data directory must be an absolute path")
 
-    raw_path = Path(trimmed)
+    raw_path = Path(trimmed).expanduser()
     if not raw_path.is_absolute():
         raise ValueError("Configured data directory must be an absolute path")
 
     candidate = raw_path.resolve(strict=True)
-    trusted_root = Path(__file__).resolve().parent
-    try:
-        candidate.relative_to(trusted_root)
-    except ValueError as exc:
-        raise ValueError(
-            "Configured data directory must be within the trusted project directory: "
-            f"{trusted_root}"
-        ) from exc
-
     if not candidate.is_dir():
         raise ValueError(
             "Configured data directory must be an existing directory: "
@@ -219,9 +208,12 @@ def _write_output_markdown(output_path: Path, markdown: str, *, force: bool) -> 
     so non-force writes are performed with O_EXCL.
     """
     trusted_base_dir = Path.cwd().resolve(strict=True)
-    safe_name = PurePath(output_path.name).name
-    candidate_output_path = (trusted_base_dir / safe_name).resolve(strict=False)
-    if not candidate_output_path.is_relative_to(trusted_base_dir):
+    raw_output_path = (
+        output_path if output_path.is_absolute() else trusted_base_dir / output_path
+    )
+    resolved_parent = raw_output_path.parent.resolve(strict=False)
+    candidate_output_path = resolved_parent / raw_output_path.name
+    if not resolved_parent.is_relative_to(trusted_base_dir):
         raise SystemExit(
             "Resolved output path must be within "
             f"{trusted_base_dir}: {candidate_output_path}"
@@ -1416,7 +1408,7 @@ def main() -> None:
         )
 
     safe_relative_output = _build_safe_relative_path(
-        str(Path(output_dir.name) / filename),
+        str(requested_output_dir / filename),
         trusted_base_dir=trusted_base_dir,
     )
     output_path = trusted_base_dir / safe_relative_output

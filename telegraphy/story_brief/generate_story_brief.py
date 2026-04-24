@@ -674,8 +674,12 @@ def load_story_data() -> StoryData:
         )
         for option, weight in config["sexual_scene_tag_count_weights"].items()
     )
-    sexual_scene_tag_count_options = tuple(option for option, _ in sexual_scene_tag_count_weight_items)
-    sexual_scene_tag_count_weights = tuple(weight for _, weight in sexual_scene_tag_count_weight_items)
+    sexual_scene_tag_count_options = tuple(
+        option for option, _ in sexual_scene_tag_count_weight_items
+    )
+    sexual_scene_tag_count_weights = tuple(
+        weight for _, weight in sexual_scene_tag_count_weight_items
+    )
 
     return {
         "titles": tuple(str(v) for v in titles["titles"]),

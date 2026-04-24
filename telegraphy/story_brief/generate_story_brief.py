@@ -197,6 +197,14 @@ def _resolve_data_dir_override(path_raw: str) -> Path:
             "Configured data directory must be an existing directory: "
             f"{candidate}"
         )
+
+    trusted_base_dir = Path.cwd().resolve(strict=True)
+    if not candidate.is_relative_to(trusted_base_dir):
+        raise ValueError(
+            "Configured data directory must be within "
+            f"{trusted_base_dir}: {candidate}"
+        )
+
     return candidate
 
 

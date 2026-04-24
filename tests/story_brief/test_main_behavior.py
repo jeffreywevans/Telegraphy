@@ -195,5 +195,33 @@ def test_main_force_rejects_symlink_output_target(
     monkeypatch.setattr(story_cli, "pick_story_fields", lambda *_args, **_kwargs: {"title": "A"})
     monkeypatch.setattr(story_cli, "to_markdown", lambda _fields, data=None: "body")
 
-    with pytest.raises(SystemExit, match="Unable to safely open output path for writing"):
+    with pytest.raises(SystemExit, match="Unable to safely open or write output path"):
+        story_cli.main()
+
+
+def test_main_write_failure_exits_cleanly(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["story-brief", "--filename", "write-fail.md", "--force"],
+    )
+    monkeypatch.setattr(story_cli, "pick_story_fields", lambda *_args, **_kwargs: {"title": "A"})
+    monkeypatch.setattr(story_cli, "to_markdown", lambda _fields, data=None: "body")
+
+    real_open = story_cli.os.open
+
+    def fake_open(path: object, flags: int, mode: int) -> int:
+        return real_open(path, flags, mode)
+
+    def fake_fdopen(fd: int, *_args: object, **_kwargs: object) -> object:
+        story_cli.os.close(fd)
+        raise OSError("No space left on device")
+
+    monkeypatch.setattr(story_cli.os, "open", fake_open)
+    monkeypatch.setattr(story_cli.os, "fdopen", fake_fdopen)
+
+    with pytest.raises(SystemExit, match="Unable to safely open or write output path"):
         story_cli.main()

@@ -219,10 +219,12 @@ def _write_output_markdown(output_path: Path, markdown: str, *, force: bool) -> 
     so non-force writes are performed with O_EXCL.
     """
     trusted_base_dir = Path.cwd().resolve(strict=True)
-    resolved_output_path = output_path.resolve(strict=False)
-    if not resolved_output_path.is_relative_to(trusted_base_dir):
+    safe_name = PurePath(output_path.name).name
+    candidate_output_path = (trusted_base_dir / safe_name).resolve(strict=False)
+    if not candidate_output_path.is_relative_to(trusted_base_dir):
         raise SystemExit(
-            f"Resolved output path must be within {trusted_base_dir}: {resolved_output_path}"
+            "Resolved output path must be within "
+            f"{trusted_base_dir}: {candidate_output_path}"
         )
 
     flags = os.O_WRONLY | os.O_CREAT
@@ -232,18 +234,18 @@ def _write_output_markdown(output_path: Path, markdown: str, *, force: bool) -> 
     mode = 0o600
 
     try:
-        fd = os.open(resolved_output_path, flags, mode)
+        fd = os.open(candidate_output_path, flags, mode)
         with os.fdopen(fd, "w", encoding="utf-8") as handle:
             handle.write(markdown)
     except FileExistsError:
         raise SystemExit(
-            f"Refusing to overwrite existing file: {resolved_output_path}. "
+            f"Refusing to overwrite existing file: {candidate_output_path}. "
             "Use --force to overwrite."
         ) from None
     except OSError as exc:
         raise SystemExit(
-            f"Unable to safely open or write output path: {resolved_output_path} ({exc})"
-        ) from exc
+            f"Unable to safely open or write output path: {candidate_output_path} ({exc})"
+        ) from None
 
 
 def _build_safe_relative_path(path_raw: str, *, trusted_base_dir: Path) -> Path:
@@ -1412,14 +1414,20 @@ def main() -> None:
             today=str(fields["time_period"]),
         )
 
-    output_path = output_dir / filename
-    resolved_output_path = output_path.resolve(strict=False)
-    if not resolved_output_path.is_relative_to(trusted_base_dir):
+    safe_relative_output = _build_safe_relative_path(
+        str(Path(output_dir.name) / filename),
+        trusted_base_dir=trusted_base_dir,
+    )
+    output_path = trusted_base_dir / safe_relative_output
+    resolved_output_parent = output_path.parent.resolve(strict=False)
+    candidate_output_path = resolved_output_parent / output_path.name
+    if not candidate_output_path.is_relative_to(trusted_base_dir):
         raise SystemExit(
-            f"Resolved output path must be within {trusted_base_dir}: {resolved_output_path}"
+            "Resolved output path must be within "
+            f"{trusted_base_dir}: {candidate_output_path}"
         )
-    _write_output_markdown(output_path, markdown, force=args.force)
-    safe_display_path = output_path.relative_to(trusted_base_dir)
+    _write_output_markdown(candidate_output_path, markdown, force=args.force)
+    safe_display_path = candidate_output_path.relative_to(trusted_base_dir)
     print(f"Generated {safe_display_path}")
 
 

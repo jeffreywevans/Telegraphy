@@ -217,6 +217,8 @@ def _write_output_markdown(output_path: Path, markdown: str, *, force: bool) -> 
 
     try:
         fd = os.open(output_path, flags, mode)
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            handle.write(markdown)
     except FileExistsError:
         raise SystemExit(
             f"Refusing to overwrite existing file: {output_path}. "
@@ -224,11 +226,8 @@ def _write_output_markdown(output_path: Path, markdown: str, *, force: bool) -> 
         ) from None
     except OSError as exc:
         raise SystemExit(
-            f"Unable to safely open output path for writing: {output_path} ({exc})"
+            f"Unable to safely open or write output path: {output_path} ({exc})"
         ) from exc
-
-    with os.fdopen(fd, "w", encoding="utf-8") as handle:
-        handle.write(markdown)
 
 
 def _build_safe_relative_path(path_raw: str, *, trusted_base_dir: Path) -> Path:

@@ -49,12 +49,12 @@ jobs:
         run: test -f .python-version
       - name: Setup Python from .python-version
         if: matrix.use_version_file
-        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version-file: ".python-version"
       - name: Setup latest stable Python
         if: ${{ !matrix.use_version_file }}
-        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: ${{ matrix.python_version }}
       - name: Show resolved Python version

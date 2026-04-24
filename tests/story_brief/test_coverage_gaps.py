@@ -46,7 +46,9 @@ def test_data_file_uses_env_override_with_expanduser(
     assert Path(resolved) == override / "titles.json"
 
 
-def test_data_file_repo_relative_in_script_mode(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_data_file_repo_relative_in_script_mode(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     data_dir = tmp_path / "data"
     data_dir.mkdir()
     expected = data_dir / "titles.json"
@@ -75,7 +77,9 @@ def test_data_file_falls_back_to_repo_relative_when_resources_unavailable(
     assert Path(story_brief._data_file("titles.json")) == repo_relative
 
 
-def _parse_payload(payload: dict[str, object], character_rows: list[tuple[str, date, date]]) -> None:
+def _parse_payload(
+    payload: dict[str, object], character_rows: list[tuple[str, date, date]]
+) -> None:
     parse_partner_distribution_payload(
         payload,
         config_start=date(2000, 1, 1),

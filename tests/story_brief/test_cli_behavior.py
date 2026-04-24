@@ -178,7 +178,10 @@ def test_build_auto_filename_uses_fallback_slug_for_empty_slugified_title() -> N
 
 
 def test_build_auto_filename_accepts_date_for_today() -> None:
-    assert build_auto_filename("Hello World", today=date(2026, 4, 21)) == "2026-04-21 hello-world.md"
+    assert (
+        build_auto_filename("Hello World", today=date(2026, 4, 21))
+        == "2026-04-21 hello-world.md"
+    )
 
 
 def test_build_auto_filename_accepts_iso_date_string_for_today() -> None:
@@ -330,7 +333,11 @@ def test_main_lint_dataset_exits_early_without_generating_output(
     monkeypatch.setattr(sys, "argv", ["story-brief", "--lint-dataset"])
     monkeypatch.setattr(story_cli, "get_data", lambda: {"source": "test"})
     monkeypatch.setattr(story_cli, "lint_story_data", fake_lint)
-    monkeypatch.setattr(story_cli, "_emit_lint_report", lambda _: called.__setitem__("emit", called["emit"] + 1))
+    monkeypatch.setattr(
+        story_cli,
+        "_emit_lint_report",
+        lambda _: called.__setitem__("emit", called["emit"] + 1),
+    )
     monkeypatch.setattr(
         story_cli,
         "pick_story_fields",
@@ -360,7 +367,9 @@ def test_main_force_flag_allows_overwrite_for_existing_file(
             "--force",
         ],
     )
-    monkeypatch.setattr(story_cli, "pick_story_fields", lambda *_args, **_kwargs: {"title": "Forced"})
+    monkeypatch.setattr(
+        story_cli, "pick_story_fields", lambda *_args, **_kwargs: {"title": "Forced"}
+    )
     monkeypatch.setattr(story_cli, "to_markdown", lambda _fields, data=None: "new-content")
 
     story_cli.main()

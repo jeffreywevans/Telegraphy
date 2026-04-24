@@ -19,7 +19,7 @@ def main() -> int:
     junit_xml = project_root / "test-results.xml"
     coverage_xml = project_root / "coverage.xml"
 
-    print("Running pytest with coverage...")
+    print("Running pytest with coverage...", flush=True)
     pytest_rc = subprocess.run(
         [
             sys.executable,
@@ -38,7 +38,7 @@ def main() -> int:
     combine_dir = os.path.dirname(covfile) or "."
     combine_rc = 0
     if glob.glob(covfile + ".*"):
-        print("Combining coverage files...")
+        print("Combining coverage files...", flush=True)
         combine_rc = subprocess.run(
             [
                 sys.executable,
@@ -50,7 +50,7 @@ def main() -> int:
             ],
         ).returncode
 
-    print("Writing coverage.xml...")
+    print("Writing coverage.xml...", flush=True)
     xml_rc = subprocess.run(
         [
             sys.executable,
@@ -62,7 +62,7 @@ def main() -> int:
             str(coverage_xml),
         ],
     ).returncode
-    print("Writing terminal coverage report...")
+    print("Writing terminal coverage report...", flush=True)
     report_rc = subprocess.run(
         [sys.executable, "-m", "coverage", "report", f"--rcfile={coverage_config_file}"],
     ).returncode

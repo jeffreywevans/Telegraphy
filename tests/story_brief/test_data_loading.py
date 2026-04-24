@@ -172,6 +172,21 @@ def test_env_override_requires_existing_directory(
         story_brief.load_story_data()
 
 
+def test_env_override_requires_absolute_directory(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    data_dir = tmp_path / "override-data"
+    data_dir.mkdir()
+    _write_minimal_dataset(data_dir)
+    monkeypatch.chdir(tmp_path)
+
+    monkeypatch.setenv("TELEGRAPHY_DATA_DIR", "override-data")
+    story_brief.clear_get_data_cache()
+
+    with pytest.raises(ValueError, match="must be an absolute path"):
+        story_brief.load_story_data()
+
+
 def test_get_data_returns_defensive_copies() -> None:
     story_brief.clear_get_data_cache()
 

@@ -181,13 +181,54 @@ def _data_file(filename: str) -> Any:
 
 def _resolve_data_dir_override(path_raw: str) -> Path:
     """Resolve and validate TELEGRAPHY_DATA_DIR style overrides."""
-    candidate = Path(path_raw).expanduser().resolve(strict=True)
+    trimmed = path_raw.strip()
+    if not trimmed:
+        raise ValueError("Configured data directory must not be empty")
+    if "\x00" in trimmed:
+        raise ValueError("Configured data directory must not contain NUL bytes")
+    if trimmed.startswith("~"):
+        raise ValueError("Configured data directory must be an absolute path")
+
+    raw_path = Path(trimmed)
+    if not raw_path.is_absolute():
+        raise ValueError("Configured data directory must be an absolute path")
+
+    candidate = raw_path.resolve(strict=True)
     if not candidate.is_dir():
         raise ValueError(
             "Configured data directory must be an existing directory: "
             f"{candidate}"
         )
     return candidate
+
+
+def _write_output_markdown(output_path: Path, markdown: str, *, force: bool) -> None:
+    """
+    Write markdown to output_path while guarding against symlink redirection.
+
+    Uses low-level os.open flags so writes fail closed for symlink targets and
+    so non-force writes are performed with O_EXCL.
+    """
+    flags = os.O_WRONLY | os.O_CREAT
+    flags |= os.O_TRUNC if force else os.O_EXCL
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+    mode = 0o600
+
+    try:
+        fd = os.open(output_path, flags, mode)
+    except FileExistsError:
+        raise SystemExit(
+            f"Refusing to overwrite existing file: {output_path}. "
+            "Use --force to overwrite."
+        ) from None
+    except OSError as exc:
+        raise SystemExit(
+            f"Unable to safely open output path for writing: {output_path} ({exc})"
+        ) from exc
+
+    with os.fdopen(fd, "w", encoding="utf-8") as handle:
+        handle.write(markdown)
 
 
 def _build_safe_relative_path(path_raw: str, *, trusted_base_dir: Path) -> Path:
@@ -1333,19 +1374,14 @@ def main() -> None:
             today=str(fields["time_period"]),
         )
 
-    output_path = (output_dir / filename).resolve(strict=False)
-    if not output_path.is_relative_to(trusted_base_dir):
+    output_path = output_dir / filename
+    resolved_output_path = output_path.resolve(strict=False)
+    if not resolved_output_path.is_relative_to(trusted_base_dir):
         raise SystemExit(
-            f"Resolved output path must be within {trusted_base_dir}: {output_path}"
+            f"Resolved output path must be within {trusted_base_dir}: {resolved_output_path}"
         )
-    if output_path.exists() and not args.force:
-        raise SystemExit(
-            f"Refusing to overwrite existing file: {output_path}. "
-            "Use --force to overwrite."
-        )
-
-    output_path.write_text(markdown, encoding="utf-8")
-    print(f"Generated {output_path}")
+    _write_output_markdown(output_path, markdown, force=args.force)
+    print(f"Generated {resolved_output_path}")
 
 
 if __name__ == "__main__":

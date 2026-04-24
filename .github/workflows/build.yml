@@ -16,7 +16,7 @@ jobs:
     name: Validate workflow action runtimes
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Ensure deprecated Node.js 20 Dependabot action is not used
         run: |
           if git grep -nE "^[[:space:]]*-[[:space:]]*uses:[[:space:]]*github/dependabot-action@" -- .github/workflows '*.yml' '*.yaml'; then
@@ -43,7 +43,7 @@ jobs:
             python_version: "3.x"
             use_version_file: false
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Verify .python-version exists
         if: matrix.use_version_file
         run: test -f .python-version
@@ -70,7 +70,7 @@ jobs:
     name: SonarQube
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
       - name: SonarQube Scan

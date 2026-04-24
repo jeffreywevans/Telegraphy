@@ -1,0 +1,63 @@
+name: Ensure repository labels
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/ensure-labels.yml
+      - .github/dependabot.yml
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  ensure-labels:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create labels used by Dependabot
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const labels = [
+              {
+                name: 'dependencies',
+                color: '0366d6',
+                description: 'Pull requests that update project dependencies.',
+              },
+              {
+                name: 'github-actions',
+                color: '1f883d',
+                description: 'Updates to GitHub Actions workflows and actions.',
+              },
+              {
+                name: 'python',
+                color: '3572A5',
+                description: 'Changes related to Python packages or tooling.',
+              },
+            ];
+
+            for (const label of labels) {
+              try {
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ...label,
+                });
+                core.info(`Created label: ${label.name}`);
+              } catch (error) {
+                if (error.status === 422) {
+                  await github.rest.issues.updateLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    name: label.name,
+                    color: label.color,
+                    description: label.description,
+                  });
+                  core.info(`Updated label: ${label.name}`);
+                } else {
+                  throw error;
+                }
+              }
+            }

@@ -97,7 +97,10 @@ def test_env_override_loads_dataset_from_custom_directory(
     _write_minimal_dataset(data_dir)
 
     package_data_dir = Path(story_brief.__file__).resolve().parent / "data"
-    assert not data_dir.resolve().is_relative_to(package_data_dir.resolve())
+    assert not data_dir.resolve().is_relative_to(package_data_dir.resolve()), (
+        f"Test data directory {data_dir} must not be inside the package data directory "
+        f"{package_data_dir} to properly test external override functionality."
+    )
 
     monkeypatch.setenv("TELEGRAPHY_DATA_DIR", str(data_dir))
     story_brief.clear_get_data_cache()
@@ -113,6 +116,12 @@ def test_legacy_env_override_loads_dataset_from_custom_directory(
     data_dir = tmp_path / "override-data"
     data_dir.mkdir()
     _write_minimal_dataset(data_dir)
+
+    package_data_dir = Path(story_brief.__file__).resolve().parent / "data"
+    assert not data_dir.resolve().is_relative_to(package_data_dir.resolve()), (
+        f"Test data directory {data_dir} must not be inside the package data directory "
+        f"{package_data_dir} to properly test external override functionality."
+    )
 
     monkeypatch.delenv("TELEGRAPHY_DATA_DIR", raising=False)
     monkeypatch.setenv("COMMUTED_STORY_BRIEF_DATA_DIR", str(data_dir))

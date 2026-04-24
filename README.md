@@ -44,3 +44,13 @@ This project is alive. It is not just an archive. It is a breathing, snarling, f
 Treat it accordingly.
 
 ---
+
+## Usage
+
+```bash
+pip install -e .[dev]
+story-brief --print-only
+story-brief --seed 42 --date 2000-01-01 --print-only
+story-brief --lint-dataset
+pytest
+```

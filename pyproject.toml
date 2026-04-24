@@ -7,7 +7,7 @@ name = "telegraphy"
 version = "0.1.0"
 description = "Telegraphy story brief generator"
 license = { file = "LICENSE" }
-readme = "readme.md"
+readme = "README.md"
 requires-python = ">=3.12"
 dependencies = ["PyYAML>=6.0.3"]
 

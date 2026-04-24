@@ -18,6 +18,7 @@ This repository is a good fit for two Dependabot ecosystems:
 ## Where this is configured
 
 - `.github/dependabot.yml`
+- A workflow to keep required labels present: [`.github/workflows/ensure-labels.yml`](../.github/workflows/ensure-labels.yml).
 
 ## Optional next steps
 

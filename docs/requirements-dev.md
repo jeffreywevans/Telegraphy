@@ -1,7 +1,7 @@
 # Development Dependencies
 
 This project defines development dependencies in `pyproject.toml` under `[project.optional-dependencies].dev`.
-Installing the `dev` extra also installs all runtime dependencies from `[project.dependencies]`.
+Note that installing the package with the `dev` extra also installs all runtime dependencies defined in `[project.dependencies]`.
 
 ## Install
 

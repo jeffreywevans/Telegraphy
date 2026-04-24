@@ -18,8 +18,8 @@ def main() -> int:
     project_root = trusted_base
     if project_root_env:
         project_root_env_path = Path(project_root_env)
-        if not project_root_env_path.is_absolute() and ".." not in project_root_env_path.parts:
-            candidate_root = (trusted_base / project_root_env_path).resolve()
+        if not project_root_env_path.is_absolute():
+            candidate_root = trusted_base.joinpath(project_root_env_path).resolve(strict=False)
             try:
                 candidate_root.relative_to(trusted_base)
                 project_root = candidate_root

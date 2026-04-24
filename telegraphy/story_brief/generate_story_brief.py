@@ -1420,7 +1420,7 @@ def main() -> None:
         )
     _write_output_markdown(candidate_output_path, markdown, force=args.force)
     safe_display_path = candidate_output_path.relative_to(trusted_base_dir)
-    print(f"Generated {safe_display_path}")
+    print("Generated story brief.")
 
 
 if __name__ == "__main__":

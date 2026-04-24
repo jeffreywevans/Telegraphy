@@ -13,7 +13,16 @@ COVERAGE_CONFIG_FILE = "tox.ini"
 
 
 def main() -> int:
-    project_root = Path(os.environ.get("TOX_PROJECT_ROOT", Path.cwd())).resolve()
+    trusted_base = Path.cwd().resolve()
+    project_root_env = os.environ.get("TOX_PROJECT_ROOT")
+    project_root = trusted_base
+    if project_root_env:
+        candidate_root = Path(project_root_env).resolve()
+        try:
+            candidate_root.relative_to(trusted_base)
+            project_root = candidate_root
+        except ValueError:
+            project_root = trusted_base
     coverage_config_file = project_root / COVERAGE_CONFIG_FILE
     tests_dir = project_root / "tests"
     junit_xml = project_root / "test-results.xml"

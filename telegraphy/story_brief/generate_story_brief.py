@@ -216,9 +216,7 @@ def _write_output_markdown(output_path: Path, markdown: str, *, force: bool) -> 
     so non-force writes are performed with O_EXCL.
     """
     trusted_base_dir = Path.cwd().resolve(strict=True)
-    raw_output_path = (
-        output_path if output_path.is_absolute() else trusted_base_dir / output_path
-    )
+    raw_output_path = trusted_base_dir / output_path
     resolved_parent = raw_output_path.parent.resolve(strict=False)
     candidate_output_path = resolved_parent / raw_output_path.name
     if not resolved_parent.is_relative_to(trusted_base_dir):

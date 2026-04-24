@@ -245,7 +245,7 @@ def _write_output_markdown(output_path: Path, markdown: str, *, force: bool) -> 
     except OSError as exc:
         raise SystemExit(
             f"Unable to safely open or write output path: {candidate_output_path} ({exc})"
-        ) from exc
+        ) from None
 
 
 def _build_safe_relative_path(path_raw: str, *, trusted_base_dir: Path) -> Path:

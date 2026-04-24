@@ -1264,7 +1264,14 @@ def main() -> None:
         print(markdown)
         return
 
-    output_dir = Path(args.output_dir)
+    trusted_base_dir = Path.cwd().resolve()
+    output_dir = Path(args.output_dir).expanduser().resolve(strict=False)
+    try:
+        output_dir.relative_to(trusted_base_dir)
+    except ValueError as exc:
+        raise SystemExit(
+            f"--output-dir must be within {trusted_base_dir}: {output_dir}"
+        ) from exc
     output_dir.mkdir(parents=True, exist_ok=True)
 
     if args.filename:

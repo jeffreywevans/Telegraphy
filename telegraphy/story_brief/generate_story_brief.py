@@ -1225,7 +1225,7 @@ def main() -> None:
     )
     args = parser.parse_args()
     try:
-        data = get_data()
+        data = _get_data_cached() if args.lint_dataset else get_data()
     except ValueError as exc:
         raise SystemExit(str(exc)) from exc
 
@@ -1236,10 +1236,7 @@ def main() -> None:
         rng = random.Random(args.seed)
 
     if args.lint_dataset:
-        try:
-            report = lint_story_data(data)
-        except ValueError as exc:
-            raise SystemExit(str(exc)) from exc
+        report = lint_story_data(data)
         _emit_lint_report(report)
         if report.has_errors:
             raise SystemExit(1)

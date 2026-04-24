@@ -1426,8 +1426,8 @@ def main() -> None:
             "Resolved output path must be within "
             f"{trusted_base_dir}: {candidate_output_path}"
         )
-    _write_output_markdown(output_path, markdown, force=args.force)
-    safe_display_path = output_path.relative_to(trusted_base_dir)
+    _write_output_markdown(candidate_output_path, markdown, force=args.force)
+    safe_display_path = candidate_output_path.relative_to(trusted_base_dir)
     print(f"Generated {safe_display_path}")
 
 

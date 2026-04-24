@@ -5,7 +5,36 @@
 
 version: 2
 updates:
-  - package-ecosystem: "" # See documentation for possible values
-    directory: "/" # Location of package manifests
+  - package-ecosystem: "pip"
+    directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+      day: "monday"
+      time: "08:00"
+      timezone: "UTC"
+    labels:
+      - "dependencies"
+      - "python"
+    open-pull-requests-limit: 5
+    groups:
+      runtime-pyyaml:
+        patterns:
+          - "pyyaml"
+      build-setuptools:
+        patterns:
+          - "setuptools"
+      dev-pytest:
+        patterns:
+          - "pytest*"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "08:00"
+      timezone: "UTC"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    open-pull-requests-limit: 3

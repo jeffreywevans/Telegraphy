@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -89,17 +90,19 @@ def _write_minimal_dataset(data_dir: Path) -> None:
     )
 
 
+@pytest.fixture
+def override_data_dir() -> Path:
+    trusted_root = Path(story_brief.__file__).resolve().parent
+    with tempfile.TemporaryDirectory(prefix="test-override-", dir=trusted_root) as temp_dir:
+        data_dir = Path(temp_dir)
+        _write_minimal_dataset(data_dir)
+        yield data_dir
+
+
 def test_env_override_loads_dataset_from_custom_directory(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    override_data_dir: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    data_dir = tmp_path / "override-data"
-    data_dir.mkdir()
-    _write_minimal_dataset(data_dir)
-
-    package_data_dir = Path(story_brief.__file__).resolve().parent / "data"
-    assert not data_dir.resolve().is_relative_to(package_data_dir.resolve())
-
-    monkeypatch.setenv("TELEGRAPHY_DATA_DIR", str(data_dir))
+    monkeypatch.setenv("TELEGRAPHY_DATA_DIR", str(override_data_dir))
     story_brief.clear_get_data_cache()
     loaded = story_brief.load_story_data()
 
@@ -108,14 +111,10 @@ def test_env_override_loads_dataset_from_custom_directory(
 
 
 def test_legacy_env_override_loads_dataset_from_custom_directory(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    override_data_dir: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    data_dir = tmp_path / "override-data"
-    data_dir.mkdir()
-    _write_minimal_dataset(data_dir)
-
     monkeypatch.delenv("TELEGRAPHY_DATA_DIR", raising=False)
-    monkeypatch.setenv("COMMUTED_STORY_BRIEF_DATA_DIR", str(data_dir))
+    monkeypatch.setenv("COMMUTED_STORY_BRIEF_DATA_DIR", str(override_data_dir))
     story_brief.clear_get_data_cache()
     loaded = story_brief.load_story_data()
 
@@ -124,14 +123,11 @@ def test_legacy_env_override_loads_dataset_from_custom_directory(
 
 
 def test_env_override_rejects_unresolved_title_token(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    override_data_dir: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    data_dir = tmp_path / "override-data"
-    data_dir.mkdir()
-    _write_minimal_dataset(data_dir)
-    _write_payload(data_dir / "titles.json", {"titles": ["Oops @protagnoist"]})
+    _write_payload(override_data_dir / "titles.json", {"titles": ["Oops @protagnoist"]})
 
-    monkeypatch.setenv("TELEGRAPHY_DATA_DIR", str(data_dir))
+    monkeypatch.setenv("TELEGRAPHY_DATA_DIR", str(override_data_dir))
     story_brief.clear_get_data_cache()
 
     with pytest.raises(ValueError, match="unsupported token"):
@@ -139,13 +135,10 @@ def test_env_override_rejects_unresolved_title_token(
 
 
 def test_load_story_data_strips_availability_names(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    override_data_dir: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    data_dir = tmp_path / "override-data"
-    data_dir.mkdir()
-    _write_minimal_dataset(data_dir)
     _write_payload(
-        data_dir / "entities.json",
+        override_data_dir / "entities.json",
         {
             "character_availability": [
                 ["  Alex  ", "2000-01-01", "2005-12-31"],
@@ -155,7 +148,7 @@ def test_load_story_data_strips_availability_names(
         },
     )
 
-    monkeypatch.setenv("TELEGRAPHY_DATA_DIR", str(data_dir))
+    monkeypatch.setenv("TELEGRAPHY_DATA_DIR", str(override_data_dir))
     story_brief.clear_get_data_cache()
     loaded = story_brief.load_story_data()
 

@@ -15,7 +15,7 @@ from datetime import date, datetime, timedelta
 from functools import lru_cache
 from importlib.resources import files
 from pathlib import Path
-from typing import Any, Iterable, NamedTuple, Sequence, TypeVar
+from typing import Any, Iterable, NamedTuple, Sequence, TypedDict, TypeVar
 
 import yaml
 
@@ -113,6 +113,36 @@ class DatasetLintReport(NamedTuple):
         return bool(self.errors)
 
 
+class StoryData(TypedDict):
+    titles: tuple[str, ...]
+    titles_sorted: tuple[str, ...]
+    character_availability: tuple[tuple[str, date, date], ...]
+    setting_availability: tuple[tuple[str, date, date], ...]
+    central_conflicts: tuple[str, ...]
+    inciting_pressures: tuple[str, ...]
+    ending_types: tuple[str, ...]
+    style_guidance: tuple[str, ...]
+    weather: tuple[str, ...]
+    central_conflicts_sorted: tuple[str, ...]
+    inciting_pressures_sorted: tuple[str, ...]
+    ending_types_sorted: tuple[str, ...]
+    style_guidance_sorted: tuple[str, ...]
+    weather_sorted: tuple[str, ...]
+    date_start: date
+    date_end: date
+    sexual_content_options: tuple[str, ...]
+    sexual_content_weights: tuple[float, ...]
+    sexual_scene_tag_groups: dict[str, tuple[str, ...]]
+    sexual_scene_tag_group_names_sorted: tuple[str, ...]
+    sexual_scene_tag_groups_sorted: dict[str, tuple[str, ...]]
+    word_count_targets: tuple[int, ...]
+    word_count_targets_sorted: tuple[int, ...]
+    ordered_keys: tuple[str, ...]
+    writing_preamble: str
+    dataset_version: str
+    partner_distributions: dict[str, tuple[dict[str, Any], ...]]
+
+
 def _load_json(path: Any) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
@@ -135,16 +165,7 @@ def _data_file(filename: str) -> Any:
     """
     override_raw = os.environ.get("TELEGRAPHY_DATA_DIR") or os.environ.get("COMMUTED_STORY_BRIEF_DATA_DIR")
     if override_raw:
-        if override_raw.startswith("~/") or override_raw == "~":
-            home_override = os.environ.get("HOME")
-            if home_override:
-                relative = override_raw[2:] if override_raw != "~" else ""
-                override = Path(home_override, relative)
-            else:
-                override = Path(override_raw).expanduser()
-        else:
-            override = Path(override_raw).expanduser()
-        return override / filename
+        return Path(override_raw).expanduser() / filename
 
     repo_relative = Path(__file__).resolve().parent / "data" / filename
     if __package__ in (None, "") and repo_relative.exists():
@@ -425,6 +446,7 @@ def validate_story_data(
     config: dict[str, Any],
     partner_distributions: dict[str, Any],
 ) -> ValidatedStoryData:
+    """Validate raw dataset payloads and return normalized availability metadata."""
     _validate_titles(titles)
     character_rows, setting_rows = _validate_entities(entities)
 
@@ -470,7 +492,8 @@ def validate_story_data(
     )
 
 
-def load_story_data() -> dict[str, Any]:
+def load_story_data() -> StoryData:
+    """Load, validate, and normalize the story dataset used by the generator."""
     try:
         dataset_payloads = {
             key: _load_json(_data_file(filename))
@@ -538,7 +561,7 @@ def load_story_data() -> dict[str, Any]:
 
 
 @lru_cache(maxsize=1)
-def _get_data_cached() -> dict[str, Any]:
+def _get_data_cached() -> StoryData:
     """Load and cache story-brief data on first use."""
     return load_story_data()
 
@@ -547,16 +570,18 @@ def _clear_get_data_cache() -> None:
     _get_data_cached.cache_clear()
 
 
-def get_data() -> dict[str, Any]:
+def clear_get_data_cache() -> None:
+    """Clear the memoized story dataset cache."""
+    _clear_get_data_cache()
+
+
+def get_data() -> StoryData:
     """Load and cache story-brief data on first use.
 
     Returns a deep copy of cached data to prevent cache poisoning when callers
     mutate nested structures.
     """
     return deepcopy(_get_data_cached())
-
-
-get_data.cache_clear = _clear_get_data_cache  # type: ignore[attr-defined]
 
 
 _COMPAT_ALIASES: dict[str, str] = {
@@ -956,8 +981,9 @@ def _emit_lint_report(report: DatasetLintReport) -> None:
 def pick_story_fields(
     rng: random.Random | secrets.SystemRandom,
     selected_date: date | None = None,
-    data: dict[str, Any] | None = None,
+    data: StoryData | None = None,
 ) -> dict[str, str | int | list[str] | None]:
+    """Pick a randomized, schema-compatible story brief field set."""
     resolved_data = get_data() if data is None else data
     if selected_date is None:
         selected_date = random_date_in_range(
@@ -1083,8 +1109,9 @@ def pick_story_fields(
 
 def to_markdown(
     fields: dict[str, str | int | list[str] | None],
-    data: dict[str, Any] | None = None,
+    data: StoryData | None = None,
 ) -> str:
+    """Render selected story fields as Markdown with YAML front matter."""
     resolved_data = get_data() if data is None else data
     ordered_fields = {key: fields[key] for key in resolved_data["ordered_keys"]}
     yaml_text = yaml.safe_dump(

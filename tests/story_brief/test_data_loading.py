@@ -97,7 +97,7 @@ def test_env_override_loads_dataset_from_custom_directory(
     _write_minimal_dataset(data_dir)
 
     monkeypatch.setenv("TELEGRAPHY_DATA_DIR", str(data_dir))
-    story_brief.get_data.cache_clear()
+    story_brief.clear_get_data_cache()
     loaded = story_brief.load_story_data()
 
     assert loaded["dataset_version"] == "test"
@@ -113,7 +113,7 @@ def test_legacy_env_override_loads_dataset_from_custom_directory(
 
     monkeypatch.delenv("TELEGRAPHY_DATA_DIR", raising=False)
     monkeypatch.setenv("COMMUTED_STORY_BRIEF_DATA_DIR", str(data_dir))
-    story_brief.get_data.cache_clear()
+    story_brief.clear_get_data_cache()
     loaded = story_brief.load_story_data()
 
     assert loaded["dataset_version"] == "test"
@@ -129,7 +129,7 @@ def test_env_override_rejects_unresolved_title_token(
     _write_payload(data_dir / "titles.json", {"titles": ["Oops @protagnoist"]})
 
     monkeypatch.setenv("TELEGRAPHY_DATA_DIR", str(data_dir))
-    story_brief.get_data.cache_clear()
+    story_brief.clear_get_data_cache()
 
     with pytest.raises(ValueError, match="unsupported token"):
         story_brief.load_story_data()
@@ -153,7 +153,7 @@ def test_load_story_data_strips_availability_names(
     )
 
     monkeypatch.setenv("TELEGRAPHY_DATA_DIR", str(data_dir))
-    story_brief.get_data.cache_clear()
+    story_brief.clear_get_data_cache()
     loaded = story_brief.load_story_data()
 
     assert loaded["character_availability"][0][0] == "Alex"
@@ -162,7 +162,7 @@ def test_load_story_data_strips_availability_names(
 
 
 def test_get_data_returns_defensive_copies() -> None:
-    story_brief.get_data.cache_clear()
+    story_brief.clear_get_data_cache()
 
     original = story_brief.get_data()
     # Top-level mutation should not poison cached state.

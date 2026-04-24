@@ -1195,6 +1195,7 @@ def main() -> None:
         ),
     )
     args = parser.parse_args()
+    data = get_data()
 
     rng: random.Random | secrets.SystemRandom
     if args.seed is None:
@@ -1204,7 +1205,7 @@ def main() -> None:
 
     if args.lint_dataset:
         try:
-            report = lint_story_data(_get_data_cached())
+            report = lint_story_data(data)
         except ValueError as exc:
             raise SystemExit(str(exc)) from exc
         _emit_lint_report(report)
@@ -1213,7 +1214,7 @@ def main() -> None:
         return
     if args.validate_strict:
         try:
-            validate_story_data_strict(_get_data_cached())
+            validate_story_data_strict(data)
         except ValueError as exc:
             raise SystemExit(str(exc)) from exc
 
@@ -1225,7 +1226,6 @@ def main() -> None:
             raise SystemExit("--date must be in YYYY-MM-DD format") from exc
 
     try:
-        data = get_data()
         fields = pick_story_fields(rng, selected_date=selected_date, data=data)
         markdown = to_markdown(fields, data=data)
     except ValueError as exc:

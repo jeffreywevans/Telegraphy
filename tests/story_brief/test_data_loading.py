@@ -48,6 +48,7 @@ def _write_minimal_dataset(data_dir: Path) -> None:
                 "tone": ["tender"],
                 "partner": ["married"],
             },
+            "sexual_scene_tag_count_weights": {"1": 1, "2": 1},
             "word_count_targets": [1200],
             "ordered_keys": sorted(story_brief.EXPECTED_GENERATED_FIELD_KEYS),
             "writing_preamble": "Write.",

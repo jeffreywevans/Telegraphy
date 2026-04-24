@@ -80,7 +80,6 @@ STORY_DATASET_FILES = {
     "config": CONFIG_FILENAME,
     "partner_distributions": PARTNER_DISTRIBUTIONS_FILENAME,
 }
-TRUSTED_DATA_ROOT_DIR = (Path(__file__).resolve().parent / "data").resolve()
 ENTITY_AVAILABILITY_KEYS = frozenset(
     {
         CHARACTER_AVAILABILITY_KEY,

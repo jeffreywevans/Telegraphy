@@ -1319,12 +1319,10 @@ def main() -> None:
     except ValueError as exc:
         raise SystemExit(f"Invalid --output-dir: {exc}") from exc
     output_dir = (trusted_base_dir / requested_output_dir).resolve(strict=False)
-    try:
-        output_dir.relative_to(trusted_base_dir)
-    except ValueError as exc:
+    if not output_dir.is_relative_to(trusted_base_dir):
         raise SystemExit(
             f"--output-dir must be within {trusted_base_dir}: {output_dir}"
-        ) from exc
+        )
     output_dir.mkdir(parents=True, exist_ok=True)
 
     if args.filename:
@@ -1336,12 +1334,10 @@ def main() -> None:
         )
 
     output_path = (output_dir / filename).resolve(strict=False)
-    try:
-        output_path.relative_to(trusted_base_dir)
-    except ValueError as exc:
+    if not output_path.is_relative_to(trusted_base_dir):
         raise SystemExit(
             f"Resolved output path must be within {trusted_base_dir}: {output_path}"
-        ) from exc
+        )
     if output_path.exists() and not args.force:
         raise SystemExit(
             f"Refusing to overwrite existing file: {output_path}. "

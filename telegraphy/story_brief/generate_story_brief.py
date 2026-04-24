@@ -501,20 +501,14 @@ def _validate_sexual_scene_tag_count_weights(config: dict[str, Any]) -> None:
     group_count = len(config["sexual_scene_tag_groups"])
     weight_sum = 0.0
     for raw_count, weight in raw_weights.items():
-        if isinstance(raw_count, bool):
-            raise ValueError(
-                "config.sexual_scene_tag_count_weights keys must be positive integers"
-            )
         try:
             count = int(raw_count)
+            if str(count) != str(raw_count) or count <= 0:
+                raise ValueError
         except (TypeError, ValueError) as exc:
             raise ValueError(
                 "config.sexual_scene_tag_count_weights keys must be positive integers"
             ) from exc
-        if str(count) != str(raw_count) or count <= 0:
-            raise ValueError(
-                "config.sexual_scene_tag_count_weights keys must be positive integers"
-            )
         if count > group_count:
             raise ValueError(
                 "config.sexual_scene_tag_count_weights keys must not exceed the "
@@ -667,19 +661,13 @@ def load_story_data() -> StoryData:
         str(group_name): tuple(str(tag) for tag in tags)
         for group_name, tags in config["sexual_scene_tag_groups"].items()
     }
-    sexual_scene_tag_count_weight_items = sorted(
-        (
-            int(option),
-            float(weight),
-        )
-        for option, weight in config["sexual_scene_tag_count_weights"].items()
+    sorted_items = sorted(
+        config["sexual_scene_tag_count_weights"].items(),
+        key=lambda item: int(item[0]),
     )
-    sexual_scene_tag_count_options = tuple(
-        option for option, _ in sexual_scene_tag_count_weight_items
-    )
-    sexual_scene_tag_count_weights = tuple(
-        weight for _, weight in sexual_scene_tag_count_weight_items
-    )
+    options_str, weights_raw = zip(*sorted_items)
+    sexual_scene_tag_count_options = tuple(map(int, options_str))
+    sexual_scene_tag_count_weights = tuple(map(float, weights_raw))
 
     return {
         "titles": tuple(str(v) for v in titles["titles"]),
@@ -1305,16 +1293,12 @@ def pick_story_fields(
                 ),
             )
         )
-        tag_count_options = [
-            count
-            for count, _ in configured_tag_count_pairs
-            if count <= len(tag_group_names)
-        ]
-        tag_count_weights = [
-            weight
-            for count, weight in configured_tag_count_pairs
-            if count <= len(tag_group_names)
-        ]
+        tag_count_options: list[int] = []
+        tag_count_weights: list[float] = []
+        for count, weight in configured_tag_count_pairs:
+            if count <= len(tag_group_names):
+                tag_count_options.append(count)
+                tag_count_weights.append(weight)
         selected_tag_count = int(
             weighted_choice(
                 rng,

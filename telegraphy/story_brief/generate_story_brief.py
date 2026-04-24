@@ -1414,7 +1414,11 @@ def main() -> None:
             today=str(fields["time_period"]),
         )
 
-    output_path = output_dir / filename
+    safe_relative_output = _build_safe_relative_path(
+        str(Path(output_dir.name) / filename),
+        trusted_base_dir=trusted_base_dir,
+    )
+    output_path = trusted_base_dir / safe_relative_output
     resolved_output_parent = output_path.parent.resolve(strict=False)
     candidate_output_path = resolved_output_parent / output_path.name
     if not candidate_output_path.is_relative_to(trusted_base_dir):

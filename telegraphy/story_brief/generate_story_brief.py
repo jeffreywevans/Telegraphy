@@ -218,6 +218,13 @@ def _write_output_markdown(output_path: Path, markdown: str, *, force: bool) -> 
     Uses low-level os.open flags so writes fail closed for symlink targets and
     so non-force writes are performed with O_EXCL.
     """
+    trusted_base_dir = Path.cwd().resolve(strict=True)
+    resolved_output_path = output_path.resolve(strict=False)
+    if not resolved_output_path.is_relative_to(trusted_base_dir):
+        raise SystemExit(
+            f"Resolved output path must be within {trusted_base_dir}: {resolved_output_path}"
+        )
+
     flags = os.O_WRONLY | os.O_CREAT
     flags |= os.O_TRUNC if force else os.O_EXCL
     if hasattr(os, "O_NOFOLLOW"):
@@ -225,17 +232,17 @@ def _write_output_markdown(output_path: Path, markdown: str, *, force: bool) -> 
     mode = 0o600
 
     try:
-        fd = os.open(output_path, flags, mode)
+        fd = os.open(resolved_output_path, flags, mode)
         with os.fdopen(fd, "w", encoding="utf-8") as handle:
             handle.write(markdown)
     except FileExistsError:
         raise SystemExit(
-            f"Refusing to overwrite existing file: {output_path}. "
+            f"Refusing to overwrite existing file: {resolved_output_path}. "
             "Use --force to overwrite."
         ) from None
     except OSError as exc:
         raise SystemExit(
-            f"Unable to safely open or write output path: {output_path} ({exc})"
+            f"Unable to safely open or write output path: {resolved_output_path} ({exc})"
         ) from exc
 
 

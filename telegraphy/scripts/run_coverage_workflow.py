@@ -9,7 +9,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-
 COVERAGE_CONFIG_FILE = "tox.ini"
 
 

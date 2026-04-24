@@ -926,6 +926,7 @@ def weighted_choice(
     if total <= 0:
         raise ValueError("at least one weight must be greater than zero")
 
+    # Avoid random.choices: it consumes RNG differently and breaks seed-stable generation.
     threshold = rng.random() * total
     cumulative = 0.0
 

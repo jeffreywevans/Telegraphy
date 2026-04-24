@@ -621,6 +621,9 @@ def slugify(value: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
 
 
+MAX_FILENAME_STEM_LENGTH = 120
+
+
 def sanitize_filename(filename: str) -> str:
     """
     Sanitize filename for cross-platform safety while preserving extension.
@@ -633,6 +636,7 @@ def sanitize_filename(filename: str) -> str:
 
     # Remove control chars and characters invalid on common filesystems.
     safe_stem = re.sub(r'[\x00-\x1f<>:"/\\|?*]+', "-", stem).rstrip(" .")
+    safe_stem = safe_stem[:MAX_FILENAME_STEM_LENGTH].rstrip(" .-")
     safe_suffix = re.sub(r'[\x00-\x1f<>:"/\\|?*]+', "", suffix).rstrip(" .")
 
     if not safe_stem:

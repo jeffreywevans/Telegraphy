@@ -14,6 +14,11 @@ def test_sanitize_filename_handles_invalid_chars_and_reserved_names() -> None:
     assert sanitize_filename("   .md") == "story-brief.md"
 
 
+def test_sanitize_filename_trims_stem_length_and_reapplies_fallback() -> None:
+    assert sanitize_filename(f"{'a' * 140}.md") == f"{'a' * 120}.md"
+    assert sanitize_filename("?.md") == "story-brief.md"
+
+
 def test_build_auto_filename_uses_fallback_slug_for_empty_slugified_title() -> None:
     assert (
         build_auto_filename("!!!", today=datetime(2026, 4, 21))

@@ -8,8 +8,27 @@ on:
 permissions:
   contents: read
 env:
+  # Opt all JavaScript-based actions into Node.js 24 ahead of the GitHub-hosted runner default change.
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 jobs:
+  validate-workflows:
+    name: Validate workflow action runtimes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - name: Ensure deprecated Node.js 20 Dependabot action is not used
+        run: |
+          if rg -uu -n "^\s*-\s*uses:\s*github/dependabot-action@" .github/workflows --glob '*.yml' --glob '*.yaml'; then
+            echo "Deprecated github/dependabot-action reference found."
+            exit 1
+          fi
+      - name: Ensure Node.js 24 override is enabled
+        run: |
+          if ! rg -uu -n "^\s*FORCE_JAVASCRIPT_ACTIONS_TO_NODE24:\s*true\s*$" .github/workflows --glob '*.yml' --glob '*.yaml'; then
+            echo "Missing FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true in workflow files."
+            exit 1
+          fi
+
   test:
     name: Test
     runs-on: ubuntu-latest

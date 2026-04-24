@@ -44,19 +44,13 @@ EXPECTED_GENERATED_FIELD_KEYS = {
     "sexual_scene_tags",
     "word_count_target",
 }
-SEXUAL_SCENE_TAG_COUNT_OPTIONS = (2, 3, 4, 5)
-SEXUAL_SCENE_TAG_COUNT_WEIGHTS = (0.7, 0.1, 0.1, 0.1)
+DEFAULT_SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION = {
+    2: 0.7,
+    3: 0.1,
+    4: 0.1,
+    5: 0.1,
+}
 MAX_SEXUAL_SCENE_TAG_GROUPS = 10
-if len(SEXUAL_SCENE_TAG_COUNT_OPTIONS) != len(SEXUAL_SCENE_TAG_COUNT_WEIGHTS):
-    raise ValueError(
-        "SEXUAL_SCENE_TAG_COUNT_OPTIONS and SEXUAL_SCENE_TAG_COUNT_WEIGHTS "
-        "must have matching lengths"
-    )
-if len(set(SEXUAL_SCENE_TAG_COUNT_OPTIONS)) != len(SEXUAL_SCENE_TAG_COUNT_OPTIONS):
-    raise ValueError("SEXUAL_SCENE_TAG_COUNT_OPTIONS must not contain duplicates")
-SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION = dict(
-    zip(SEXUAL_SCENE_TAG_COUNT_OPTIONS, SEXUAL_SCENE_TAG_COUNT_WEIGHTS)
-)
 PROMPT_LIST_KEYS = (
     "central_conflicts",
     "inciting_pressures",
@@ -143,6 +137,8 @@ class StoryData(TypedDict):
     sexual_scene_tag_groups: dict[str, tuple[str, ...]]
     sexual_scene_tag_group_names_sorted: tuple[str, ...]
     sexual_scene_tag_groups_sorted: dict[str, tuple[str, ...]]
+    sexual_scene_tag_count_options: tuple[int, ...]
+    sexual_scene_tag_count_weights: tuple[float, ...]
     word_count_targets: tuple[int, ...]
     word_count_targets_sorted: tuple[int, ...]
     ordered_keys: tuple[str, ...]
@@ -497,6 +493,51 @@ def _validate_sexual_scene_tag_groups(config: dict[str, Any]) -> None:
         )
 
 
+def _validate_sexual_scene_tag_count_weights(config: dict[str, Any]) -> None:
+    raw_weights = config["sexual_scene_tag_count_weights"]
+    if not isinstance(raw_weights, dict) or not raw_weights:
+        raise ValueError("config.sexual_scene_tag_count_weights must be a non-empty object")
+
+    group_count = len(config["sexual_scene_tag_groups"])
+    weight_sum = 0.0
+    for raw_count, weight in raw_weights.items():
+        if isinstance(raw_count, bool):
+            raise ValueError(
+                "config.sexual_scene_tag_count_weights keys must be positive integers"
+            )
+        try:
+            count = int(raw_count)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                "config.sexual_scene_tag_count_weights keys must be positive integers"
+            ) from exc
+        if str(count) != str(raw_count) or count <= 0:
+            raise ValueError(
+                "config.sexual_scene_tag_count_weights keys must be positive integers"
+            )
+        if count > group_count:
+            raise ValueError(
+                "config.sexual_scene_tag_count_weights keys must not exceed the "
+                "available sexual_scene_tag_groups count"
+            )
+        if isinstance(weight, bool) or not isinstance(weight, (int, float)):
+            raise ValueError(
+                "config.sexual_scene_tag_count_weights values must be real numbers"
+            )
+        if not math.isfinite(weight):
+            raise ValueError(
+                "config.sexual_scene_tag_count_weights values must be finite"
+            )
+        if weight < 0:
+            raise ValueError(
+                "config.sexual_scene_tag_count_weights values must be non-negative"
+            )
+        weight_sum += float(weight)
+
+    if weight_sum <= 0:
+        raise ValueError("config.sexual_scene_tag_count_weights values must sum to > 0")
+
+
 def _validate_ordered_keys(config: dict[str, Any]) -> None:
     ordered_keys = config["ordered_keys"]
     if not isinstance(ordered_keys, list) or not ordered_keys:
@@ -564,6 +605,7 @@ def validate_story_data(
             "sexual_content_options",
             "sexual_content_weights",
             "sexual_scene_tag_groups",
+            "sexual_scene_tag_count_weights",
             "word_count_targets",
             "ordered_keys",
             "writing_preamble",
@@ -574,6 +616,7 @@ def validate_story_data(
     _validate_config_date_overlap(character_rows, setting_rows, start, end)
     _validate_sexual_content_weights(config)
     _validate_sexual_scene_tag_groups(config)
+    _validate_sexual_scene_tag_count_weights(config)
     _validate_word_count_targets(config)
     _validate_ordered_keys(config)
     _validate_writing_preamble(config)
@@ -624,6 +667,15 @@ def load_story_data() -> StoryData:
         str(group_name): tuple(str(tag) for tag in tags)
         for group_name, tags in config["sexual_scene_tag_groups"].items()
     }
+    sexual_scene_tag_count_weight_items = sorted(
+        (
+            int(option),
+            float(weight),
+        )
+        for option, weight in config["sexual_scene_tag_count_weights"].items()
+    )
+    sexual_scene_tag_count_options = tuple(option for option, _ in sexual_scene_tag_count_weight_items)
+    sexual_scene_tag_count_weights = tuple(weight for _, weight in sexual_scene_tag_count_weight_items)
 
     return {
         "titles": tuple(str(v) for v in titles["titles"]),
@@ -645,6 +697,8 @@ def load_story_data() -> StoryData:
             group_name: tuple(stable_sorted_pool(tags))
             for group_name, tags in sexual_scene_tag_groups.items()
         },
+        "sexual_scene_tag_count_options": sexual_scene_tag_count_options,
+        "sexual_scene_tag_count_weights": sexual_scene_tag_count_weights,
         "word_count_targets": tuple(int(v) for v in config["word_count_targets"]),
         "word_count_targets_sorted": tuple(
             stable_sorted_pool(int(v) for v in config["word_count_targets"])
@@ -1235,13 +1289,27 @@ def pick_story_fields(
             tag_group_names = resolved_data["sexual_scene_tag_group_names_sorted"]
         else:
             tag_group_names = stable_sorted_pool(resolved_data["sexual_scene_tag_groups"])
+        configured_tag_count_pairs = list(
+            zip(
+                resolved_data.get(
+                    "sexual_scene_tag_count_options",
+                    tuple(DEFAULT_SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION),
+                ),
+                resolved_data.get(
+                    "sexual_scene_tag_count_weights",
+                    tuple(DEFAULT_SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION.values()),
+                ),
+            )
+        )
         tag_count_options = [
             count
-            for count in SEXUAL_SCENE_TAG_COUNT_OPTIONS
+            for count, _ in configured_tag_count_pairs
             if count <= len(tag_group_names)
         ]
         tag_count_weights = [
-            SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION[count] for count in tag_count_options
+            weight
+            for count, weight in configured_tag_count_pairs
+            if count <= len(tag_group_names)
         ]
         selected_tag_count = int(
             weighted_choice(

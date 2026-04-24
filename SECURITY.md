@@ -19,7 +19,7 @@ Please **do not** open public GitHub issues for suspected vulnerabilities.
 
 Instead, report vulnerabilities privately by emailing:
 
-- **security@telegraphy.dev**
+- **commuted.convicted@gmail.com**
 
 Please include:
 

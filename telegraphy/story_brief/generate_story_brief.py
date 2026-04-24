@@ -981,17 +981,13 @@ def _coalesce_ranges(ranges: list[tuple[date, date]]) -> list[tuple[date, date]]
     return merged
 
 
-def lint_story_data(data: dict[str, Any]) -> DatasetLintReport:
-    """Report actionable dataset diagnostics and coverage gaps."""
-    range_start = data["date_start"]
-    range_end = data["date_end"]
-
+def _build_lint_checkpoints(
+    data: dict[str, Any], *, range_start: date, range_end: date
+) -> list[date]:
     one_day = timedelta(days=1)
     checkpoints: set[date] = {range_start}
-    if range_end < date.max:
-        checkpoints.add(range_end + one_day)
-    else:
-        checkpoints.add(range_end)
+    checkpoints.add(range_end + one_day if range_end < date.max else range_end)
+
     for source in (data[CHARACTER_AVAILABILITY_KEY], data[SETTING_AVAILABILITY_KEY]):
         _add_clipped_range_checkpoints(
             checkpoints=checkpoints,
@@ -1007,27 +1003,47 @@ def lint_story_data(data: dict[str, Any]) -> DatasetLintReport:
             range_end=range_end,
         )
 
+    return sorted(checkpoints)
+
+
+def _available_entities(
+    availability_rows: Sequence[tuple[str, date, date]], *, selected_date: date
+) -> list[str]:
+    return [
+        name
+        for name, start_date, end_date in availability_rows
+        if start_date <= selected_date <= end_date
+    ]
+
+
+def _collect_interval_lint_ranges(
+    data: dict[str, Any], *, sorted_checkpoints: Sequence[date], range_end: date
+) -> tuple[
+    list[tuple[date, date]],
+    list[tuple[date, date]],
+    list[tuple[date, date]],
+    list[tuple[date, date]],
+    dict[str, list[tuple[date, date]]],
+]:
+    one_day = timedelta(days=1)
     missing_character_ranges: list[tuple[date, date]] = []
     thin_character_ranges: list[tuple[date, date]] = []
     missing_setting_ranges: list[tuple[date, date]] = []
     thin_setting_ranges: list[tuple[date, date]] = []
     partner_data_gap_ranges_by_protagonist: dict[str, list[tuple[date, date]]] = {}
 
-    sorted_checkpoints = sorted(checkpoints)
     for current_start, next_start in zip(sorted_checkpoints, sorted_checkpoints[1:]):
         interval_end = min(range_end, next_start - one_day)
         if interval_end < current_start:
             continue
-        characters = [
-            name
-            for name, start_date, end_date in data[CHARACTER_AVAILABILITY_KEY]
-            if start_date <= current_start <= end_date
-        ]
-        settings = [
-            name
-            for name, start_date, end_date in data[SETTING_AVAILABILITY_KEY]
-            if start_date <= current_start <= end_date
-        ]
+
+        characters = _available_entities(
+            data[CHARACTER_AVAILABILITY_KEY], selected_date=current_start
+        )
+        settings = _available_entities(
+            data[SETTING_AVAILABILITY_KEY], selected_date=current_start
+        )
+
         if len(characters) < 2:
             missing_character_ranges.append((current_start, interval_end))
         elif len(characters) == 2:
@@ -1040,15 +1056,31 @@ def lint_story_data(data: dict[str, Any]) -> DatasetLintReport:
 
         for protagonist in characters:
             eras = data[PARTNER_DISTRIBUTIONS_KEY].get(protagonist, [])
-            has_era_data = any(
-                era["date_start"] <= current_start <= era["date_end"] for era in eras
+            if any(era["date_start"] <= current_start <= era["date_end"] for era in eras):
+                continue
+            partner_data_gap_ranges_by_protagonist.setdefault(protagonist, []).append(
+                (current_start, interval_end)
             )
-            if not has_era_data:
-                partner_data_gap_ranges_by_protagonist.setdefault(protagonist, []).append(
-                    (current_start, interval_end)
-                )
 
-    errors: list[str] = []
+    return (
+        missing_character_ranges,
+        thin_character_ranges,
+        missing_setting_ranges,
+        thin_setting_ranges,
+        partner_data_gap_ranges_by_protagonist,
+    )
+
+
+def _append_coverage_messages(
+    *,
+    errors: list[str],
+    warnings: list[str],
+    missing_character_ranges: list[tuple[date, date]],
+    thin_character_ranges: list[tuple[date, date]],
+    missing_setting_ranges: list[tuple[date, date]],
+    thin_setting_ranges: list[tuple[date, date]],
+    partner_data_gap_ranges_by_protagonist: dict[str, list[tuple[date, date]]],
+) -> None:
     if missing_character_ranges:
         errors.append(
             "Coverage gap: fewer than two distinct characters on "
@@ -1059,8 +1091,6 @@ def lint_story_data(data: dict[str, Any]) -> DatasetLintReport:
             "Coverage gap: no available settings on "
             f"{_format_date_ranges(_coalesce_ranges(missing_setting_ranges))}."
         )
-
-    warnings: list[str] = []
     if thin_character_ranges:
         warnings.append(
             "Fragile coverage: exactly two characters available on "
@@ -1079,6 +1109,53 @@ def lint_story_data(data: dict[str, Any]) -> DatasetLintReport:
             f"{_format_date_ranges(gap_ranges)}."
         )
 
+
+def _append_prompt_depth_warnings(data: dict[str, Any], *, warnings: list[str]) -> None:
+    for key in PROMPT_LIST_KEYS:
+        options = data[key]
+        if len(options) >= 3:
+            continue
+        warnings.append(
+            f"Prompt depth warning: {key} has only {len(options)} option(s); "
+            "consider adding at least 3 for variety."
+        )
+
+    if len(data["word_count_targets"]) < 3:
+        warnings.append(
+            "Prompt depth warning: word_count_targets has fewer than 3 options; "
+            "consider adding more range variety."
+        )
+
+
+def lint_story_data(data: dict[str, Any]) -> DatasetLintReport:
+    """Report actionable dataset diagnostics and coverage gaps."""
+    range_start = data["date_start"]
+    range_end = data["date_end"]
+    sorted_checkpoints = _build_lint_checkpoints(
+        data, range_start=range_start, range_end=range_end
+    )
+    (
+        missing_character_ranges,
+        thin_character_ranges,
+        missing_setting_ranges,
+        thin_setting_ranges,
+        partner_data_gap_ranges_by_protagonist,
+    ) = _collect_interval_lint_ranges(
+        data, sorted_checkpoints=sorted_checkpoints, range_end=range_end
+    )
+
+    errors: list[str] = []
+    warnings: list[str] = []
+    _append_coverage_messages(
+        errors=errors,
+        warnings=warnings,
+        missing_character_ranges=missing_character_ranges,
+        thin_character_ranges=thin_character_ranges,
+        missing_setting_ranges=missing_setting_ranges,
+        thin_setting_ranges=thin_setting_ranges,
+        partner_data_gap_ranges_by_protagonist=partner_data_gap_ranges_by_protagonist,
+    )
+
     tokens_seen: set[str] = set()
     for template in data["titles"]:
         tokens_seen.update(TITLE_TOKEN_PATTERN.findall(template))
@@ -1089,19 +1166,7 @@ def lint_story_data(data: dict[str, Any]) -> DatasetLintReport:
             f"{', '.join(f'@{token}' for token in missing_title_tokens)}."
         )
 
-    for key in PROMPT_LIST_KEYS:
-        options = data[key]
-        if len(options) < 3:
-            warnings.append(
-                f"Prompt depth warning: {key} has only {len(options)} option(s); "
-                "consider adding at least 3 for variety."
-            )
-
-    if len(data["word_count_targets"]) < 3:
-        warnings.append(
-            "Prompt depth warning: word_count_targets has fewer than 3 options; "
-            "consider adding more range variety."
-        )
+    _append_prompt_depth_warnings(data, warnings=warnings)
 
     return DatasetLintReport(errors=errors, warnings=warnings)
 

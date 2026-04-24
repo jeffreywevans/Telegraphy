@@ -206,6 +206,13 @@ def _resolve_data_dir_override(path_raw: str) -> Path:
             f"{candidate}"
         )
 
+    trusted_root = Path(__file__).resolve().parent.resolve(strict=True)
+    if not candidate.is_relative_to(trusted_root):
+        raise ValueError(
+            "Configured data directory must be within the trusted story_brief directory: "
+            f"{trusted_root}"
+        )
+
     return candidate
 
 

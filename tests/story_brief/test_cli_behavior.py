@@ -4,9 +4,9 @@ import os
 import re
 import subprocess
 import sys
+from collections.abc import Callable
 from datetime import date, datetime
 from pathlib import Path
-from collections.abc import Callable
 
 import pytest
 

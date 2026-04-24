@@ -12,6 +12,7 @@ from telegraphy.story_brief.partner_models import (
     parse_partner_distribution_payload,
 )
 
+
 def _build_partner_payload(partner_payload_factory) -> dict[str, object]:
     return partner_payload_factory(
         alex_eras=[

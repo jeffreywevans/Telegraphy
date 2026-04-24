@@ -160,7 +160,8 @@ def _data_file(filename: str) -> Any:
          telegraphy.story_brief.data (packaged installs).
 
     Why this chain exists:
-      - Allows testing against alternate datasets without code changes.
+      - Allows testing against alternate datasets under the trusted root
+        without code changes.
       - Supports container/ops setups that mount data at runtime.
       - Keeps editable local data working during development.
     """
@@ -188,6 +189,13 @@ def _resolve_data_dir_override(path_raw: str) -> Path:
             "Configured data directory must be an existing directory: "
             f"{candidate}"
         )
+    try:
+        candidate.relative_to(TRUSTED_DATA_ROOT_DIR)
+    except ValueError as exc:
+        raise ValueError(
+            "Configured data directory must remain within the trusted data root: "
+            f"{TRUSTED_DATA_ROOT_DIR}"
+        ) from exc
     return candidate
 
 

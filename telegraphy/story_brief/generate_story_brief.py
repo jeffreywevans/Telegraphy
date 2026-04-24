@@ -1195,7 +1195,10 @@ def main() -> None:
         ),
     )
     args = parser.parse_args()
-    data = get_data()
+    try:
+        data = get_data()
+    except ValueError as exc:
+        raise SystemExit(str(exc)) from exc
 
     rng: random.Random | secrets.SystemRandom
     if args.seed is None:
@@ -1258,4 +1261,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except ValueError as exc:
+        raise SystemExit(str(exc)) from exc

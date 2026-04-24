@@ -230,7 +230,9 @@ def _write_output_markdown(output_path: Path, markdown: str, *, force: bool) -> 
             "Refusing to overwrite existing file. Use --force to overwrite."
         ) from None
     except OSError as exc:
-        raise SystemExit(f"Unable to safely open or write output path ({exc})") from None
+        raise SystemExit(
+            f"Unable to safely open or write output path ({exc.strerror})"
+        ) from None
 
 
 def _build_safe_relative_path(path_raw: str, *, trusted_base_dir: Path) -> Path:

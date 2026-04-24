@@ -1,2 +1,0 @@
-# Keep this file in sync with [project.dependencies] in pyproject.toml.
-PyYAML>=6.0.3

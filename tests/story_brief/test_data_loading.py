@@ -96,6 +96,9 @@ def test_env_override_loads_dataset_from_custom_directory(
     data_dir.mkdir()
     _write_minimal_dataset(data_dir)
 
+    package_data_dir = Path(story_brief.__file__).resolve().parent / "data"
+    assert not data_dir.resolve().is_relative_to(package_data_dir.resolve())
+
     monkeypatch.setenv("TELEGRAPHY_DATA_DIR", str(data_dir))
     story_brief.clear_get_data_cache()
     loaded = story_brief.load_story_data()

@@ -718,6 +718,25 @@ def slugify(value: str) -> str:
 
 MAX_FILENAME_STEM_LENGTH = 120
 MAX_FILENAME_TOTAL_BYTES = 255
+SAFE_FILENAME_INPUT_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 ._-]{0,254}$")
+
+
+def _validate_user_filename_input(filename: str) -> None:
+    """
+    Validate raw user-provided filename before sanitization.
+
+    Allows a conservative character set and rejects path semantics.
+    """
+    if not filename or filename.strip() != filename:
+        raise ValueError("filename must be non-empty and must not have leading/trailing spaces")
+    if "/" in filename or "\\" in filename:
+        raise ValueError("filename must not contain path separators")
+    if filename in {".", ".."} or ".." in filename:
+        raise ValueError("filename must not contain dot-segments")
+    if not SAFE_FILENAME_INPUT_PATTERN.fullmatch(filename):
+        raise ValueError(
+            "filename contains unsupported characters; allowed: letters, numbers, space, dot, underscore, hyphen"
+        )
 
 
 def _truncate_utf8(value: str, max_bytes: int) -> str:
@@ -1375,6 +1394,10 @@ def main() -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     if args.filename:
+        try:
+            _validate_user_filename_input(args.filename)
+        except ValueError as exc:
+            raise SystemExit(f"Invalid --filename: {exc}") from exc
         filename = sanitize_filename(args.filename)
     else:
         filename = build_auto_filename(

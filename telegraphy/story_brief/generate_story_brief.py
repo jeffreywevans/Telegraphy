@@ -80,6 +80,7 @@ STORY_DATASET_FILES = {
     "config": CONFIG_FILENAME,
     "partner_distributions": PARTNER_DISTRIBUTIONS_FILENAME,
 }
+TRUSTED_DATA_ROOT_DIR = (Path(__file__).resolve().parent / "data").resolve()
 ENTITY_AVAILABILITY_KEYS = frozenset(
     {
         CHARACTER_AVAILABILITY_KEY,
@@ -187,6 +188,13 @@ def _resolve_data_dir_override(path_raw: str) -> Path:
             "Configured data directory must be an existing directory: "
             f"{candidate}"
         )
+    try:
+        candidate.relative_to(TRUSTED_DATA_ROOT_DIR)
+    except ValueError as exc:
+        raise ValueError(
+            "Configured data directory must be within trusted data root: "
+            f"{TRUSTED_DATA_ROOT_DIR}"
+        ) from exc
     return candidate
 
 

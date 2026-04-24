@@ -1266,7 +1266,11 @@ def main() -> None:
 
     trusted_base_dir = Path.cwd().resolve(strict=True)
     requested_output_dir = Path(args.output_dir).expanduser()
-    output_dir = requested_output_dir.resolve(strict=False)
+    if requested_output_dir.is_absolute():
+        output_dir_candidate = requested_output_dir
+    else:
+        output_dir_candidate = trusted_base_dir / requested_output_dir
+    output_dir = output_dir_candidate.resolve(strict=False)
     try:
         output_dir.relative_to(trusted_base_dir)
     except ValueError as exc:
@@ -1283,7 +1287,13 @@ def main() -> None:
             today=str(fields["time_period"]),
         )
 
-    output_path = output_dir / filename
+    output_path = (output_dir / filename).resolve(strict=False)
+    try:
+        output_path.relative_to(trusted_base_dir)
+    except ValueError as exc:
+        raise SystemExit(
+            f"Resolved output path must be within {trusted_base_dir}: {output_path}"
+        ) from exc
     if output_path.exists() and not args.force:
         raise SystemExit(
             f"Refusing to overwrite existing file: {output_path}. "

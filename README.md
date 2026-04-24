@@ -48,9 +48,18 @@ Treat it accordingly.
 ## Usage
 
 ```bash
-pip install -e .[dev]
+# Install the package with development dependencies
+pip install -e ".[dev]"
+
+# Generate a story brief and print to the terminal
 story-brief --print-only
+
+# Generate a reproducible brief with a specific seed and date
 story-brief --seed 42 --date 2000-01-01 --print-only
+
+# Run dataset linting diagnostics
 story-brief --lint-dataset
+
+# Run the test suite
 pytest
 ```

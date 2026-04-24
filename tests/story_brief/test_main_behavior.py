@@ -171,3 +171,29 @@ def test_main_allows_absolute_output_dir_when_within_cwd(
     story_cli.main()
 
     assert (output_dir / "safe.md").read_text(encoding="utf-8") == "body"
+
+
+def test_main_force_rejects_symlink_output_target(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    if not hasattr(story_cli.os, "O_NOFOLLOW"):
+        pytest.skip("Platform does not expose O_NOFOLLOW")
+
+    output_dir = tmp_path / "output" / "story-seeds"
+    output_dir.mkdir(parents=True)
+    target = tmp_path / "outside.md"
+    link_name = output_dir / "linked.md"
+    target.write_text("seed", encoding="utf-8")
+    link_name.symlink_to(target)
+    monkeypatch.chdir(tmp_path)
+
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["story-brief", "--filename", "linked.md", "--force"],
+    )
+    monkeypatch.setattr(story_cli, "pick_story_fields", lambda *_args, **_kwargs: {"title": "A"})
+    monkeypatch.setattr(story_cli, "to_markdown", lambda _fields, data=None: "body")
+
+    with pytest.raises(SystemExit, match="Unable to safely open output path for writing"):
+        story_cli.main()

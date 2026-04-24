@@ -181,13 +181,69 @@ def _data_file(filename: str) -> Any:
 
 def _resolve_data_dir_override(path_raw: str) -> Path:
     """Resolve and validate TELEGRAPHY_DATA_DIR style overrides."""
-    candidate = Path(path_raw).expanduser().resolve(strict=True)
+    trimmed = path_raw.strip()
+    if not trimmed:
+        raise ValueError("Configured data directory must not be empty")
+    if "\x00" in trimmed:
+        raise ValueError("Configured data directory must not contain NUL bytes")
+    if trimmed.startswith("~"):
+        raise ValueError("Configured data directory must be an absolute path")
+
+    raw_path = Path(trimmed)
+    if not raw_path.is_absolute():
+        raise ValueError("Configured data directory must be an absolute path")
+
+    candidate = raw_path.resolve(strict=True)
+    trusted_root = Path(__file__).resolve().parent
+    try:
+        candidate.relative_to(trusted_root)
+    except ValueError as exc:
+        raise ValueError(
+            "Configured data directory must be within the trusted project directory: "
+            f"{trusted_root}"
+        ) from exc
+
     if not candidate.is_dir():
         raise ValueError(
             "Configured data directory must be an existing directory: "
             f"{candidate}"
         )
     return candidate
+
+
+def _write_output_markdown(output_path: Path, markdown: str, *, force: bool) -> None:
+    """
+    Write markdown to output_path while guarding against symlink redirection.
+
+    Uses low-level os.open flags so writes fail closed for symlink targets and
+    so non-force writes are performed with O_EXCL.
+    """
+    trusted_base_dir = Path.cwd().resolve(strict=True)
+    resolved_output_path = output_path.resolve(strict=False)
+    if not resolved_output_path.is_relative_to(trusted_base_dir):
+        raise SystemExit(
+            f"Resolved output path must be within {trusted_base_dir}: {resolved_output_path}"
+        )
+
+    flags = os.O_WRONLY | os.O_CREAT
+    flags |= os.O_TRUNC if force else os.O_EXCL
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+    mode = 0o600
+
+    try:
+        fd = os.open(resolved_output_path, flags, mode)
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            handle.write(markdown)
+    except FileExistsError:
+        raise SystemExit(
+            f"Refusing to overwrite existing file: {resolved_output_path}. "
+            "Use --force to overwrite."
+        ) from None
+    except OSError as exc:
+        raise SystemExit(
+            f"Unable to safely open or write output path: {resolved_output_path} ({exc})"
+        ) from exc
 
 
 def _build_safe_relative_path(path_raw: str, *, trusted_base_dir: Path) -> Path:
@@ -669,6 +725,25 @@ def slugify(value: str) -> str:
 
 MAX_FILENAME_STEM_LENGTH = 120
 MAX_FILENAME_TOTAL_BYTES = 255
+SAFE_FILENAME_INPUT_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 ._-]{0,254}$")
+
+
+def _validate_user_filename_input(filename: str) -> None:
+    """
+    Validate raw user-provided filename before sanitization.
+
+    Allows a conservative character set and rejects path semantics.
+    """
+    if not filename or filename.strip() != filename:
+        raise ValueError("filename must be non-empty and must not have leading/trailing spaces")
+    if "/" in filename or "\\" in filename:
+        raise ValueError("filename must not contain path separators")
+    if filename in {".", ".."} or ".." in filename:
+        raise ValueError("filename must not contain dot-segments")
+    if not SAFE_FILENAME_INPUT_PATTERN.fullmatch(filename):
+        raise ValueError(
+            "filename contains unsupported characters; allowed: letters, numbers, space, dot, underscore, hyphen"
+        )
 
 
 def _truncate_utf8(value: str, max_bytes: int) -> str:
@@ -1326,6 +1401,10 @@ def main() -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     if args.filename:
+        try:
+            _validate_user_filename_input(args.filename)
+        except ValueError as exc:
+            raise SystemExit(f"Invalid --filename: {exc}") from exc
         filename = sanitize_filename(args.filename)
     else:
         filename = build_auto_filename(
@@ -1333,19 +1412,15 @@ def main() -> None:
             today=str(fields["time_period"]),
         )
 
-    output_path = (output_dir / filename).resolve(strict=False)
-    if not output_path.is_relative_to(trusted_base_dir):
+    output_path = output_dir / filename
+    resolved_output_path = output_path.resolve(strict=False)
+    if not resolved_output_path.is_relative_to(trusted_base_dir):
         raise SystemExit(
-            f"Resolved output path must be within {trusted_base_dir}: {output_path}"
+            f"Resolved output path must be within {trusted_base_dir}: {resolved_output_path}"
         )
-    if output_path.exists() and not args.force:
-        raise SystemExit(
-            f"Refusing to overwrite existing file: {output_path}. "
-            "Use --force to overwrite."
-        )
-
-    output_path.write_text(markdown, encoding="utf-8")
-    print(f"Generated {output_path}")
+    _write_output_markdown(output_path, markdown, force=args.force)
+    safe_display_path = output_path.relative_to(trusted_base_dir)
+    print(f"Generated {safe_display_path}")
 
 
 if __name__ == "__main__":

@@ -15,7 +15,6 @@ from telegraphy.story_brief.generate_story_brief import (
     build_auto_filename,
     sanitize_filename,
 )
-from tests.conftest import patch_json
 
 pytestmark = pytest.mark.integration
 
@@ -33,7 +32,10 @@ def assert_cli_error_without_traceback(
     assert "Traceback" not in combined
 
 
-def make_single_character_single_setting_dataset(data_dir: Path) -> None:
+def make_single_character_single_setting_dataset(
+    data_dir: Path,
+    patch_json: Callable[[Path, str, Callable[[dict[str, object]], object]], None],
+) -> None:
     """Mutate dataset to a single-character/single-setting configuration."""
     patch_json(
         data_dir,
@@ -74,7 +76,11 @@ def make_single_character_single_setting_dataset(data_dir: Path) -> None:
     )
 
 
-def remove_prompt_key(data_dir: Path, key: str) -> None:
+def remove_prompt_key(
+    data_dir: Path,
+    key: str,
+    patch_json: Callable[[Path, str, Callable[[dict[str, object]], object]], None],
+) -> None:
     """Remove a prompt key from prompts.json."""
     patch_json(data_dir, "prompts.json", lambda prompts: prompts.pop(key))
 
@@ -232,10 +238,12 @@ def test_cli_lint_dataset_flag_reports_results_and_exits_cleanly(tmp_path: Path)
 
 
 def test_cli_lint_dataset_takes_precedence_over_validate_strict(
-    cli_dataset_factory: Callable[[str], Path], tmp_path: Path
+    cli_dataset_factory: Callable[[str], Path],
+    patch_json: Callable[[Path, str, Callable[[dict[str, object]], object]], None],
+    tmp_path: Path,
 ) -> None:
     data_dir = cli_dataset_factory("lint-data")
-    make_single_character_single_setting_dataset(data_dir)
+    make_single_character_single_setting_dataset(data_dir, patch_json)
 
     result = run_cli(
         "--validate-strict",
@@ -251,10 +259,12 @@ def test_cli_lint_dataset_takes_precedence_over_validate_strict(
 
 
 def test_cli_lint_dataset_handles_invalid_dataset_without_traceback(
-    cli_dataset_factory: Callable[[str], Path], tmp_path: Path
+    cli_dataset_factory: Callable[[str], Path],
+    patch_json: Callable[[Path, str, Callable[[dict[str, object]], object]], None],
+    tmp_path: Path,
 ) -> None:
     data_dir = cli_dataset_factory("invalid-data")
-    remove_prompt_key(data_dir, "weather")
+    remove_prompt_key(data_dir, "weather", patch_json)
 
     result = run_cli(
         "--lint-dataset",

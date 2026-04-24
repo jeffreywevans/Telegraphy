@@ -106,7 +106,7 @@ def clone_story_dataset(destination: Path, *, source_story_data_dir: Path) -> Pa
     return destination
 
 
-def patch_json(data_dir: Path, filename: str, mutator: Callable[[dict[str, Any]], Any]) -> None:
+def _patch_json(data_dir: Path, filename: str, mutator: Callable[[dict[str, Any]], Any]) -> None:
     """Patch a known dataset JSON file in data_dir using an in-place payload mutator."""
     if filename not in _STORY_DATASET_FILES:
         raise ValueError(f"Unsupported dataset file for patching: {filename}")
@@ -119,6 +119,12 @@ def patch_json(data_dir: Path, filename: str, mutator: Callable[[dict[str, Any]]
     payload = json.loads(path.read_text(encoding="utf-8"))
     mutator(payload)
     path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
+@pytest.fixture
+def patch_json() -> Callable[[Path, str, Callable[[dict[str, Any]], Any]], None]:
+    """Utility callable for patching known dataset JSON files in tests."""
+    return _patch_json
 
 
 @pytest.fixture

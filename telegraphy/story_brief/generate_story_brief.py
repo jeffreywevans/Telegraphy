@@ -210,9 +210,13 @@ def _build_safe_relative_path(path_raw: str, *, trusted_base_dir: Path) -> Path:
         try:
             common_root = os.path.commonpath([normalized_base, normalized_candidate])
         except ValueError as exc:
-            raise ValueError("absolute paths must remain inside the base directory") from exc
+            raise ValueError(
+                f"absolute paths must remain inside the base directory: {normalized_base!r}"
+            ) from exc
         if common_root != normalized_base:
-            raise ValueError("absolute paths must remain inside the base directory")
+            raise ValueError(
+                f"absolute paths must remain inside the base directory: {normalized_base!r}"
+            )
         candidate = os.path.relpath(normalized_candidate, normalized_base)
 
     raw_parts = [part for part in re.split(r"[\\/]+", candidate) if part and part != "."]

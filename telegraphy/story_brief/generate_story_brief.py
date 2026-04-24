@@ -219,8 +219,8 @@ def _write_output_markdown(output_path: Path, markdown: str, *, force: bool) -> 
     so non-force writes are performed with O_EXCL.
     """
     trusted_base_dir = Path.cwd().resolve(strict=True)
-    resolved_parent = output_path.parent.resolve(strict=False)
-    candidate_output_path = resolved_parent / output_path.name
+    safe_name = PurePath(output_path.name).name
+    candidate_output_path = (trusted_base_dir / safe_name).resolve(strict=False)
     if not candidate_output_path.is_relative_to(trusted_base_dir):
         raise SystemExit(
             "Resolved output path must be within "

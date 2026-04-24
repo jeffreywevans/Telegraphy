@@ -113,6 +113,14 @@ class DatasetLintReport(NamedTuple):
         return bool(self.errors)
 
 
+class _IntervalLintResults(NamedTuple):
+    missing_character_ranges: list[tuple[date, date]]
+    thin_character_ranges: list[tuple[date, date]]
+    missing_setting_ranges: list[tuple[date, date]]
+    thin_setting_ranges: list[tuple[date, date]]
+    partner_data_gap_ranges_by_protagonist: dict[str, list[tuple[date, date]]]
+
+
 class StoryData(TypedDict):
     titles: tuple[str, ...]
     titles_sorted: tuple[str, ...]
@@ -1018,13 +1026,7 @@ def _available_entities(
 
 def _collect_interval_lint_ranges(
     data: dict[str, Any], *, sorted_checkpoints: Sequence[date], range_end: date
-) -> tuple[
-    list[tuple[date, date]],
-    list[tuple[date, date]],
-    list[tuple[date, date]],
-    list[tuple[date, date]],
-    dict[str, list[tuple[date, date]]],
-]:
+) -> _IntervalLintResults:
     one_day = timedelta(days=1)
     missing_character_ranges: list[tuple[date, date]] = []
     thin_character_ranges: list[tuple[date, date]] = []
@@ -1032,8 +1034,13 @@ def _collect_interval_lint_ranges(
     thin_setting_ranges: list[tuple[date, date]] = []
     partner_data_gap_ranges_by_protagonist: dict[str, list[tuple[date, date]]] = {}
 
-    for current_start, next_start in zip(sorted_checkpoints, sorted_checkpoints[1:]):
-        interval_end = min(range_end, next_start - one_day)
+    for index, current_start in enumerate(sorted_checkpoints):
+        next_start = (
+            sorted_checkpoints[index + 1]
+            if index + 1 < len(sorted_checkpoints)
+            else (range_end + one_day if range_end < date.max else None)
+        )
+        interval_end = range_end if next_start is None else min(range_end, next_start - one_day)
         if interval_end < current_start:
             continue
 
@@ -1062,12 +1069,12 @@ def _collect_interval_lint_ranges(
                 (current_start, interval_end)
             )
 
-    return (
-        missing_character_ranges,
-        thin_character_ranges,
-        missing_setting_ranges,
-        thin_setting_ranges,
-        partner_data_gap_ranges_by_protagonist,
+    return _IntervalLintResults(
+        missing_character_ranges=missing_character_ranges,
+        thin_character_ranges=thin_character_ranges,
+        missing_setting_ranges=missing_setting_ranges,
+        thin_setting_ranges=thin_setting_ranges,
+        partner_data_gap_ranges_by_protagonist=partner_data_gap_ranges_by_protagonist,
     )
 
 
@@ -1075,34 +1082,32 @@ def _append_coverage_messages(
     *,
     errors: list[str],
     warnings: list[str],
-    missing_character_ranges: list[tuple[date, date]],
-    thin_character_ranges: list[tuple[date, date]],
-    missing_setting_ranges: list[tuple[date, date]],
-    thin_setting_ranges: list[tuple[date, date]],
-    partner_data_gap_ranges_by_protagonist: dict[str, list[tuple[date, date]]],
+    interval_results: _IntervalLintResults,
 ) -> None:
-    if missing_character_ranges:
+    if interval_results.missing_character_ranges:
         errors.append(
             "Coverage gap: fewer than two distinct characters on "
-            f"{_format_date_ranges(_coalesce_ranges(missing_character_ranges))}."
+            f"{_format_date_ranges(_coalesce_ranges(interval_results.missing_character_ranges))}."
         )
-    if missing_setting_ranges:
+    if interval_results.missing_setting_ranges:
         errors.append(
             "Coverage gap: no available settings on "
-            f"{_format_date_ranges(_coalesce_ranges(missing_setting_ranges))}."
+            f"{_format_date_ranges(_coalesce_ranges(interval_results.missing_setting_ranges))}."
         )
-    if thin_character_ranges:
+    if interval_results.thin_character_ranges:
         warnings.append(
             "Fragile coverage: exactly two characters available on "
-            f"{_format_date_ranges(_coalesce_ranges(thin_character_ranges))}."
+            f"{_format_date_ranges(_coalesce_ranges(interval_results.thin_character_ranges))}."
         )
-    if thin_setting_ranges:
+    if interval_results.thin_setting_ranges:
         warnings.append(
             "Fragile coverage: exactly one setting available on "
-            f"{_format_date_ranges(_coalesce_ranges(thin_setting_ranges))}."
+            f"{_format_date_ranges(_coalesce_ranges(interval_results.thin_setting_ranges))}."
         )
-    for protagonist in sorted(partner_data_gap_ranges_by_protagonist):
-        gap_ranges = _coalesce_ranges(partner_data_gap_ranges_by_protagonist[protagonist])
+    for protagonist in sorted(interval_results.partner_data_gap_ranges_by_protagonist):
+        gap_ranges = _coalesce_ranges(
+            interval_results.partner_data_gap_ranges_by_protagonist[protagonist]
+        )
         warnings.append(
             "Partner data coverage gap: protagonist "
             f"'{protagonist}' has no partner era data available on "
@@ -1134,13 +1139,7 @@ def lint_story_data(data: dict[str, Any]) -> DatasetLintReport:
     sorted_checkpoints = _build_lint_checkpoints(
         data, range_start=range_start, range_end=range_end
     )
-    (
-        missing_character_ranges,
-        thin_character_ranges,
-        missing_setting_ranges,
-        thin_setting_ranges,
-        partner_data_gap_ranges_by_protagonist,
-    ) = _collect_interval_lint_ranges(
+    interval_results = _collect_interval_lint_ranges(
         data, sorted_checkpoints=sorted_checkpoints, range_end=range_end
     )
 
@@ -1149,11 +1148,7 @@ def lint_story_data(data: dict[str, Any]) -> DatasetLintReport:
     _append_coverage_messages(
         errors=errors,
         warnings=warnings,
-        missing_character_ranges=missing_character_ranges,
-        thin_character_ranges=thin_character_ranges,
-        missing_setting_ranges=missing_setting_ranges,
-        thin_setting_ranges=thin_setting_ranges,
-        partner_data_gap_ranges_by_protagonist=partner_data_gap_ranges_by_protagonist,
+        interval_results=interval_results,
     )
 
     tokens_seen: set[str] = set()

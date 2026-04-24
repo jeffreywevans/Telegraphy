@@ -1,4 +1,5 @@
 import random
+from collections import defaultdict
 from copy import deepcopy
 from datetime import date
 
@@ -37,10 +38,9 @@ def test_explicit_date_out_of_range_fails() -> None:
 
 @pytest.mark.slow
 def test_selected_characters_are_valid_for_time_period_year() -> None:
-    availability = {
-        name: (start, end)
-        for name, start, end in get_data()["character_availability"]
-    }
+    availability: dict[str, list[tuple[date, date]]] = defaultdict(list)
+    for name, start, end in get_data()["character_availability"]:
+        availability[name].append((start, end))
 
     for seed in range(200):
         fields = pick_story_fields(random.Random(seed))
@@ -49,11 +49,8 @@ def test_selected_characters_are_valid_for_time_period_year() -> None:
         protagonist = str(fields["protagonist"])
         secondary = str(fields["secondary_character"])
 
-        p_start, p_end = availability[protagonist]
-        s_start, s_end = availability[secondary]
-
-        assert p_start <= selected <= p_end
-        assert s_start <= selected <= s_end
+        assert any(start <= selected <= end for start, end in availability[protagonist])
+        assert any(start <= selected <= end for start, end in availability[secondary])
 
 
 def test_duplicate_character_rows_require_two_distinct_names(

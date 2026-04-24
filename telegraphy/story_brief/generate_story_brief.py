@@ -744,7 +744,8 @@ def _validate_user_filename_input(filename: str) -> None:
         raise ValueError("filename must not contain dot-segments")
     if not SAFE_FILENAME_INPUT_PATTERN.fullmatch(filename):
         raise ValueError(
-            "filename contains unsupported characters; allowed: letters, numbers, space, dot, underscore, hyphen"
+            "filename must be 1-255 characters, start with a letter or number, "
+            "and contain only letters, numbers, space, dot, underscore, or hyphen"
         )
 
 

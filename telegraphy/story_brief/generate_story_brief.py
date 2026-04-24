@@ -1264,8 +1264,9 @@ def main() -> None:
         print(markdown)
         return
 
-    trusted_base_dir = Path.cwd().resolve()
-    output_dir = Path(args.output_dir).expanduser().resolve(strict=False)
+    trusted_base_dir = Path.cwd().resolve(strict=True)
+    requested_output_dir = Path(args.output_dir).expanduser()
+    output_dir = requested_output_dir.resolve(strict=False)
     try:
         output_dir.relative_to(trusted_base_dir)
     except ValueError as exc:

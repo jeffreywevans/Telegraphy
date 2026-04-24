@@ -75,6 +75,7 @@ def test_main_force_flag_allows_overwrite_for_existing_file(
 ) -> None:
     output_file = tmp_path / "forced.md"
     output_file.write_text("old-content", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
 
     monkeypatch.setattr(
         sys,
@@ -136,3 +137,37 @@ def test_main_pick_story_fields_failure_exits_with_message(
 
     with pytest.raises(SystemExit, match="Need at least two"):
         story_cli.main()
+
+
+def test_main_rejects_parent_traversal_in_output_dir(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["story-brief", "--output-dir", "../outside", "--filename", "safe.md"],
+    )
+    monkeypatch.setattr(story_cli, "pick_story_fields", lambda *_args, **_kwargs: {"title": "A"})
+    monkeypatch.setattr(story_cli, "to_markdown", lambda _fields, data=None: "body")
+
+    with pytest.raises(SystemExit, match="Invalid --output-dir"):
+        story_cli.main()
+
+
+def test_main_allows_absolute_output_dir_when_within_cwd(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    output_dir = tmp_path / "nested" / "safe"
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["story-brief", "--output-dir", str(output_dir), "--filename", "safe.md"],
+    )
+    monkeypatch.setattr(story_cli, "pick_story_fields", lambda *_args, **_kwargs: {"title": "A"})
+    monkeypatch.setattr(story_cli, "to_markdown", lambda _fields, data=None: "body")
+
+    story_cli.main()
+
+    assert (output_dir / "safe.md").read_text(encoding="utf-8") == "body"

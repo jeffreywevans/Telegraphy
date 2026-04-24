@@ -14,7 +14,7 @@ from copy import deepcopy
 from datetime import date, datetime, timedelta
 from functools import lru_cache
 from importlib.resources import files
-from pathlib import Path
+from pathlib import Path, PurePath
 from typing import Any, Iterable, NamedTuple, Sequence, TypedDict, TypeVar
 
 import yaml
@@ -80,6 +80,7 @@ STORY_DATASET_FILES = {
     "config": CONFIG_FILENAME,
     "partner_distributions": PARTNER_DISTRIBUTIONS_FILENAME,
 }
+TRUSTED_DATA_ROOT_DIR = (Path(__file__).resolve().parent / "data").resolve()
 ENTITY_AVAILABILITY_KEYS = frozenset(
     {
         CHARACTER_AVAILABILITY_KEY,
@@ -167,7 +168,7 @@ def _data_file(filename: str) -> Any:
         "COMMUTED_STORY_BRIEF_DATA_DIR"
     )
     if override_raw:
-        return Path(override_raw).expanduser() / filename
+        return _resolve_data_dir_override(override_raw) / filename
 
     repo_relative = Path(__file__).resolve().parent / "data" / filename
     if __package__ in (None, "") and repo_relative.exists():
@@ -177,6 +178,55 @@ def _data_file(filename: str) -> Any:
         return files("telegraphy.story_brief.data").joinpath(filename)
     except (ModuleNotFoundError, FileNotFoundError):
         return repo_relative
+
+
+def _resolve_data_dir_override(path_raw: str) -> Path:
+    """Resolve and validate TELEGRAPHY_DATA_DIR style overrides."""
+    candidate = Path(path_raw).expanduser().resolve(strict=True)
+    if not candidate.is_dir():
+        raise ValueError(
+            "Configured data directory must be an existing directory: "
+            f"{candidate}"
+        )
+    try:
+        candidate.relative_to(TRUSTED_DATA_ROOT_DIR)
+    except ValueError as exc:
+        raise ValueError(
+            "Configured data directory must be within trusted data root: "
+            f"{TRUSTED_DATA_ROOT_DIR}"
+        ) from exc
+    return candidate
+
+
+def _build_safe_relative_path(path_raw: str, *, trusted_base_dir: Path) -> Path:
+    """
+    Build a relative path from untrusted text by rejecting traversal segments.
+
+    This intentionally allows nested directories but blocks absolute paths, home
+    shortcuts, and parent-directory traversal.
+    """
+    trimmed = path_raw.strip()
+    if not trimmed:
+        return Path(".")
+    if trimmed.startswith("~"):
+        raise ValueError("path must not begin with '~'")
+
+    candidate = trimmed
+    if os.path.isabs(trimmed):
+        normalized_base = os.path.normcase(os.path.realpath(str(trusted_base_dir)))
+        normalized_candidate = os.path.normcase(os.path.realpath(trimmed))
+        try:
+            common_root = os.path.commonpath([normalized_base, normalized_candidate])
+        except ValueError as exc:
+            raise ValueError("absolute paths must remain inside the current directory") from exc
+        if common_root != normalized_base:
+            raise ValueError("absolute paths must remain inside the current directory")
+        candidate = os.path.relpath(normalized_candidate, normalized_base)
+
+    raw_parts = [part for part in re.split(r"[\\/]+", candidate) if part and part != "."]
+    if any(part == ".." for part in raw_parts):
+        raise ValueError("path must not include parent-directory traversal ('..')")
+    return Path(*raw_parts) if raw_parts else Path(".")
 
 
 def _validate_string_list(section_name: str, key: str, values: Any) -> None:
@@ -642,8 +692,8 @@ def sanitize_filename(filename: str) -> str:
     Removes control chars and characters invalid on Windows/macOS/Linux,
     strips trailing dots/spaces, and avoids reserved Windows base names.
     """
-    name = Path(filename).name
-    stem, suffix = Path(name).stem, Path(name).suffix
+    name = PurePath(filename).name
+    stem, suffix = os.path.splitext(name)
 
     # Remove control chars and characters invalid on common filesystems.
     safe_stem = re.sub(r'[\x00-\x1f<>:"/\\|?*]+', "-", stem).rstrip(" .-")
@@ -1265,12 +1315,14 @@ def main() -> None:
         return
 
     trusted_base_dir = Path.cwd().resolve(strict=True)
-    requested_output_dir = Path(args.output_dir).expanduser()
-    if requested_output_dir.is_absolute():
-        output_dir_candidate = requested_output_dir
-    else:
-        output_dir_candidate = trusted_base_dir / requested_output_dir
-    output_dir = output_dir_candidate.resolve(strict=False)
+    try:
+        requested_output_dir = _build_safe_relative_path(
+            args.output_dir,
+            trusted_base_dir=trusted_base_dir,
+        )
+    except ValueError as exc:
+        raise SystemExit(f"Invalid --output-dir: {exc}") from exc
+    output_dir = (trusted_base_dir / requested_output_dir).resolve(strict=False)
     try:
         output_dir.relative_to(trusted_base_dir)
     except ValueError as exc:

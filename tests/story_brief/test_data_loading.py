@@ -161,6 +161,17 @@ def test_load_story_data_strips_availability_names(
     assert loaded["setting_availability"][0][0] == "Seattle"
 
 
+def test_env_override_requires_existing_directory(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    missing_dir = tmp_path / "missing"
+    monkeypatch.setenv("TELEGRAPHY_DATA_DIR", str(missing_dir))
+    story_brief.clear_get_data_cache()
+
+    with pytest.raises(ValueError, match="Failed to load story brief dataset file"):
+        story_brief.load_story_data()
+
+
 def test_get_data_returns_defensive_copies() -> None:
     story_brief.clear_get_data_cache()
 

@@ -18,13 +18,13 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       - name: Ensure deprecated Node.js 20 Dependabot action is not used
         run: |
-          if rg -uu -n "^\s*-\s*uses:\s*github/dependabot-action@" .github/workflows --glob '*.yml' --glob '*.yaml'; then
+          if git grep -nE "^[[:space:]]*-[[:space:]]*uses:[[:space:]]*github/dependabot-action@" -- .github/workflows '*.yml' '*.yaml'; then
             echo "Deprecated github/dependabot-action reference found."
             exit 1
           fi
       - name: Ensure Node.js 24 override is enabled
         run: |
-          if ! rg -uu -n "^\s*FORCE_JAVASCRIPT_ACTIONS_TO_NODE24:\s*true\s*$" .github/workflows --glob '*.yml' --glob '*.yaml'; then
+          if ! git grep -nE "^[[:space:]]*FORCE_JAVASCRIPT_ACTIONS_TO_NODE24:[[:space:]]*true[[:space:]]*$" -- .github/workflows '*.yml' '*.yaml'; then
             echo "Missing FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true in workflow files."
             exit 1
           fi

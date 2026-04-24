@@ -622,6 +622,17 @@ def slugify(value: str) -> str:
 
 
 MAX_FILENAME_STEM_LENGTH = 120
+MAX_FILENAME_TOTAL_BYTES = 255
+
+
+def _truncate_utf8(value: str, max_bytes: int) -> str:
+    """Return value truncated to max_bytes when UTF-8 encoded."""
+    if max_bytes <= 0:
+        return ""
+    encoded = value.encode("utf-8")
+    if len(encoded) <= max_bytes:
+        return value
+    return encoded[:max_bytes].decode("utf-8", "ignore")
 
 
 def sanitize_filename(filename: str) -> str:
@@ -635,7 +646,7 @@ def sanitize_filename(filename: str) -> str:
     stem, suffix = Path(name).stem, Path(name).suffix
 
     # Remove control chars and characters invalid on common filesystems.
-    safe_stem = re.sub(r'[\x00-\x1f<>:"/\\|?*]+', "-", stem).rstrip(" .")
+    safe_stem = re.sub(r'[\x00-\x1f<>:"/\\|?*]+', "-", stem).rstrip(" .-")
     safe_stem = safe_stem[:MAX_FILENAME_STEM_LENGTH].rstrip(" .-")
     safe_suffix = re.sub(r'[\x00-\x1f<>:"/\\|?*]+', "", suffix).rstrip(" .")
 
@@ -647,6 +658,20 @@ def sanitize_filename(filename: str) -> str:
 
     if safe_suffix and not safe_suffix.startswith("."):
         safe_suffix = f".{safe_suffix}"
+
+    safe_suffix = _truncate_utf8(safe_suffix, MAX_FILENAME_TOTAL_BYTES - 1).rstrip(" .")
+    if safe_suffix == ".":
+        safe_suffix = ""
+
+    max_stem_bytes = MAX_FILENAME_TOTAL_BYTES - len(safe_suffix.encode("utf-8"))
+    safe_stem = _truncate_utf8(safe_stem, max_stem_bytes).rstrip(" .-")
+    if not safe_stem:
+        safe_stem = _truncate_utf8("story-brief", max_stem_bytes).rstrip(" .-") or "s"
+
+    if safe_stem.casefold() in WINDOWS_RESERVED_BASENAMES:
+        safe_stem = _truncate_utf8(f"{safe_stem}-file", max_stem_bytes).rstrip(" .-")
+        if safe_stem.casefold() in WINDOWS_RESERVED_BASENAMES:
+            safe_stem = _truncate_utf8("file", max_stem_bytes) or "f"
 
     return f"{safe_stem}{safe_suffix}"
 

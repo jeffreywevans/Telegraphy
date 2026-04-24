@@ -213,10 +213,7 @@ def _write_output_markdown(output_path: Path, markdown: str, *, force: bool) -> 
     resolved_parent = raw_output_path.parent.resolve(strict=False)
     candidate_output_path = resolved_parent / raw_output_path.name
     if not resolved_parent.is_relative_to(trusted_base_dir):
-        raise SystemExit(
-            "Resolved output path must be within "
-            f"{trusted_base_dir}: {candidate_output_path}"
-        )
+        raise SystemExit("Resolved output path must be within the trusted base directory.")
 
     flags = os.O_WRONLY | os.O_CREAT
     flags |= os.O_TRUNC if force else os.O_EXCL
@@ -230,13 +227,10 @@ def _write_output_markdown(output_path: Path, markdown: str, *, force: bool) -> 
             handle.write(markdown)
     except FileExistsError:
         raise SystemExit(
-            f"Refusing to overwrite existing file: {candidate_output_path}. "
-            "Use --force to overwrite."
+            "Refusing to overwrite existing file. Use --force to overwrite."
         ) from None
     except OSError as exc:
-        raise SystemExit(
-            f"Unable to safely open or write output path: {candidate_output_path} ({exc})"
-        ) from None
+        raise SystemExit(f"Unable to safely open or write output path ({exc})") from None
 
 
 def _build_safe_relative_path(path_raw: str, *, trusted_base_dir: Path) -> Path:
@@ -1414,12 +1408,8 @@ def main() -> None:
     resolved_output_parent = output_path.parent.resolve(strict=False)
     candidate_output_path = resolved_output_parent / output_path.name
     if not candidate_output_path.is_relative_to(trusted_base_dir):
-        raise SystemExit(
-            "Resolved output path must be within "
-            f"{trusted_base_dir}: {candidate_output_path}"
-        )
+        raise SystemExit("Resolved output path must be within the trusted base directory.")
     _write_output_markdown(candidate_output_path, markdown, force=args.force)
-    safe_display_path = candidate_output_path.relative_to(trusted_base_dir)
     print("Generated story brief.")
 
 

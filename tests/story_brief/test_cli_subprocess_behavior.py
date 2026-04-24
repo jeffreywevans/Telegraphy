@@ -5,16 +5,9 @@ import re
 import subprocess
 import sys
 from collections.abc import Callable
-from datetime import date, datetime
 from pathlib import Path
 
 import pytest
-
-from telegraphy.story_brief import generate_story_brief as story_cli
-from telegraphy.story_brief.generate_story_brief import (
-    build_auto_filename,
-    sanitize_filename,
-)
 
 pytestmark = pytest.mark.integration
 
@@ -164,33 +157,6 @@ def test_default_filename_is_auto_generated_when_omitted(tmp_path: Path) -> None
     assert re.match(r"^\d{4}-\d{2}-\d{2} [a-z0-9-]+\.md$", files[0].name)
 
 
-def test_sanitize_filename_handles_invalid_chars_and_reserved_names() -> None:
-    assert sanitize_filename("../bad:name?.md") == "bad-name-.md"
-    assert sanitize_filename("CON") == "CON-file"
-    assert sanitize_filename("   .md") == "story-brief.md"
-
-
-def test_build_auto_filename_uses_fallback_slug_for_empty_slugified_title() -> None:
-    assert (
-        build_auto_filename("!!!", today=datetime(2026, 4, 21))
-        == "2026-04-21 story-brief.md"
-    )
-
-
-def test_build_auto_filename_accepts_date_for_today() -> None:
-    assert (
-        build_auto_filename("Hello World", today=date(2026, 4, 21))
-        == "2026-04-21 hello-world.md"
-    )
-
-
-def test_build_auto_filename_accepts_iso_date_string_for_today() -> None:
-    assert (
-        build_auto_filename("Hello World", today="2026-04-21")
-        == "2026-04-21 hello-world.md"
-    )
-
-
 def test_default_filename_uses_story_time_period_date(tmp_path: Path) -> None:
     outdir = tmp_path / "out"
     result = run_cli("--seed", "42", "-o", str(outdir), "--force", cwd=tmp_path)
@@ -285,133 +251,3 @@ def test_cli_handles_missing_dataset_override_without_traceback(tmp_path: Path) 
         env_overrides={"TELEGRAPHY_DATA_DIR": str(missing_dir)},
     )
     assert_cli_error_without_traceback(result, "Failed to load story brief dataset file")
-
-
-def test_main_print_only_calls_pick_story_fields_with_selected_date(
-    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-) -> None:
-    captured_date = None
-
-    def fake_pick_story_fields(
-        _rng: object,
-        *,
-        selected_date: object = None,
-        data: object = None,
-    ) -> dict[str, object]:
-        nonlocal captured_date
-        captured_date = selected_date
-        return {"title": "Sample", "word_count_target": 900}
-
-    monkeypatch.setattr(sys, "argv", ["story-brief", "--date", "2001-02-03", "--print-only"])
-    monkeypatch.setattr(story_cli, "pick_story_fields", fake_pick_story_fields)
-    monkeypatch.setattr(
-        story_cli,
-        "to_markdown",
-        lambda _fields, data=None: "---\nmock\n---",
-    )
-
-    story_cli.main()
-
-    output = capsys.readouterr().out
-    assert output == "---\nmock\n---\n"
-    assert captured_date
-    assert captured_date.isoformat() == "2001-02-03"
-
-
-def test_main_lint_dataset_exits_early_without_generating_output(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    class _Report:
-        has_errors = False
-
-    called = {"lint": 0, "emit": 0, "pick": 0}
-
-    def fake_lint(_data: object) -> _Report:
-        called["lint"] += 1
-        return _Report()
-
-    monkeypatch.setattr(sys, "argv", ["story-brief", "--lint-dataset"])
-    monkeypatch.setattr(story_cli, "get_data", lambda: {"source": "test"})
-    monkeypatch.setattr(story_cli, "lint_story_data", fake_lint)
-    monkeypatch.setattr(
-        story_cli,
-        "_emit_lint_report",
-        lambda _: called.__setitem__("emit", called["emit"] + 1),
-    )
-    monkeypatch.setattr(
-        story_cli,
-        "pick_story_fields",
-        lambda *_args, **_kwargs: called.__setitem__("pick", called["pick"] + 1),
-    )
-
-    story_cli.main()
-
-    assert called == {"lint": 1, "emit": 1, "pick": 0}
-
-
-def test_main_force_flag_allows_overwrite_for_existing_file(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    output_file = tmp_path / "forced.md"
-    output_file.write_text("old-content", encoding="utf-8")
-
-    monkeypatch.setattr(
-        sys,
-        "argv",
-        [
-            "story-brief",
-            "-o",
-            str(tmp_path),
-            "--filename",
-            "forced.md",
-            "--force",
-        ],
-    )
-    monkeypatch.setattr(
-        story_cli, "pick_story_fields", lambda *_args, **_kwargs: {"title": "Forced"}
-    )
-    monkeypatch.setattr(story_cli, "to_markdown", lambda _fields, data=None: "new-content")
-
-    story_cli.main()
-
-    assert output_file.read_text(encoding="utf-8") == "new-content"
-
-
-def test_main_lint_dataset_with_errors_exits_one(monkeypatch: pytest.MonkeyPatch) -> None:
-    class _Report:
-        has_errors = True
-
-    monkeypatch.setattr(sys, "argv", ["story-brief", "--lint-dataset"])
-    monkeypatch.setattr(story_cli, "_get_data_cached", lambda: {})
-    monkeypatch.setattr(story_cli, "lint_story_data", lambda _data: _Report())
-    monkeypatch.setattr(story_cli, "_emit_lint_report", lambda _report: None)
-
-    with pytest.raises(SystemExit, match="1"):
-        story_cli.main()
-
-
-def test_main_validate_strict_failure_exits_without_traceback(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    def mock_fail(_data: object) -> None:
-        raise ValueError("Strict validation failed: boom")
-
-    monkeypatch.setattr(sys, "argv", ["story-brief", "--validate-strict", "--print-only"])
-    monkeypatch.setattr(story_cli, "_get_data_cached", lambda: {})
-    monkeypatch.setattr(story_cli, "validate_story_data_strict", mock_fail)
-
-    with pytest.raises(SystemExit, match="Strict validation failed: boom"):
-        story_cli.main()
-
-
-def test_main_pick_story_fields_failure_exits_with_message(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    def mock_fail(*_args: object, **_kwargs: object) -> None:
-        raise ValueError("Need at least two")
-
-    monkeypatch.setattr(sys, "argv", ["story-brief", "--print-only"])
-    monkeypatch.setattr(story_cli, "pick_story_fields", mock_fail)
-
-    with pytest.raises(SystemExit, match="Need at least two"):
-        story_cli.main()

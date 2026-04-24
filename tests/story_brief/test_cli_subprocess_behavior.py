@@ -13,6 +13,7 @@ pytestmark = pytest.mark.integration
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = REPO_ROOT / "telegraphy" / "story_brief" / "generate_story_brief.py"
+CLI_TIMEOUT_SECONDS = 20
 
 
 def assert_cli_error_without_traceback(
@@ -98,6 +99,7 @@ def run_cli(
         capture_output=True,
         text=True,
         check=False,
+        timeout=CLI_TIMEOUT_SECONDS,
     )
 
 

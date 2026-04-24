@@ -17,6 +17,12 @@
     0.1,
     0.1
   ],
+  "sexual_scene_tag_count_weights": {
+    "2": 0.7,
+    "3": 0.1,
+    "4": 0.1,
+    "5": 0.1
+  },
   "sexual_scene_tag_groups": {
     "location": [
       "backstage",

@@ -173,6 +173,35 @@ def test_schema_validation_rejects_too_many_sexual_scene_tag_groups(story_datase
         validate_story_data(titles, entities, prompts, config, partner_distributions)
 
 
+def test_schema_validation_rejects_invalid_sexual_scene_tag_count_weight_key(
+    story_dataset_payloads,
+) -> None:
+    titles = story_dataset_payloads["titles"]
+    entities = story_dataset_payloads["entities"]
+    prompts = story_dataset_payloads["prompts"]
+    config = story_dataset_payloads["config"]
+    partner_distributions = story_dataset_payloads["partner_distributions"]
+    config["sexual_scene_tag_count_weights"] = {"0": 1.0}
+
+    with pytest.raises(ValueError, match="keys must be positive integers"):
+        validate_story_data(titles, entities, prompts, config, partner_distributions)
+
+
+def test_schema_validation_rejects_sexual_scene_tag_count_weight_above_group_count(
+    story_dataset_payloads,
+) -> None:
+    titles = story_dataset_payloads["titles"]
+    entities = story_dataset_payloads["entities"]
+    prompts = story_dataset_payloads["prompts"]
+    config = story_dataset_payloads["config"]
+    partner_distributions = story_dataset_payloads["partner_distributions"]
+    group_count = len(config["sexual_scene_tag_groups"])
+    config["sexual_scene_tag_count_weights"] = {str(group_count + 1): 1.0}
+
+    with pytest.raises(ValueError, match="must not exceed the available"):
+        validate_story_data(titles, entities, prompts, config, partner_distributions)
+
+
 def test_schema_validation_rejects_duplicate_partners_in_single_era(story_dataset_payloads) -> None:
     titles = story_dataset_payloads["titles"]
     entities = story_dataset_payloads["entities"]

@@ -52,7 +52,7 @@ def test_main_lint_dataset_exits_early_without_generating_output(
         return _Report()
 
     monkeypatch.setattr(sys, "argv", ["story-brief", "--lint-dataset"])
-    monkeypatch.setattr(story_cli, "get_data", lambda: {"source": "test"})
+    monkeypatch.setattr(story_cli, "_get_data_cached", lambda: {"source": "test"})
     monkeypatch.setattr(story_cli, "lint_story_data", fake_lint)
     monkeypatch.setattr(
         story_cli,

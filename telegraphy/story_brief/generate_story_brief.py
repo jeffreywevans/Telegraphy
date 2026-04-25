@@ -3,28 +3,17 @@
 
 from __future__ import annotations
 
-import argparse
 import random
 import re
 import secrets
 from copy import deepcopy
 from datetime import date, datetime
 from functools import lru_cache
-from pathlib import Path
 from typing import Any, TypedDict
 
 if __package__ in (None, ""):
     import data_io as _data_io_module
-    from filenames import (
-        DEFAULT_OUTPUT_DIR,
-        OutputPathError,
-        OutputWriteError,
-        resolve_output_path,
-        sanitize_filename,
-    )
-    from filenames import (
-        write_output_markdown as _write_output_markdown,
-    )
+    from filenames import sanitize_filename
     from generation import (
         available_characters as _available_characters,
     )
@@ -39,30 +28,15 @@ if __package__ in (None, ""):
     )
     from generation import (
         stable_sorted_pool,
-    )
-    from linting import (
-        emit_lint_report as _emit_lint_report,
-    )
-    from linting import (
-        lint_story_data,
     )
     from rendering import to_markdown as _to_markdown
     from validation import (
         EXPECTED_GENERATED_FIELD_KEYS as _EXPECTED_GENERATED_FIELD_KEYS,
     )
-    from validation import validate_story_data, validate_story_data_strict
+    from validation import validate_story_data
 else:
     from . import data_io as _data_io_module
-    from .filenames import (
-        DEFAULT_OUTPUT_DIR,
-        OutputPathError,
-        OutputWriteError,
-        resolve_output_path,
-        sanitize_filename,
-    )
-    from .filenames import (
-        write_output_markdown as _write_output_markdown,
-    )
+    from .filenames import sanitize_filename
     from .generation import (
         available_characters as _available_characters,
     )
@@ -78,17 +52,11 @@ else:
     from .generation import (
         stable_sorted_pool,
     )
-    from .linting import (
-        emit_lint_report as _emit_lint_report,
-    )
-    from .linting import (
-        lint_story_data,
-    )
     from .rendering import to_markdown as _to_markdown
     from .validation import (
         EXPECTED_GENERATED_FIELD_KEYS as _EXPECTED_GENERATED_FIELD_KEYS,
     )
-    from .validation import validate_story_data, validate_story_data_strict
+    from .validation import validate_story_data
 
 EXPECTED_GENERATED_FIELD_KEYS = frozenset(_EXPECTED_GENERATED_FIELD_KEYS)
 
@@ -336,117 +304,16 @@ def to_markdown(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        description=(
-            "Generate a random story brief Markdown file with YAML front matter."
-        )
-    )
-    parser.add_argument(
-        "-o",
-        "--output-dir",
-        default=str(DEFAULT_OUTPUT_DIR),
-        help="Directory where the markdown file will be written.",
-    )
-    parser.add_argument(
-        "--filename", help="Optional explicit filename for the markdown file."
-    )
-    parser.add_argument(
-        "--seed", type=int, help="Optional random seed for reproducible output."
-    )
-    parser.add_argument(
-        "--date",
-        help="Optional explicit date in YYYY-MM-DD for reproducible scenario testing.",
-    )
-    parser.add_argument(
-        "--force",
-        action="store_true",
-        help="Allow overwriting an existing output file.",
-    )
-    parser.add_argument(
-        "--print-only",
-        action="store_true",
-        help="Print the generated markdown to the terminal and do not write a file.",
-    )
-    parser.add_argument(
-        "--validate-strict",
-        action="store_true",
-        help=(
-            "Run strict per-date validation across the configured date range before generating "
-            "output."
-        ),
-    )
-    parser.add_argument(
-        "--lint-dataset",
-        action="store_true",
-        help=(
-            "Run dataset lint diagnostics (coverage gaps + fragile spots) and exit "
-            "without generating output."
-        ),
-    )
-    args = parser.parse_args()
-    try:
-        data = _get_data_cached() if args.lint_dataset else get_data()
-    except ValueError as exc:
-        raise SystemExit(str(exc)) from exc
-
-    rng: random.Random | secrets.SystemRandom
-    if args.seed is None:
-        rng = secrets.SystemRandom()
+    """Compatibility wrapper that delegates CLI orchestration to ``cli.py``."""
+    if __package__ in (None, ""):
+        from cli import main as _cli_main
     else:
-        rng = random.Random(args.seed)
+        from .cli import main as _cli_main
 
-    if args.lint_dataset:
-        report = lint_story_data(data)
-        _emit_lint_report(report)
-        if report.has_errors:
-            raise SystemExit(1)
-        return
-    if args.validate_strict:
-        try:
-            validate_story_data_strict(data)
-        except ValueError as exc:
-            raise SystemExit(str(exc)) from exc
-
-    selected_date: date | None = None
-    if args.date:
-        try:
-            selected_date = date.fromisoformat(args.date)
-        except ValueError as exc:
-            raise SystemExit("--date must be in YYYY-MM-DD format") from exc
-
-    try:
-        fields = pick_story_fields(rng, selected_date=selected_date, data=data)
-        markdown = to_markdown(fields, data=data)
-    except ValueError as exc:
-        raise SystemExit(str(exc)) from exc
-
-    if args.print_only:
-        print(markdown)
-        return
-
-    generated_filename = build_auto_filename(
-        str(fields["title"]),
-        today=str(fields.get("time_period", date.today().isoformat())),
-    )
-    try:
-        candidate_output_path = resolve_output_path(
-            Path(args.output_dir),
-            args.filename,
-            generated_filename,
-        )
-        candidate_output_path.parent.mkdir(parents=True, exist_ok=True)
-        _write_output_markdown(candidate_output_path, markdown, force=args.force)
-    except OutputPathError as exc:
-        raise SystemExit(str(exc)) from exc
-    except OutputWriteError as exc:
-        raise SystemExit(str(exc)) from exc
-    except OSError as exc:
-        raise SystemExit(f"Error creating output directory: {exc}") from exc
-    print("Generated story brief.")
+    exit_code = _cli_main()
+    if exit_code:
+        raise SystemExit(exit_code)
 
 
 if __name__ == "__main__":
-    try:
-        main()
-    except ValueError as exc:
-        raise SystemExit(str(exc)) from exc
+    main()

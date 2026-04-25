@@ -70,9 +70,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 def _build_rng(seed: int | None) -> random.Random | secrets.SystemRandom:
     """Build a random number generator based on an optional deterministic seed."""
-    if seed is None:
-        return secrets.SystemRandom()
-    return random.Random(seed)
+    return secrets.SystemRandom() if seed is None else random.Random(seed)
 
 
 def _parse_selected_date(raw_date: str | None) -> date | None:

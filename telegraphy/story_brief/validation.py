@@ -13,7 +13,12 @@ from ._constants import (
     SETTING_AVAILABILITY_KEY,
 )
 from ._range_utils import add_clipped_range_checkpoints
-from .partner_models import LegacyPartnerEra, parse_partner_distribution_payload, require_keys
+from .partner_models import (
+    LegacyPartnerEra,
+    LegacyPartnerIndex,
+    parse_partner_distribution_payload,
+    require_keys,
+)
 
 ANY_TITLE_TOKEN_PATTERN = re.compile(r"@(?P<key>[A-Za-z_]\w*)\b")
 EXPECTED_GENERATED_FIELD_KEYS = {
@@ -351,7 +356,7 @@ def _validate_partner_distributions(
     config_start: date,
     config_end: date,
     character_rows: list[tuple[str, date, date]],
-) -> dict[str, list[dict[str, Any]]]:
+) -> LegacyPartnerIndex:
     dataset = parse_partner_distribution_payload(
         partner_payload,
         config_start=config_start,

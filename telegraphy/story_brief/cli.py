@@ -104,12 +104,7 @@ def _write_story_markdown(
 def main(argv: Sequence[str] | None = None) -> int:
     """Run the story brief CLI and return an exit code."""
     parser = build_parser()
-    try:
-        args = parser.parse_args(list(argv) if argv is not None else None)
-    except SystemExit:
-        # argparse uses SystemExit for --help and argument errors.
-        # Re-raise so the application exits immediately as expected.
-        raise
+    args = parser.parse_args(list(argv) if argv is not None else None)
 
     try:
         data = story_brief_cli.get_data()

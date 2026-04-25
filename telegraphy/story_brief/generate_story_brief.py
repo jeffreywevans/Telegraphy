@@ -89,7 +89,7 @@ class StoryData(TypedDict):
     partner_distributions: dict[str, tuple[dict[str, Any], ...]]
 
 
-def load_story_data() -> StoryData:
+def _build_story_data() -> StoryData:
     """Load, validate, and normalize the story dataset used by the generator."""
     dataset_payloads = _data_io_module.get_data()
     titles = dataset_payloads["titles"]
@@ -152,12 +152,23 @@ def load_story_data() -> StoryData:
 
 
 @lru_cache(maxsize=1)
+def _load_story_data_cached() -> StoryData:
+    """Build and cache normalized story data."""
+    return _build_story_data()
+
+
+def load_story_data() -> StoryData:
+    """Return an isolated copy of normalized story data."""
+    return deepcopy(_load_story_data_cached())
+
+
 def _get_data_cached() -> StoryData:
     """Compatibility wrapper for callers expecting a cached getter."""
     return load_story_data()
 
 
 def _clear_get_data_cache() -> None:
+    _load_story_data_cached.cache_clear()
     _data_io_module.clear_data_cache()
     _get_data_cached.cache_clear()
 
@@ -173,7 +184,7 @@ def get_data() -> StoryData:
     Returns a deep copy of processed data to prevent cache poisoning when callers
     mutate nested structures.
     """
-    return deepcopy(_get_data_cached())
+    return load_story_data()
 
 
 _COMPAT_ALIASES: dict[str, str] = {
@@ -202,7 +213,7 @@ _COMPAT_ALIASES: dict[str, str] = {
 def __getattr__(name: str) -> Any:
     """Compatibility layer for legacy module-level constants."""
     if name in _COMPAT_ALIASES:
-        return deepcopy(_get_data_cached()[_COMPAT_ALIASES[name]])
+        return deepcopy(_load_story_data_cached()[_COMPAT_ALIASES[name]])
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 

@@ -13,7 +13,7 @@ from ._constants import (
     SETTING_AVAILABILITY_KEY,
 )
 from ._range_utils import add_clipped_range_checkpoints
-from .partner_models import parse_partner_distribution_payload, require_keys
+from .partner_models import LegacyPartnerEra, parse_partner_distribution_payload, require_keys
 
 ANY_TITLE_TOKEN_PATTERN = re.compile(r"@(?P<key>[A-Za-z_]\w*)\b")
 EXPECTED_GENERATED_FIELD_KEYS = {
@@ -47,7 +47,7 @@ class ValidatedStoryData(NamedTuple):
     setting_availability: list[tuple[str, date, date]]
     date_start: date
     date_end: date
-    partner_distributions: dict[str, list[dict[str, Any]]]
+    partner_distributions: dict[str, list[LegacyPartnerEra]]
 
 
 def _validate_string_list(section_name: str, key: str, values: Any) -> None:

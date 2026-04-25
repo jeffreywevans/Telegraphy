@@ -3,7 +3,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 from datetime import date
-from typing import AbstractSet, TypedDict
+from typing import AbstractSet, TypeAlias, TypedDict
 
 
 class PartnerWeightInput(TypedDict):
@@ -32,6 +32,18 @@ class PartnerDistributionPayloadInput(TypedDict):
     partner_distributions: list[CharacterPartnerDistributionInput]
 
 
+LegacyPartnerWeight: TypeAlias = tuple[str, float]
+
+
+class LegacyPartnerEra(TypedDict):
+    date_start: date
+    date_end: date
+    partners: list[LegacyPartnerWeight]
+
+
+LegacyPartnerIndex: TypeAlias = dict[str, list[LegacyPartnerEra]]
+
+
 def require_keys(
     section_name: str, payload: dict[str, object], required: AbstractSet[str]
 ) -> None:
@@ -55,7 +67,7 @@ class PartnerEra:
     def covers(self, candidate: date) -> bool:
         return self.date_start <= candidate <= self.date_end
 
-    def to_legacy_dict(self) -> dict[str, date | list[tuple[str, float]]]:
+    def to_legacy_dict(self) -> LegacyPartnerEra:
         return {
             "date_start": self.date_start,
             "date_end": self.date_end,
@@ -79,7 +91,7 @@ class PartnerDistributionDataset:
     date_end: date
     by_character: dict[str, CharacterPartnerDistribution]
 
-    def to_legacy_index(self) -> dict[str, list[dict[str, date | list[tuple[str, float]]]]]:
+    def to_legacy_index(self) -> LegacyPartnerIndex:
         return {
             character: [era.to_legacy_dict() for era in distribution.eras]
             for character, distribution in self.by_character.items()

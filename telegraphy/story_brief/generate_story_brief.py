@@ -242,7 +242,6 @@ def available_settings(
     return _available_settings(selected_date, resolved_data)
 
 
-
 def pick_story_fields(
     rng: random.Random | secrets.SystemRandom,
     selected_date: date | None = None,
@@ -264,4 +263,3 @@ def to_markdown(
         ordered_keys=resolved_data["ordered_keys"],
         writing_preamble=resolved_data["writing_preamble"],
     )
-

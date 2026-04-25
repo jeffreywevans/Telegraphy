@@ -6,12 +6,12 @@ from typing import Callable
 import pytest
 
 from telegraphy.story_brief.partner_models import (
-    _parse_character_distribution,
-    _parse_eras,
-    _parse_partners,
     CharacterPartnerDistribution,
     PartnerDistributionDataset,
     PartnerEra,
+    _parse_character_distribution,
+    _parse_eras,
+    _parse_partners,
     parse_partner_distribution_payload,
 )
 

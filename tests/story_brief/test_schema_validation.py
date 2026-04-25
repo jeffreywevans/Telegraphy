@@ -3,9 +3,9 @@ from datetime import timedelta
 import pytest
 
 from telegraphy.story_brief.generate_story_brief import (
-    lint_story_data,
     load_story_data,
 )
+from telegraphy.story_brief.linting import lint_story_data
 from telegraphy.story_brief.validation import validate_story_data, validate_story_data_strict
 
 

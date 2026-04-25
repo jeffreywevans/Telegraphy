@@ -7,69 +7,37 @@ import random
 import secrets
 from copy import deepcopy
 from datetime import date
-from functools import lru_cache
 from typing import Any, TypedDict
 
-if __package__ in (None, ""):
-    import data_io as _data_io_module
-    from _constants import (
-        CHARACTER_AVAILABILITY_KEY,
-        PARTNER_DISTRIBUTIONS_KEY,
-        PROMPT_LIST_KEYS,
-        SETTING_AVAILABILITY_KEY,
-    )
-    from filenames import build_auto_filename
-    from generation import (
-        available_characters as _available_characters,
-    )
-    from generation import (
-        available_settings as _available_settings,
-    )
-    from generation import (
-        pick_story_fields as _pick_story_fields,
-    )
-    from generation import (
-        random_date_in_range as _random_date_in_range,
-    )
-    from generation import (
-        stable_sorted_pool,
-    )
-    from linting import emit_lint_report as _emit_lint_report_impl
-    from rendering import to_markdown as _to_markdown
-    from validation import (
-        EXPECTED_GENERATED_FIELD_KEYS as _EXPECTED_GENERATED_FIELD_KEYS,
-    )
-    from validation import validate_story_data
-else:
-    from . import data_io as _data_io_module
-    from ._constants import (
-        CHARACTER_AVAILABILITY_KEY,
-        PARTNER_DISTRIBUTIONS_KEY,
-        PROMPT_LIST_KEYS,
-        SETTING_AVAILABILITY_KEY,
-    )
-    from .filenames import build_auto_filename
-    from .generation import (
-        available_characters as _available_characters,
-    )
-    from .generation import (
-        available_settings as _available_settings,
-    )
-    from .generation import (
-        pick_story_fields as _pick_story_fields,
-    )
-    from .generation import (
-        random_date_in_range as _random_date_in_range,
-    )
-    from .generation import (
-        stable_sorted_pool,
-    )
-    from .linting import emit_lint_report as _emit_lint_report_impl
-    from .rendering import to_markdown as _to_markdown
-    from .validation import (
-        EXPECTED_GENERATED_FIELD_KEYS as _EXPECTED_GENERATED_FIELD_KEYS,
-    )
-    from .validation import validate_story_data
+from . import data_io as _data_io_module
+from ._constants import (
+    CHARACTER_AVAILABILITY_KEY,
+    PARTNER_DISTRIBUTIONS_KEY,
+    PROMPT_LIST_KEYS,
+    SETTING_AVAILABILITY_KEY,
+)
+from .filenames import build_auto_filename as _build_auto_filename
+from .generation import (
+    available_characters as _available_characters,
+)
+from .generation import (
+    available_settings as _available_settings,
+)
+from .generation import (
+    pick_story_fields as _pick_story_fields,
+)
+from .generation import (
+    random_date_in_range as _random_date_in_range,
+)
+from .generation import (
+    stable_sorted_pool,
+)
+from .linting import emit_lint_report as _emit_lint_report_impl
+from .rendering import to_markdown as _to_markdown
+from .validation import (
+    EXPECTED_GENERATED_FIELD_KEYS as _EXPECTED_GENERATED_FIELD_KEYS,
+)
+from .validation import validate_story_data
 
 EXPECTED_GENERATED_FIELD_KEYS = frozenset(_EXPECTED_GENERATED_FIELD_KEYS)
 
@@ -281,6 +249,11 @@ def to_markdown(
     )
 
 
+def build_auto_filename(title: str, *, today: str | None = None) -> str:
+    """Compatibility wrapper for filename generation helper."""
+    return _build_auto_filename(title, today=today)
+
+
 def _emit_lint_report(report: Any) -> None:
     """Compatibility wrapper for legacy lint-report emission helper."""
     _emit_lint_report_impl(report)
@@ -288,11 +261,7 @@ def _emit_lint_report(report: Any) -> None:
 
 def main() -> None:
     """Compatibility wrapper that delegates CLI orchestration to ``cli.py``."""
-    if __package__ in (None, ""):
-        from cli import main as _cli_main
-    else:
-        from .cli import main as _cli_main
-
+    from .cli import main as _cli_main
     exit_code = _cli_main()
     if exit_code:
         raise SystemExit(exit_code)

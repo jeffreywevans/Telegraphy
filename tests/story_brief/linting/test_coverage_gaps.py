@@ -47,7 +47,7 @@ def test_data_file_uses_env_override_with_expanduser(
     assert Path(resolved) == override / "titles.json"
 
 
-def test_data_file_repo_relative_in_script_mode(
+def test_data_file_repo_relative_when_resources_are_unavailable(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     data_dir = tmp_path / "data"
@@ -56,7 +56,12 @@ def test_data_file_repo_relative_in_script_mode(
     expected.write_text("{}", encoding="utf-8")
 
     monkeypatch.setattr(data_io, "__file__", str(tmp_path / "data_io.py"))
-    monkeypatch.setattr(data_io, "__package__", "")
+    monkeypatch.setattr(data_io, "__package__", "telegraphy.story_brief")
+
+    def raise_missing(_package: str) -> object:
+        raise ModuleNotFoundError("no package resources")
+
+    monkeypatch.setattr(data_io, "files", raise_missing)
 
     assert Path(data_io._data_file("titles.json")) == expected
 

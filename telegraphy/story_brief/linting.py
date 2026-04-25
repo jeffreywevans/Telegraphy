@@ -3,24 +3,14 @@ from __future__ import annotations
 from datetime import date, timedelta
 from typing import Any, NamedTuple, Sequence
 
-if __package__ in (None, ""):
-    from _constants import (
-        CHARACTER_AVAILABILITY_KEY,
-        PARTNER_DISTRIBUTIONS_KEY,
-        PROMPT_LIST_KEYS,
-        SETTING_AVAILABILITY_KEY,
-        TITLE_TOKEN_PATTERN,
-    )
-    from _range_utils import add_clipped_range_checkpoints
-else:
-    from ._constants import (
-        CHARACTER_AVAILABILITY_KEY,
-        PARTNER_DISTRIBUTIONS_KEY,
-        PROMPT_LIST_KEYS,
-        SETTING_AVAILABILITY_KEY,
-        TITLE_TOKEN_PATTERN,
-    )
-    from ._range_utils import add_clipped_range_checkpoints
+from ._constants import (
+    CHARACTER_AVAILABILITY_KEY,
+    PARTNER_DISTRIBUTIONS_KEY,
+    PROMPT_LIST_KEYS,
+    SETTING_AVAILABILITY_KEY,
+    TITLE_TOKEN_PATTERN,
+)
+from ._range_utils import add_clipped_range_checkpoints
 
 
 class DatasetLintReport(NamedTuple):

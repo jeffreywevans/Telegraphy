@@ -6,10 +6,7 @@ from typing import Any
 
 import yaml
 
-if __package__ in (None, ""):
-    from _constants import TITLE_TOKEN_PATTERN
-else:
-    from ._constants import TITLE_TOKEN_PATTERN
+from ._constants import TITLE_TOKEN_PATTERN
 
 
 def render_title(

@@ -85,7 +85,12 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> int:
     """Run the story brief CLI and return an exit code."""
     parser = build_parser()
-    args = parser.parse_args(list(argv) if argv is not None else None)
+    try:
+        args = parser.parse_args(list(argv) if argv is not None else None)
+    except SystemExit as exc:
+        if isinstance(exc.code, int):
+            return exc.code
+        return 0 if exc.code is None else 1
 
     try:
         data = _legacy_cli._get_data_cached() if args.lint_dataset else _legacy_cli.get_data()

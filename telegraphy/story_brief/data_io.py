@@ -39,15 +39,6 @@ def _resolve_override_data_dir(raw_value: str) -> Path:
             f"{candidate}"
         )
 
-    allowed_root = Path(__file__).resolve().parent
-    try:
-        candidate.relative_to(allowed_root)
-    except ValueError as exc:
-        raise ValueError(
-            "Configured data directory must be within the project data area: "
-            f"{allowed_root}"
-        ) from exc
-
     return candidate
 
 

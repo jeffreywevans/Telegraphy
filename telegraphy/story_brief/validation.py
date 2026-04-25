@@ -7,11 +7,24 @@ from datetime import date, timedelta
 from typing import Any, NamedTuple
 
 if __package__ in (None, ""):
+    from _constants import (
+        CHARACTER_AVAILABILITY_KEY,
+        PARTNER_DISTRIBUTIONS_KEY,
+        PROMPT_LIST_KEYS,
+        SETTING_AVAILABILITY_KEY,
+        TITLE_TOKEN_PATTERN,
+    )
     from partner_models import parse_partner_distribution_payload, require_keys
 else:
+    from ._constants import (
+        CHARACTER_AVAILABILITY_KEY,
+        PARTNER_DISTRIBUTIONS_KEY,
+        PROMPT_LIST_KEYS,
+        SETTING_AVAILABILITY_KEY,
+        TITLE_TOKEN_PATTERN,
+    )
     from .partner_models import parse_partner_distribution_payload, require_keys
 
-TITLE_TOKEN_PATTERN = re.compile(r"@(?P<key>protagonist|setting|time_period)\b")
 ANY_TITLE_TOKEN_PATTERN = re.compile(r"@(?P<key>[A-Za-z_]\w*)\b")
 EXPECTED_GENERATED_FIELD_KEYS = {
     "title",
@@ -30,17 +43,7 @@ EXPECTED_GENERATED_FIELD_KEYS = {
     "word_count_target",
 }
 MAX_SEXUAL_SCENE_TAG_GROUPS = 10
-PROMPT_LIST_KEYS = (
-    "central_conflicts",
-    "inciting_pressures",
-    "ending_types",
-    "style_guidance",
-    "weather",
-)
 PROMPT_LIST_KEYS_SET = frozenset(PROMPT_LIST_KEYS)
-CHARACTER_AVAILABILITY_KEY = "character_availability"
-SETTING_AVAILABILITY_KEY = "setting_availability"
-PARTNER_DISTRIBUTIONS_KEY = "partner_distributions"
 ENTITY_AVAILABILITY_KEYS = frozenset(
     {
         CHARACTER_AVAILABILITY_KEY,

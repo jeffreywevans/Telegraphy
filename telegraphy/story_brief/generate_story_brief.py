@@ -12,6 +12,12 @@ from functools import lru_cache
 from typing import Any, TypedDict
 
 if __package__ in (None, ""):
+    from _constants import (
+        CHARACTER_AVAILABILITY_KEY,
+        PARTNER_DISTRIBUTIONS_KEY,
+        PROMPT_LIST_KEYS,
+        SETTING_AVAILABILITY_KEY,
+    )
     import data_io as _data_io_module
     from filenames import sanitize_filename
     from generation import (
@@ -36,6 +42,12 @@ if __package__ in (None, ""):
     )
     from validation import validate_story_data
 else:
+    from ._constants import (
+        CHARACTER_AVAILABILITY_KEY,
+        PARTNER_DISTRIBUTIONS_KEY,
+        PROMPT_LIST_KEYS,
+        SETTING_AVAILABILITY_KEY,
+    )
     from . import data_io as _data_io_module
     from .filenames import sanitize_filename
     from .generation import (
@@ -62,16 +74,6 @@ else:
 
 EXPECTED_GENERATED_FIELD_KEYS = frozenset(_EXPECTED_GENERATED_FIELD_KEYS)
 
-PROMPT_LIST_KEYS = (
-    "central_conflicts",
-    "inciting_pressures",
-    "ending_types",
-    "style_guidance",
-    "weather",
-)
-CHARACTER_AVAILABILITY_KEY = "character_availability"
-SETTING_AVAILABILITY_KEY = "setting_availability"
-PARTNER_DISTRIBUTIONS_KEY = "partner_distributions"
 TITLES_FILENAME = "titles.json"
 ENTITIES_FILENAME = "entities.json"
 PROMPTS_FILENAME = "prompts.json"

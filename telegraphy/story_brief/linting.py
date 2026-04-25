@@ -1,20 +1,24 @@
 from __future__ import annotations
 
-import re
 from datetime import date, timedelta
 from typing import Any, Iterable, NamedTuple, Sequence
 
-TITLE_TOKEN_PATTERN = re.compile(r"@(?P<key>protagonist|setting|time_period)\b")
-PROMPT_LIST_KEYS = (
-    "central_conflicts",
-    "inciting_pressures",
-    "ending_types",
-    "style_guidance",
-    "weather",
-)
-CHARACTER_AVAILABILITY_KEY = "character_availability"
-SETTING_AVAILABILITY_KEY = "setting_availability"
-PARTNER_DISTRIBUTIONS_KEY = "partner_distributions"
+if __package__ in (None, ""):
+    from _constants import (
+        CHARACTER_AVAILABILITY_KEY,
+        PARTNER_DISTRIBUTIONS_KEY,
+        PROMPT_LIST_KEYS,
+        SETTING_AVAILABILITY_KEY,
+        TITLE_TOKEN_PATTERN,
+    )
+else:
+    from ._constants import (
+        CHARACTER_AVAILABILITY_KEY,
+        PARTNER_DISTRIBUTIONS_KEY,
+        PROMPT_LIST_KEYS,
+        SETTING_AVAILABILITY_KEY,
+        TITLE_TOKEN_PATTERN,
+    )
 
 
 class DatasetLintReport(NamedTuple):

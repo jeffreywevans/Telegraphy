@@ -7,7 +7,7 @@ from functools import lru_cache
 from importlib.resources import files
 from importlib.resources.abc import Traversable
 from pathlib import Path
-from typing import Any, cast
+from typing import Any
 
 DATA_DIR_ENV_VAR = "TELEGRAPHY_DATA_DIR"
 LEGACY_DATA_DIR_ENV_VAR = "COMMUTED_STORY_BRIEF_DATA_DIR"
@@ -43,7 +43,7 @@ def _resolve_override_data_dir(raw_value: str) -> Path:
     return candidate
 
 
-def resolve_data_dir() -> Path:
+def resolve_data_dir() -> Path | Traversable:
     """Resolve the base directory containing story-brief data files."""
     override_raw = os.environ.get(DATA_DIR_ENV_VAR) or os.environ.get(
         LEGACY_DATA_DIR_ENV_VAR
@@ -55,7 +55,7 @@ def resolve_data_dir() -> Path:
 
     try:
         package_data = files("telegraphy.story_brief.data")
-        return cast(Path, package_data)
+        return package_data
     except (ModuleNotFoundError, FileNotFoundError, TypeError):
         return repo_relative
 
@@ -79,7 +79,7 @@ def _load_json(path: Any) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def load_data(data_dir: Path | None = None) -> dict[str, Any]:
+def load_data(data_dir: Path | Traversable | None = None) -> dict[str, Any]:
     """Load the raw story dataset JSON payloads."""
     try:
         if data_dir is not None:

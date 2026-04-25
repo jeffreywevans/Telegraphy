@@ -7,7 +7,7 @@ from functools import lru_cache
 from importlib.resources import files
 from importlib.resources.abc import Traversable
 from pathlib import Path
-from typing import Any, cast
+from typing import Any
 
 DATA_DIR_ENV_VAR = "TELEGRAPHY_DATA_DIR"
 LEGACY_DATA_DIR_ENV_VAR = "COMMUTED_STORY_BRIEF_DATA_DIR"
@@ -55,7 +55,7 @@ def resolve_data_dir() -> Path:
 
     try:
         package_data = files("telegraphy.story_brief.data")
-        return cast(Path, package_data)
+        return Path(str(package_data))
     except (ModuleNotFoundError, FileNotFoundError, TypeError):
         return repo_relative
 

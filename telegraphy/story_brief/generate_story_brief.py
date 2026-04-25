@@ -168,9 +168,10 @@ def _get_data_cached() -> StoryData:
 
 
 def _clear_get_data_cache() -> None:
-    _load_story_data_cached.cache_clear()
-    _data_io_module.clear_data_cache()
-    _get_data_cached.cache_clear()
+    try:
+        _data_io_module.clear_data_cache()
+    finally:
+        _get_data_cached.cache_clear()
 
 
 def clear_get_data_cache() -> None:

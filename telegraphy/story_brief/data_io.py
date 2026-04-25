@@ -5,6 +5,7 @@ import json
 import os
 from functools import lru_cache
 from importlib.resources import files
+from importlib.resources.abc import Traversable
 from pathlib import Path
 from typing import Any
 
@@ -54,12 +55,12 @@ def resolve_data_dir() -> Path:
 
     try:
         package_data = files("telegraphy.story_brief.data")
-        return Path(package_data)
+        return Path(str(package_data))
     except (ModuleNotFoundError, FileNotFoundError, TypeError):
         return repo_relative
 
 
-def _data_file(filename: str) -> Any:
+def _data_file(filename: str) -> Path | Traversable:
     override_raw = os.environ.get(DATA_DIR_ENV_VAR) or os.environ.get(
         LEGACY_DATA_DIR_ENV_VAR
     )

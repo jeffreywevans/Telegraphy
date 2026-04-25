@@ -8,7 +8,7 @@ import secrets
 from copy import deepcopy
 from datetime import date
 from functools import lru_cache
-from typing import Any, TypedDict
+from typing import Any, Mapping, TypedDict
 
 from . import data_io as _data_io_module
 from . import filenames as _filenames
@@ -115,13 +115,18 @@ def _build_story_data() -> StoryData:
     return {
         "titles": tuple(str(v) for v in titles["titles"]),
         "titles_sorted": tuple(stable_sorted_pool(str(v) for v in titles["titles"])),
-        CHARACTER_AVAILABILITY_KEY: tuple(validated.character_availability),
-        SETTING_AVAILABILITY_KEY: tuple(validated.setting_availability),
-        **prompt_lists,
-        **{
-            f"{key}_sorted": tuple(stable_sorted_pool(prompt_lists[key]))
-            for key in PROMPT_LIST_KEYS
-        },
+        "character_availability": tuple(validated.character_availability),
+        "setting_availability": tuple(validated.setting_availability),
+        "central_conflicts": prompt_lists["central_conflicts"],
+        "inciting_pressures": prompt_lists["inciting_pressures"],
+        "ending_types": prompt_lists["ending_types"],
+        "style_guidance": prompt_lists["style_guidance"],
+        "weather": prompt_lists["weather"],
+        "central_conflicts_sorted": tuple(stable_sorted_pool(prompt_lists["central_conflicts"])),
+        "inciting_pressures_sorted": tuple(stable_sorted_pool(prompt_lists["inciting_pressures"])),
+        "ending_types_sorted": tuple(stable_sorted_pool(prompt_lists["ending_types"])),
+        "style_guidance_sorted": tuple(stable_sorted_pool(prompt_lists["style_guidance"])),
+        "weather_sorted": tuple(stable_sorted_pool(prompt_lists["weather"])),
         "date_start": validated.date_start,
         "date_end": validated.date_end,
         "sexual_content_options": tuple(str(v) for v in config["sexual_content_options"]),
@@ -141,7 +146,7 @@ def _build_story_data() -> StoryData:
         "ordered_keys": tuple(str(v) for v in config["ordered_keys"]),
         "writing_preamble": str(config["writing_preamble"]),
         "dataset_version": str(config["dataset_version"]),
-        PARTNER_DISTRIBUTIONS_KEY: {
+        "partner_distributions": {
             protagonist: tuple(
                 {**era, "partners": tuple(era["partners"])}
                 for era in eras
@@ -214,7 +219,8 @@ _COMPAT_ALIASES: dict[str, str] = {
 def __getattr__(name: str) -> Any:
     """Compatibility layer for legacy module-level constants."""
     if name in _COMPAT_ALIASES:
-        return deepcopy(_load_story_data_cached()[_COMPAT_ALIASES[name]])
+        data_mapping: Mapping[str, Any] = _load_story_data_cached()
+        return deepcopy(data_mapping[_COMPAT_ALIASES[name]])
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
@@ -226,7 +232,7 @@ def random_date_in_range(
 
 
 def available_characters(
-    selected_date: date, data: dict[str, Any] | None = None
+    selected_date: date, data: Mapping[str, Any] | None = None
 ) -> list[str]:
     """Return characters available for the selected date."""
     resolved_data = get_data() if data is None else data
@@ -234,7 +240,7 @@ def available_characters(
 
 
 def available_settings(
-    selected_date: date, data: dict[str, Any] | None = None
+    selected_date: date, data: Mapping[str, Any] | None = None
 ) -> list[str]:
     """Return settings available for the selected date."""
     resolved_data = get_data() if data is None else data

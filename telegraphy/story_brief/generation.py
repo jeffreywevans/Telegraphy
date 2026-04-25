@@ -5,7 +5,7 @@ import random
 import secrets
 from datetime import date, timedelta
 from functools import lru_cache
-from typing import Any, Iterable, Sequence, TypeVar
+from typing import Any, Iterable, Mapping, Sequence, TypeVar, cast
 
 from ._constants import (
     CHARACTER_AVAILABILITY_KEY,
@@ -35,15 +35,15 @@ def stable_sorted_pool(values: Iterable[PoolValue]) -> list[PoolValue]:
     return sorted(values)
 
 
-def sorted_pool_from_data(data: dict[str, Any], key: str) -> Sequence[PoolValue]:
+def sorted_pool_from_data(data: Mapping[str, Any], key: str) -> Sequence[PoolValue]:
     """Read a pre-sorted pool from data when present, else sort lazily."""
     sorted_key = f"{key}_sorted"
     if sorted_key in data:
-        return data[sorted_key]
-    return stable_sorted_pool(data[key])
+        return cast(Sequence[PoolValue], data[sorted_key])
+    return stable_sorted_pool(cast(Iterable[PoolValue], data[key]))
 
 
-def available_characters(selected_date: date, data: dict[str, Any]) -> list[str]:
+def available_characters(selected_date: date, data: Mapping[str, Any]) -> list[str]:
     """Return characters available for the selected date."""
     return [
         name
@@ -52,7 +52,7 @@ def available_characters(selected_date: date, data: dict[str, Any]) -> list[str]
     ]
 
 
-def available_settings(selected_date: date, data: dict[str, Any]) -> list[str]:
+def available_settings(selected_date: date, data: Mapping[str, Any]) -> list[str]:
     """Return settings available for the selected date."""
     return [
         setting
@@ -109,7 +109,7 @@ def symmetric_peak_weights(length: int) -> tuple[float, ...]:
 def pick_story_fields(
     rng: random.Random | secrets.SystemRandom,
     selected_date: date | None = None,
-    data: dict[str, Any] | None = None,
+    data: Mapping[str, Any] | None = None,
 ) -> dict[str, str | int | list[str] | None]:
     """Pick a randomized, schema-compatible story brief field set."""
     if data is None:

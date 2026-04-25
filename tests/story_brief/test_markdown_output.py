@@ -1,8 +1,15 @@
-from telegraphy.story_brief.generate_story_brief import (
-    get_data,
-    render_title,
-    to_markdown,
-)
+from telegraphy.story_brief import generate_story_brief as story_cli
+from telegraphy.story_brief.generate_story_brief import get_data
+from telegraphy.story_brief.rendering import render_title, to_markdown
+
+
+def _render_markdown(fields: dict[str, object]) -> str:
+    data = get_data()
+    return to_markdown(
+        fields,
+        ordered_keys=data["ordered_keys"],
+        writing_preamble=data["writing_preamble"],
+    )
 
 
 def test_markdown_front_matter_delimiters_present() -> None:
@@ -23,7 +30,7 @@ def test_markdown_front_matter_delimiters_present() -> None:
         "word_count_target": 1500,
     }
 
-    text = to_markdown(fields)
+    text = _render_markdown(fields)
     lines = text.splitlines()
 
     assert lines[0] == "---"
@@ -48,7 +55,7 @@ def test_markdown_heading_escapes_special_chars() -> None:
         "word_count_target": 1500,
     }
 
-    text = to_markdown(fields)
+    text = _render_markdown(fields)
     assert "# You Park Like You F\\*ck and Deserve the Ticket" in text
 
 
@@ -70,7 +77,7 @@ def test_markdown_heading_escapes_single_backslash() -> None:
         "word_count_target": 1500,
     }
 
-    text = to_markdown(fields)
+    text = _render_markdown(fields)
     assert r"# Backslash \\\\ Test" in text
 
 
@@ -92,7 +99,7 @@ def test_yaml_keys_appear_in_configured_order() -> None:
         "word_count_target": 1500,
     }
 
-    text = to_markdown(fields)
+    text = _render_markdown(fields)
     yaml_block = text.split("---\n", 2)[1]
 
     positions = [yaml_block.find(f"{key}:") for key in get_data()["ordered_keys"]]
@@ -140,5 +147,5 @@ def test_to_markdown_calls_get_data_once(monkeypatch) -> None:
         fake_get_data,
     )
 
-    to_markdown(fields)
+    story_cli.to_markdown(fields)
     assert calls == 1

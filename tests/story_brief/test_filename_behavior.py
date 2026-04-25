@@ -2,10 +2,8 @@ from __future__ import annotations
 
 from datetime import date, datetime
 
-from telegraphy.story_brief.generate_story_brief import (
-    build_auto_filename,
-    sanitize_filename,
-)
+from telegraphy.story_brief.filenames import sanitize_filename
+from telegraphy.story_brief.generate_story_brief import build_auto_filename
 
 
 def test_sanitize_filename_handles_invalid_chars_and_reserved_names() -> None:

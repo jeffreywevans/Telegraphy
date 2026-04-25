@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+from telegraphy.story_brief import filenames as filename_utils
 from telegraphy.story_brief import generate_story_brief as story_cli
 
 
@@ -176,7 +177,7 @@ def test_main_allows_absolute_output_dir_when_within_cwd(
 def test_main_force_rejects_symlink_output_target(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    if not hasattr(story_cli.os, "O_NOFOLLOW"):
+    if not hasattr(filename_utils.os, "O_NOFOLLOW"):
         pytest.skip("Platform does not expose O_NOFOLLOW")
 
     output_dir = tmp_path / "output" / "story-seeds"
@@ -211,17 +212,17 @@ def test_main_write_failure_exits_cleanly(
     monkeypatch.setattr(story_cli, "pick_story_fields", lambda *_args, **_kwargs: {"title": "A"})
     monkeypatch.setattr(story_cli, "to_markdown", lambda _fields, data=None: "body")
 
-    real_open = story_cli.os.open
+    real_open = filename_utils.os.open
 
     def fake_open(path: object, flags: int, mode: int) -> int:
         return real_open(path, flags, mode)
 
     def fake_fdopen(fd: int, *_args: object, **_kwargs: object) -> object:
-        story_cli.os.close(fd)
+        filename_utils.os.close(fd)
         raise OSError("No space left on device")
 
-    monkeypatch.setattr(story_cli.os, "open", fake_open)
-    monkeypatch.setattr(story_cli.os, "fdopen", fake_fdopen)
+    monkeypatch.setattr(filename_utils.os, "open", fake_open)
+    monkeypatch.setattr(filename_utils.os, "fdopen", fake_fdopen)
 
     with pytest.raises(SystemExit, match="Unable to safely open or write output path"):
         story_cli.main()

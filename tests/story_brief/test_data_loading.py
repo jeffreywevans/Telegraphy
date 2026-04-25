@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import json
-import tempfile
 from pathlib import Path
 
 import pytest
 
+from telegraphy.story_brief import data_io
 from telegraphy.story_brief import generate_story_brief as story_brief
 
 
@@ -92,12 +92,11 @@ def _write_minimal_dataset(data_dir: Path) -> None:
 
 
 @pytest.fixture
-def override_data_dir() -> Path:
-    trusted_root = Path(story_brief.__file__).resolve().parent
-    with tempfile.TemporaryDirectory(prefix="test-override-", dir=trusted_root) as temp_dir:
-        data_dir = Path(temp_dir)
-        _write_minimal_dataset(data_dir)
-        yield data_dir
+def override_data_dir(tmp_path: Path) -> Path:
+    data_dir = tmp_path / "override-data"
+    data_dir.mkdir()
+    _write_minimal_dataset(data_dir)
+    return data_dir
 
 
 def test_env_override_loads_dataset_from_custom_directory(
@@ -198,3 +197,13 @@ def test_get_data_returns_defensive_copies() -> None:
 
     assert reloaded["titles"] != ("poisoned",)
     assert "poison" not in reloaded["partner_distributions"][protagonist][0]
+
+
+def test_data_io_get_data_returns_defensive_copies() -> None:
+    data_io.clear_data_cache()
+    original = data_io.get_data()
+    original["titles"] = {"poison": True}
+
+    reloaded = data_io.get_data()
+
+    assert reloaded["titles"] != {"poison": True}

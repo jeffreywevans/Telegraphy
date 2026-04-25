@@ -73,10 +73,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     try:
         args = parser.parse_args(list(argv) if argv is not None else None)
-    except SystemExit as exc:
+    except SystemExit:
         # argparse uses SystemExit for --help and argument errors.
         # Re-raise so the application exits immediately as expected.
-        raise exc
+        raise
 
     try:
         data = story_brief_cli.get_data()

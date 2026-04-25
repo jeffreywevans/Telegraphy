@@ -54,10 +54,10 @@ def test_main_lint_dataset_exits_early_without_generating_output(
 
     monkeypatch.setattr(sys, "argv", ["story-brief", "--lint-dataset"])
     monkeypatch.setattr(story_cli._legacy_cli, "_get_data_cached", lambda: {"source": "test"})
-    monkeypatch.setattr(story_cli._legacy_cli, "lint_story_data", fake_lint)
+    monkeypatch.setattr(story_cli, "lint_story_data", fake_lint)
     monkeypatch.setattr(
-        story_cli._legacy_cli,
-        "_emit_lint_report",
+        story_cli,
+        "emit_lint_report",
         lambda _: called.__setitem__("emit", called["emit"] + 1),
     )
     monkeypatch.setattr(
@@ -93,7 +93,11 @@ def test_main_force_flag_allows_overwrite_for_existing_file(
     monkeypatch.setattr(
         story_cli._legacy_cli, "pick_story_fields", lambda *_args, **_kwargs: {"title": "Forced"}
     )
-    monkeypatch.setattr(story_cli._legacy_cli, "to_markdown", lambda _fields, data=None: "new-content")
+    monkeypatch.setattr(
+        story_cli._legacy_cli,
+        "to_markdown",
+        lambda _fields, data=None: "new-content",
+    )
 
     assert story_cli.main() == 0
 
@@ -106,8 +110,8 @@ def test_main_lint_dataset_with_errors_exits_one(monkeypatch: pytest.MonkeyPatch
 
     monkeypatch.setattr(sys, "argv", ["story-brief", "--lint-dataset"])
     monkeypatch.setattr(story_cli._legacy_cli, "_get_data_cached", lambda: {})
-    monkeypatch.setattr(story_cli._legacy_cli, "lint_story_data", lambda _data: _Report())
-    monkeypatch.setattr(story_cli._legacy_cli, "_emit_lint_report", lambda _report: None)
+    monkeypatch.setattr(story_cli, "lint_story_data", lambda _data: _Report())
+    monkeypatch.setattr(story_cli, "emit_lint_report", lambda _report: None)
 
     assert story_cli.main() == 1
 
@@ -120,7 +124,7 @@ def test_main_validate_strict_failure_exits_without_traceback(
 
     monkeypatch.setattr(sys, "argv", ["story-brief", "--validate-strict", "--print-only"])
     monkeypatch.setattr(story_cli._legacy_cli, "_get_data_cached", lambda: {})
-    monkeypatch.setattr(story_cli._legacy_cli, "validate_story_data_strict", mock_fail)
+    monkeypatch.setattr(story_cli, "validate_story_data_strict", mock_fail)
 
     assert story_cli.main() == 1
 
@@ -146,7 +150,9 @@ def test_main_rejects_parent_traversal_in_output_dir(
         "argv",
         ["story-brief", "--output-dir", "../outside", "--filename", "safe.md"],
     )
-    monkeypatch.setattr(story_cli._legacy_cli, "pick_story_fields", lambda *_args, **_kwargs: {"title": "A"})
+    monkeypatch.setattr(
+        story_cli._legacy_cli, "pick_story_fields", lambda *_args, **_kwargs: {"title": "A"}
+    )
     monkeypatch.setattr(story_cli._legacy_cli, "to_markdown", lambda _fields, data=None: "body")
 
     assert story_cli.main() == 1
@@ -162,7 +168,9 @@ def test_main_allows_absolute_output_dir_when_within_cwd(
         "argv",
         ["story-brief", "--output-dir", str(output_dir), "--filename", "safe.md"],
     )
-    monkeypatch.setattr(story_cli._legacy_cli, "pick_story_fields", lambda *_args, **_kwargs: {"title": "A"})
+    monkeypatch.setattr(
+        story_cli._legacy_cli, "pick_story_fields", lambda *_args, **_kwargs: {"title": "A"}
+    )
     monkeypatch.setattr(story_cli._legacy_cli, "to_markdown", lambda _fields, data=None: "body")
 
     assert story_cli.main() == 0
@@ -189,7 +197,9 @@ def test_main_force_rejects_symlink_output_target(
         "argv",
         ["story-brief", "--filename", "linked.md", "--force"],
     )
-    monkeypatch.setattr(story_cli._legacy_cli, "pick_story_fields", lambda *_args, **_kwargs: {"title": "A"})
+    monkeypatch.setattr(
+        story_cli._legacy_cli, "pick_story_fields", lambda *_args, **_kwargs: {"title": "A"}
+    )
     monkeypatch.setattr(story_cli._legacy_cli, "to_markdown", lambda _fields, data=None: "body")
 
     assert story_cli.main() == 1
@@ -204,7 +214,9 @@ def test_main_write_failure_exits_cleanly(
         "argv",
         ["story-brief", "--filename", "write-fail.md", "--force"],
     )
-    monkeypatch.setattr(story_cli._legacy_cli, "pick_story_fields", lambda *_args, **_kwargs: {"title": "A"})
+    monkeypatch.setattr(
+        story_cli._legacy_cli, "pick_story_fields", lambda *_args, **_kwargs: {"title": "A"}
+    )
     monkeypatch.setattr(story_cli._legacy_cli, "to_markdown", lambda _fields, data=None: "body")
 
     real_open = filename_utils.os.open

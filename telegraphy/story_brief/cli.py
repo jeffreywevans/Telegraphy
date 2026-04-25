@@ -28,6 +28,12 @@ else:
         resolve_output_path,
         write_output_markdown,
     )
+    from .linting import emit_lint_report, lint_story_data
+    from .validation import validate_story_data_strict
+
+if __package__ in (None, ""):
+    from linting import emit_lint_report, lint_story_data
+    from validation import validate_story_data_strict
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -94,13 +100,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         rng = random.Random(args.seed)
 
     if args.lint_dataset:
-        report = _legacy_cli.lint_story_data(data)
-        _legacy_cli._emit_lint_report(report)
+        report = lint_story_data(data)
+        emit_lint_report(report)
         return 1 if report.has_errors else 0
 
     if args.validate_strict:
         try:
-            _legacy_cli.validate_story_data_strict(data)
+            validate_story_data_strict(data)
         except ValueError as exc:
             print(str(exc), file=sys.stderr)
             return 1

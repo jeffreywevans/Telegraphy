@@ -129,8 +129,9 @@ def _collect_interval_lint_ranges(
             thin_setting_ranges.append(interval)
 
     def _record_partner_gaps(
-        *, interval: tuple[date, date], current_start: date, protagonists: Sequence[str]
+        *, interval: tuple[date, date], protagonists: Sequence[str]
     ) -> None:
+        current_start, _ = interval
         for protagonist in protagonists:
             eras = data[PARTNER_DISTRIBUTIONS_KEY].get(protagonist, [])
             has_partner_data = any(
@@ -151,9 +152,7 @@ def _collect_interval_lint_ranges(
             data[SETTING_AVAILABILITY_KEY], selected_date=current_start
         )
         _record_availability_gaps(interval=interval, characters=characters, settings=settings)
-        _record_partner_gaps(
-            interval=interval, current_start=current_start, protagonists=characters
-        )
+        _record_partner_gaps(interval=interval, protagonists=characters)
 
     return _IntervalLintResults(
         missing_character_ranges=missing_character_ranges,

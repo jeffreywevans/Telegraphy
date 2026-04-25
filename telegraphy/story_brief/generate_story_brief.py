@@ -89,7 +89,6 @@ class StoryData(TypedDict):
     partner_distributions: dict[str, tuple[dict[str, Any], ...]]
 
 
-@lru_cache(maxsize=1)
 def load_story_data() -> StoryData:
     """Load, validate, and normalize the story dataset used by the generator."""
     dataset_payloads = _data_io_module.get_data()
@@ -152,13 +151,14 @@ def load_story_data() -> StoryData:
     }
 
 
+@lru_cache(maxsize=1)
 def _get_data_cached() -> StoryData:
     """Compatibility wrapper for callers expecting a cached getter."""
     return load_story_data()
 
 
 def _clear_get_data_cache() -> None:
-    load_story_data.cache_clear()
+    _get_data_cached.cache_clear()
     _data_io_module.clear_data_cache()
 
 

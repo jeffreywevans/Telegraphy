@@ -10,13 +10,13 @@ from datetime import date
 from typing import Any, TypedDict
 
 from . import data_io as _data_io_module
+from . import filenames as _filenames
 from ._constants import (
     CHARACTER_AVAILABILITY_KEY,
     PARTNER_DISTRIBUTIONS_KEY,
     PROMPT_LIST_KEYS,
     SETTING_AVAILABILITY_KEY,
 )
-from .filenames import build_auto_filename
 from .generation import (
     available_characters as _available_characters,
 )
@@ -40,6 +40,7 @@ from .validation import (
 from .validation import validate_story_data
 
 EXPECTED_GENERATED_FIELD_KEYS = frozenset(_EXPECTED_GENERATED_FIELD_KEYS)
+build_auto_filename = _filenames.build_auto_filename
 
 TITLES_FILENAME = "titles.json"
 ENTITIES_FILENAME = "entities.json"

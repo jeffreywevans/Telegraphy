@@ -43,6 +43,9 @@ from .validation import validate_story_data
 EXPECTED_GENERATED_FIELD_KEYS = frozenset(_EXPECTED_GENERATED_FIELD_KEYS)
 build_auto_filename = _filenames.build_auto_filename
 
+
+__all__ = ["_emit_lint_report"]
+
 # Canonical dataset file mapping lives in telegraphy.story_brief.data_io.
 STORY_DATASET_FILES = _data_io_module.DATA_FILENAMES
 

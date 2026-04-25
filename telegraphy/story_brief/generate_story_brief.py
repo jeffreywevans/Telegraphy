@@ -1277,6 +1277,8 @@ def main() -> None:
         raise SystemExit(str(exc)) from exc
     except OutputWriteError as exc:
         raise SystemExit(str(exc)) from exc
+    except OSError as exc:
+        raise SystemExit(f"Error creating output directory: {exc}") from exc
     print("Generated story brief.")
 
 

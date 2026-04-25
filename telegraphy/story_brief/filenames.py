@@ -207,4 +207,4 @@ def write_output_markdown(
     except FileExistsError:
         raise OutputWriteError("Refusing to overwrite existing file. Use --force to overwrite.") from None
     except OSError as exc:
-        raise OutputWriteError(f"Unable to safely open or write output path: {exc}") from None
+        raise OutputWriteError(f"Unable to safely open or write output path: {exc}") from exc

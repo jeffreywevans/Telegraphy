@@ -141,9 +141,8 @@ def _record_partner_gaps(
             era["date_start"] <= current_start <= era["date_end"] for era in eras
         )
         if not has_partner_data:
-            partner_data_gap_ranges_by_protagonist.setdefault(
-                protagonist, []
-            ).append(interval)
+            gaps = partner_data_gap_ranges_by_protagonist.setdefault(protagonist, [])
+            gaps.append(interval)
 
 
 def _collect_interval_lint_ranges(

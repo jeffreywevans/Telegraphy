@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from telegraphy.story_brief import data_io
+from telegraphy.story_brief import data_io, validation
 from telegraphy.story_brief import generate_story_brief as story_brief
 
 
@@ -207,3 +207,9 @@ def test_data_io_get_data_returns_defensive_copies() -> None:
     reloaded = data_io.get_data()
 
     assert reloaded["titles"] != {"poison": True}
+
+
+def test_expected_generated_field_keys_re_export_is_immutable() -> None:
+    assert isinstance(validation.EXPECTED_GENERATED_FIELD_KEYS, set)
+    assert isinstance(story_brief.EXPECTED_GENERATED_FIELD_KEYS, frozenset)
+    assert story_brief.EXPECTED_GENERATED_FIELD_KEYS == validation.EXPECTED_GENERATED_FIELD_KEYS

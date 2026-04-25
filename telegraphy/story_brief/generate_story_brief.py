@@ -10,13 +10,13 @@ from datetime import date
 from typing import Any, TypedDict
 
 from . import data_io as _data_io_module
+from . import filenames as _filenames
 from ._constants import (
     CHARACTER_AVAILABILITY_KEY,
     PARTNER_DISTRIBUTIONS_KEY,
     PROMPT_LIST_KEYS,
     SETTING_AVAILABILITY_KEY,
 )
-from .filenames import build_auto_filename as _build_auto_filename
 from .generation import (
     available_characters as _available_characters,
 )
@@ -40,6 +40,7 @@ from .validation import (
 from .validation import validate_story_data
 
 EXPECTED_GENERATED_FIELD_KEYS = frozenset(_EXPECTED_GENERATED_FIELD_KEYS)
+build_auto_filename = _filenames.build_auto_filename
 
 TITLES_FILENAME = "titles.json"
 ENTITIES_FILENAME = "entities.json"
@@ -249,23 +250,6 @@ def to_markdown(
     )
 
 
-def build_auto_filename(title: str, *, today: str | None = None) -> str:
-    """Compatibility wrapper for filename generation helper."""
-    return _build_auto_filename(title, today=today)
-
-
 def _emit_lint_report(report: Any) -> None:
     """Compatibility wrapper for legacy lint-report emission helper."""
     _emit_lint_report_impl(report)
-
-
-def main() -> None:
-    """Compatibility wrapper that delegates CLI orchestration to ``cli.py``."""
-    from .cli import main as _cli_main
-    exit_code = _cli_main()
-    if exit_code:
-        raise SystemExit(exit_code)
-
-
-if __name__ == "__main__":
-    main()

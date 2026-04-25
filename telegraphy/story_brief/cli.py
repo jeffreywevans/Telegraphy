@@ -79,11 +79,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         raise exc
 
     try:
-        data = (
-            story_brief_cli._get_data_cached()
-            if args.lint_dataset
-            else story_brief_cli.get_data()
-        )
+        data = story_brief_cli.get_data()
     except ValueError as exc:
         print(str(exc), file=sys.stderr)
         return 1

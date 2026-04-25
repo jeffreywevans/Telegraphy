@@ -208,10 +208,9 @@ def pick_sexual_scene_tags(
 
     tag_group_names = cast(
         Sequence[str],
-        data.get(
-            "sexual_scene_tag_group_names_sorted",
-            stable_sorted_pool(data["sexual_scene_tag_groups"]),
-        ),
+        data["sexual_scene_tag_group_names_sorted"]
+        if "sexual_scene_tag_group_names_sorted" in data
+        else stable_sorted_pool(data["sexual_scene_tag_groups"]),
     )
     tag_count_options, tag_count_weights = build_sexual_scene_tag_count_distribution(
         tag_group_names, data

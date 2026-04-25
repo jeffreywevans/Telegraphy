@@ -12,13 +12,13 @@ from functools import lru_cache
 from typing import Any, TypedDict
 
 if __package__ in (None, ""):
+    import data_io as _data_io_module
     from _constants import (
         CHARACTER_AVAILABILITY_KEY,
         PARTNER_DISTRIBUTIONS_KEY,
         PROMPT_LIST_KEYS,
         SETTING_AVAILABILITY_KEY,
     )
-    import data_io as _data_io_module
     from filenames import sanitize_filename
     from generation import (
         available_characters as _available_characters,
@@ -42,13 +42,13 @@ if __package__ in (None, ""):
     )
     from validation import validate_story_data
 else:
+    from . import data_io as _data_io_module
     from ._constants import (
         CHARACTER_AVAILABILITY_KEY,
         PARTNER_DISTRIBUTIONS_KEY,
         PROMPT_LIST_KEYS,
         SETTING_AVAILABILITY_KEY,
     )
-    from . import data_io as _data_io_module
     from .filenames import sanitize_filename
     from .generation import (
         available_characters as _available_characters,

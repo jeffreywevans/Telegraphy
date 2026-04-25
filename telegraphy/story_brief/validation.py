@@ -12,7 +12,6 @@ if __package__ in (None, ""):
         PARTNER_DISTRIBUTIONS_KEY,
         PROMPT_LIST_KEYS,
         SETTING_AVAILABILITY_KEY,
-        TITLE_TOKEN_PATTERN,
     )
     from partner_models import parse_partner_distribution_payload, require_keys
 else:
@@ -21,7 +20,6 @@ else:
         PARTNER_DISTRIBUTIONS_KEY,
         PROMPT_LIST_KEYS,
         SETTING_AVAILABILITY_KEY,
-        TITLE_TOKEN_PATTERN,
     )
     from .partner_models import parse_partner_distribution_payload, require_keys
 

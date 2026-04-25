@@ -7,6 +7,7 @@ from typing import Callable
 import pytest
 
 from telegraphy.story_brief import generate_story_brief as story_brief
+from telegraphy.story_brief import data_io
 from telegraphy.story_brief.generate_story_brief import DatasetLintReport
 from telegraphy.story_brief.partner_models import parse_partner_distribution_payload
 
@@ -42,7 +43,7 @@ def test_data_file_uses_env_override_with_expanduser(
     monkeypatch.setenv("HOME", str(home))
     monkeypatch.setenv("TELEGRAPHY_DATA_DIR", "~/dataset")
 
-    resolved = story_brief._data_file("titles.json")
+    resolved = data_io._data_file("titles.json")
     assert Path(resolved) == override / "titles.json"
 
 
@@ -54,10 +55,10 @@ def test_data_file_repo_relative_in_script_mode(
     expected = data_dir / "titles.json"
     expected.write_text("{}", encoding="utf-8")
 
-    monkeypatch.setattr(story_brief, "__file__", str(tmp_path / "generate_story_brief.py"))
-    monkeypatch.setattr(story_brief, "__package__", "")
+    monkeypatch.setattr(data_io, "__file__", str(tmp_path / "data_io.py"))
+    monkeypatch.setattr(data_io, "__package__", "")
 
-    assert Path(story_brief._data_file("titles.json")) == expected
+    assert Path(data_io._data_file("titles.json")) == expected
 
 
 def test_data_file_falls_back_to_repo_relative_when_resources_unavailable(
@@ -66,15 +67,15 @@ def test_data_file_falls_back_to_repo_relative_when_resources_unavailable(
     repo_relative = tmp_path / "data" / "titles.json"
     repo_relative.parent.mkdir(parents=True)
 
-    monkeypatch.setattr(story_brief, "__file__", str(tmp_path / "generate_story_brief.py"))
-    monkeypatch.setattr(story_brief, "__package__", "telegraphy.story_brief")
+    monkeypatch.setattr(data_io, "__file__", str(tmp_path / "data_io.py"))
+    monkeypatch.setattr(data_io, "__package__", "telegraphy.story_brief")
 
     def raise_missing(_package: str) -> object:
         raise ModuleNotFoundError("no package resources")
 
-    monkeypatch.setattr(story_brief, "files", raise_missing)
+    monkeypatch.setattr(data_io, "files", raise_missing)
 
-    assert Path(story_brief._data_file("titles.json")) == repo_relative
+    assert Path(data_io._data_file("titles.json")) == repo_relative
 
 
 def _parse_payload(

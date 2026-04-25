@@ -4,20 +4,18 @@
 from __future__ import annotations
 
 import argparse
-import json
 import math
-import os
 import random
 import re
 import secrets
 from copy import deepcopy
 from datetime import date, datetime, timedelta
 from functools import lru_cache
-from importlib.resources import files
 from pathlib import Path
 from typing import Any, Iterable, NamedTuple, Sequence, TypedDict, TypeVar
 
 if __package__ in (None, ""):
+    import data_io as _data_io_module
     from filenames import (
         DEFAULT_OUTPUT_DIR,
         OutputPathError,
@@ -33,6 +31,7 @@ if __package__ in (None, ""):
         to_markdown as _to_markdown,
     )
 else:
+    from . import data_io as _data_io_module
     from .filenames import (
         DEFAULT_OUTPUT_DIR,
         OutputPathError,
@@ -163,62 +162,14 @@ class StoryData(TypedDict):
     partner_distributions: dict[str, tuple[dict[str, Any], ...]]
 
 
-def _load_json(path: Any) -> dict[str, Any]:
-    return json.loads(path.read_text(encoding="utf-8"))
-
-
 def _data_file(filename: str) -> Any:
-    """
-    Resolve a story-brief data file.
-
-    Resolution order:
-      1) TELEGRAPHY_DATA_DIR env var (custom/system deployments).
-         Falls back to COMMUTED_STORY_BRIEF_DATA_DIR for backwards compatibility.
-      2) Direct-script source checkout fallback (repo-relative `data/`).
-      3) Installed package resources under
-         telegraphy.story_brief.data (packaged installs).
-
-    Why this chain exists:
-      - Allows testing against alternate datasets without code changes.
-      - Supports container/ops setups that mount data at runtime.
-      - Keeps editable local data working during development.
-    """
-    override_raw = os.environ.get("TELEGRAPHY_DATA_DIR") or os.environ.get(
-        "COMMUTED_STORY_BRIEF_DATA_DIR"
-    )
-    if override_raw:
-        return _resolve_data_dir_override(override_raw) / filename
-
-    repo_relative = Path(__file__).resolve().parent / "data" / filename
-    if __package__ in (None, "") and repo_relative.exists():
-        return repo_relative
-
-    try:
-        return files("telegraphy.story_brief.data").joinpath(filename)
-    except (ModuleNotFoundError, FileNotFoundError):
-        return repo_relative
+    """Compatibility wrapper for data file resolution."""
+    return _data_io_module._data_file(filename)
 
 
-def _resolve_data_dir_override(path_raw: str) -> Path:
-    """Resolve and validate TELEGRAPHY_DATA_DIR style overrides."""
-    trimmed = path_raw.strip()
-    if not trimmed:
-        raise ValueError("Configured data directory must not be empty")
-    if "\x00" in trimmed:
-        raise ValueError("Configured data directory must not contain NUL bytes")
-
-    raw_path = Path(trimmed).expanduser()
-    if not raw_path.is_absolute():
-        raise ValueError("Configured data directory must be an absolute path")
-
-    candidate = raw_path.resolve(strict=True)
-    if not candidate.is_dir():
-        raise ValueError(
-            "Configured data directory must be an existing directory: "
-            f"{candidate}"
-        )
-
-    return candidate
+def _load_json(path: Any) -> dict[str, Any]:
+    """Compatibility wrapper for JSON loading."""
+    return _data_io_module._load_json(path)
 
 
 def _validate_string_list(section_name: str, key: str, values: Any) -> None:
@@ -579,23 +530,7 @@ def validate_story_data(
 
 def load_story_data() -> StoryData:
     """Load, validate, and normalize the story dataset used by the generator."""
-    try:
-        dataset_payloads = {
-            key: _load_json(_data_file(filename))
-            for key, filename in STORY_DATASET_FILES.items()
-        }
-    except FileNotFoundError as exc:
-        missing_name = Path(exc.filename).name if exc.filename else "unknown file"
-        location = (
-            "configured data directory (TELEGRAPHY_DATA_DIR or COMMUTED_STORY_BRIEF_DATA_DIR)"
-            if os.environ.get("TELEGRAPHY_DATA_DIR")
-            or os.environ.get("COMMUTED_STORY_BRIEF_DATA_DIR")
-            else "data directory"
-        )
-        raise ValueError(
-            f"Failed to load story brief dataset file '{missing_name}' from {location}. "
-            "Verify the directory exists and contains the required JSON files."
-        ) from exc
+    dataset_payloads = _data_io_module.load_data()
     titles = dataset_payloads["titles"]
     entities = dataset_payloads["entities"]
     prompts = dataset_payloads["prompts"]

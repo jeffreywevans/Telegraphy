@@ -29,8 +29,8 @@ if __package__ in (None, ""):
     from generation import (
         stable_sorted_pool,
     )
-    from rendering import to_markdown as _to_markdown
     from linting import emit_lint_report as _emit_lint_report_impl
+    from rendering import to_markdown as _to_markdown
     from validation import (
         EXPECTED_GENERATED_FIELD_KEYS as _EXPECTED_GENERATED_FIELD_KEYS,
     )
@@ -53,8 +53,8 @@ else:
     from .generation import (
         stable_sorted_pool,
     )
-    from .rendering import to_markdown as _to_markdown
     from .linting import emit_lint_report as _emit_lint_report_impl
+    from .rendering import to_markdown as _to_markdown
     from .validation import (
         EXPECTED_GENERATED_FIELD_KEYS as _EXPECTED_GENERATED_FIELD_KEYS,
     )

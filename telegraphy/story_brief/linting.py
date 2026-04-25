@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import date, timedelta
-from typing import Any, NamedTuple, Sequence
+from typing import Any, Mapping, NamedTuple, Sequence
 
 from ._constants import (
     CHARACTER_AVAILABILITY_KEY,
@@ -58,7 +58,7 @@ def _coalesce_ranges(ranges: list[tuple[date, date]]) -> list[tuple[date, date]]
 
 
 def build_coverage_checkpoints(
-    data: dict[str, Any], *, range_start: date, range_end: date
+    data: Mapping[str, Any], *, range_start: date, range_end: date
 ) -> list[date]:
     one_day = timedelta(days=1)
     checkpoints: set[date] = {range_start}
@@ -93,7 +93,7 @@ def _available_entities(
 
 
 def _collect_interval_lint_ranges(
-    data: dict[str, Any], *, sorted_checkpoints: Sequence[date], range_end: date
+    data: Mapping[str, Any], *, sorted_checkpoints: Sequence[date], range_end: date
 ) -> _IntervalLintResults:
     one_day = timedelta(days=1)
     missing_character_ranges: list[tuple[date, date]] = []
@@ -183,7 +183,7 @@ def _append_coverage_messages(
         )
 
 
-def _append_prompt_depth_warnings(data: dict[str, Any], *, warnings: list[str]) -> None:
+def _append_prompt_depth_warnings(data: Mapping[str, Any], *, warnings: list[str]) -> None:
     for key in PROMPT_LIST_KEYS:
         options = data[key]
         if len(options) >= 3:
@@ -200,7 +200,7 @@ def _append_prompt_depth_warnings(data: dict[str, Any], *, warnings: list[str]) 
         )
 
 
-def lint_story_data(data: dict[str, Any]) -> DatasetLintReport:
+def lint_story_data(data: Mapping[str, Any]) -> DatasetLintReport:
     """Report actionable dataset diagnostics and coverage gaps."""
     range_start = data["date_start"]
     range_end = data["date_end"]

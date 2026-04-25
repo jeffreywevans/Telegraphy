@@ -247,7 +247,7 @@ def test_parse_partner_distribution_payload_randomized_era_boundaries_cover_ever
 
     alex_eras: list[dict[str, object]] = []
     jordan_eras: list[dict[str, object]] = []
-    for left, right in zip(cut_points, cut_points[1:]):
+    for left, right in zip(cut_points, cut_points[1:], strict=False):
         era_start = start + timedelta(days=left)
         era_end = start + timedelta(days=right - 1)
         alex_eras.append(
@@ -297,7 +297,7 @@ def test_parse_partner_distribution_payload_rejects_randomized_casefold_duplicat
         str.upper if _seeded_int(seed, idx, 0, 1) else str.lower
         for idx, _ in enumerate("Jordan")
     ]
-    variant = "".join(transform(char) for transform, char in zip(mask, "Jordan"))
+    variant = "".join(transform(char) for transform, char in zip(mask, "Jordan", strict=True))
     if variant == "Jordan":
         variant = "jORDAN"
 
@@ -377,7 +377,7 @@ def test_parse_partner_distribution_payload_randomized_reciprocal_partner_weight
     jordan_eras: list[dict[str, object]] = []
     expected_alex_weights: list[float] = []
     expected_jordan_weights: list[float] = []
-    for left, right in zip(cut_points, cut_points[1:]):
+    for left, right in zip(cut_points, cut_points[1:], strict=False):
         era_start = start + timedelta(days=left)
         era_end = start + timedelta(days=right - 1)
         alex_weight = round(_seeded_float(seed, left + right, 0.1, 5.0), 3)

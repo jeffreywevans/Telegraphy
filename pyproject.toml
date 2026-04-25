@@ -33,7 +33,7 @@ include = ["telegraphy*"]
 line-length = 100
 
 [tool.ruff.lint]
-select = ["E", "F", "I"]
+select = ["E", "F", "I", "B"]
 
 [tool.mypy]
 strict = true

@@ -29,11 +29,6 @@ def escape_markdown_heading(text: str) -> str:
     return re.sub(r"([\\`*_{}\[\]()#+\-.!])", r"\\\1", text)
 
 
-def _format_yaml_value(value: Any) -> Any:
-    """YAML serializer passthrough hook for future focused formatting behavior."""
-    return value
-
-
 def _format_yaml_list(values: Sequence[str]) -> list[str]:
     """YAML list serializer hook for future list-shaping behavior."""
     return [str(value) for value in values]
@@ -48,7 +43,7 @@ def to_markdown(
     """Render selected story fields as Markdown with YAML front matter."""
     ordered_fields: dict[str, Any] = {}
     for key in ordered_keys:
-        value = _format_yaml_value(fields.get(key))
+        value = fields.get(key)
         if isinstance(value, list) and all(isinstance(item, str) for item in value):
             ordered_fields[key] = _format_yaml_list(value)
         else:

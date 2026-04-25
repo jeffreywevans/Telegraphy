@@ -149,3 +149,15 @@ def test_to_markdown_calls_get_data_once(monkeypatch) -> None:
 
     story_cli.to_markdown(fields)
     assert calls == 1
+
+
+def test_to_markdown_handles_missing_ordered_keys_and_body_fields() -> None:
+    text = to_markdown(
+        {"protagonist": "A"},
+        ordered_keys=["protagonist", "missing_key"],
+        writing_preamble="Preamble",
+    )
+
+    assert "missing_key: null" in text
+    assert "# Untitled Story Brief" in text
+    assert "approximately N/A words" in text

@@ -45,7 +45,7 @@ def to_markdown(
     """Render selected story fields as Markdown with YAML front matter."""
     ordered_fields: dict[str, Any] = {}
     for key in ordered_keys:
-        value = _format_yaml_value(fields[key])
+        value = _format_yaml_value(fields.get(key))
         if isinstance(value, list) and all(isinstance(item, str) for item in value):
             ordered_fields[key] = _format_yaml_list(value)
         else:
@@ -65,12 +65,12 @@ def to_markdown(
         "",
         writing_preamble,
         "",
-        f"# {escape_markdown_heading(str(fields['title']))}",
+        f"# {escape_markdown_heading(str(fields.get('title', 'Untitled Story Brief')))}",
         "",
         "## Story Draft",
         "",
         (
-            f"*Write a story of approximately {fields['word_count_target']} words "
+            f"*Write a story of approximately {fields.get('word_count_target', 'N/A')} words "
             "using the YAML brief above.*"
         ),
         "",

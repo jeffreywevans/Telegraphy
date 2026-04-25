@@ -18,6 +18,14 @@ WINDOWS_RESERVED_NAMES = {
 }
 
 
+class OutputPathError(ValueError):
+    """Raised when output path resolution or validation fails."""
+
+
+class OutputWriteError(RuntimeError):
+    """Raised when safe output file creation/writing fails."""
+
+
 def _validate_user_filename_input(filename: str) -> None:
     """Validate raw user-provided filename before sanitization."""
     if not filename or filename.strip() != filename:
@@ -133,35 +141,42 @@ def resolve_output_path(
 ) -> Path:
     """Resolve output path and ensure it remains inside the trusted cwd."""
     trusted_base_dir = Path.cwd().resolve(strict=True)
-    requested_output_dir = _build_safe_relative_path(
-        str(output_dir),
-        trusted_base_dir=trusted_base_dir,
-    )
+    try:
+        requested_output_dir = _build_safe_relative_path(
+            str(output_dir),
+            trusted_base_dir=trusted_base_dir,
+        )
+    except ValueError as exc:
+        raise OutputPathError(f"Invalid --output-dir: {exc}") from exc
     resolved_output_dir = (trusted_base_dir / requested_output_dir).resolve(strict=False)
     if not resolved_output_dir.is_relative_to(trusted_base_dir):
-        raise SystemExit(
+        raise OutputPathError(
             f"--output-dir must be within {trusted_base_dir}: {resolved_output_dir}"
         )
-    resolved_output_dir.mkdir(parents=True, exist_ok=True)
 
     if filename:
         try:
             _validate_user_filename_input(filename)
         except ValueError as exc:
-            raise SystemExit(f"Invalid --filename: {exc}") from exc
+            raise OutputPathError(f"Invalid --filename: {exc}") from exc
         output_name = sanitize_filename(filename)
     else:
         output_name = generated_filename
 
-    safe_relative_output = _build_safe_relative_path(
-        str(requested_output_dir / output_name),
-        trusted_base_dir=trusted_base_dir,
-    )
+    try:
+        safe_relative_output = _build_safe_relative_path(
+            str(requested_output_dir / output_name),
+            trusted_base_dir=trusted_base_dir,
+        )
+    except ValueError as exc:
+        raise OutputPathError(f"Invalid output filename/path combination: {exc}") from exc
     output_path = trusted_base_dir / safe_relative_output
     resolved_output_parent = output_path.parent.resolve(strict=False)
     candidate_output_path = resolved_output_parent / output_path.name
     if not candidate_output_path.is_relative_to(trusted_base_dir):
-        raise SystemExit("Resolved output path must be within the trusted base directory.")
+        raise OutputPathError(
+            "Resolved output path must be within the trusted base directory."
+        )
     return candidate_output_path
 
 
@@ -178,7 +193,7 @@ def write_output_markdown(
     resolved_parent = raw_output_path.parent.resolve(strict=False)
     candidate_output_path = resolved_parent / raw_output_path.name
     if not resolved_parent.is_relative_to(trusted_base_dir):
-        raise SystemExit("Resolved output path must be within the trusted base directory.")
+        raise OutputPathError("Resolved output path must be within the trusted base directory.")
 
     flags = os.O_WRONLY | os.O_CREAT
     flags |= os.O_TRUNC if force else os.O_EXCL
@@ -190,6 +205,6 @@ def write_output_markdown(
         with os.fdopen(fd, "w", encoding="utf-8") as handle:
             handle.write(content)
     except FileExistsError:
-        raise SystemExit("Refusing to overwrite existing file. Use --force to overwrite.") from None
-    except OSError:
-        raise SystemExit("Unable to safely open or write output path") from None
+        raise OutputWriteError("Refusing to overwrite existing file. Use --force to overwrite.") from None
+    except OSError as exc:
+        raise OutputWriteError(f"Unable to safely open or write output path: {exc}") from None

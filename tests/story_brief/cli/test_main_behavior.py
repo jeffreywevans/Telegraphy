@@ -53,7 +53,7 @@ def test_main_lint_dataset_exits_early_without_generating_output(
         return _Report()
 
     monkeypatch.setattr(sys, "argv", ["story-brief", "--lint-dataset"])
-    monkeypatch.setattr(story_cli.story_brief_cli, "_get_data_cached", lambda: {"source": "test"})
+    monkeypatch.setattr(story_cli.story_brief_cli, "get_data", lambda: {"source": "test"})
     monkeypatch.setattr(story_cli, "lint_story_data", fake_lint)
     monkeypatch.setattr(
         story_cli,
@@ -111,7 +111,7 @@ def test_main_lint_dataset_with_errors_exits_one(monkeypatch: pytest.MonkeyPatch
         has_errors = True
 
     monkeypatch.setattr(sys, "argv", ["story-brief", "--lint-dataset"])
-    monkeypatch.setattr(story_cli.story_brief_cli, "_get_data_cached", lambda: {})
+    monkeypatch.setattr(story_cli.story_brief_cli, "get_data", lambda: {})
     monkeypatch.setattr(story_cli, "lint_story_data", lambda _data: _Report())
     monkeypatch.setattr(story_cli, "emit_lint_report", lambda _report: None)
 
@@ -125,7 +125,7 @@ def test_main_validate_strict_failure_exits_without_traceback(
         raise ValueError("Strict validation failed: boom")
 
     monkeypatch.setattr(sys, "argv", ["story-brief", "--validate-strict", "--print-only"])
-    monkeypatch.setattr(story_cli.story_brief_cli, "_get_data_cached", lambda: {})
+    monkeypatch.setattr(story_cli.story_brief_cli, "get_data", lambda: {})
     monkeypatch.setattr(story_cli, "validate_story_data_strict", mock_fail)
 
     assert story_cli.main() == 1

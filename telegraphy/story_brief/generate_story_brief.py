@@ -171,7 +171,7 @@ def _clear_get_data_cache() -> None:
     try:
         _data_io_module.clear_data_cache()
     finally:
-        _get_data_cached.cache_clear()
+        _load_story_data_cached.cache_clear()
 
 
 def clear_get_data_cache() -> None:

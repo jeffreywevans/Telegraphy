@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import re
+from datetime import date, datetime
 from pathlib import Path, PurePath
 
 DEFAULT_OUTPUT_DIR = Path("output") / "story-seeds"
@@ -24,6 +25,21 @@ class OutputPathError(ValueError):
 
 class OutputWriteError(RuntimeError):
     """Raised when safe output file creation/writing fails."""
+
+
+def slugify(value: str) -> str:
+    """Return an ASCII lowercase slug by collapsing non-alphanumerics to hyphens."""
+    return re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
+
+
+def build_auto_filename(title: str, today: date | datetime | str | None = None) -> str:
+    """Build a sanitized default filename with a non-empty slug fallback."""
+    slug = slugify(title) or "story-brief"
+    if isinstance(today, str):
+        date_prefix = today
+    else:
+        date_prefix = (today or datetime.now()).strftime("%Y-%m-%d")
+    return sanitize_filename(f"{date_prefix} {slug}.md")
 
 
 def _validate_user_filename_input(filename: str) -> None:

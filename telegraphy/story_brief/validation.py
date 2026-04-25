@@ -14,7 +14,6 @@ from ._constants import (
 )
 from ._range_utils import add_clipped_range_checkpoints
 from .partner_models import (
-    LegacyPartnerEra,
     LegacyPartnerIndex,
     parse_partner_distribution_payload,
     require_keys,
@@ -52,7 +51,7 @@ class ValidatedStoryData(NamedTuple):
     setting_availability: list[tuple[str, date, date]]
     date_start: date
     date_end: date
-    partner_distributions: dict[str, list[LegacyPartnerEra]]
+    partner_distributions: LegacyPartnerIndex
 
 
 def _validate_string_list(section_name: str, key: str, values: Any) -> None:

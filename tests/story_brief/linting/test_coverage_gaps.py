@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date
+from io import StringIO
 from pathlib import Path
 from typing import Callable
 
@@ -31,6 +32,20 @@ def test_emit_lint_report_prints_clean_state(capsys: pytest.CaptureFixture[str])
     output = capsys.readouterr().out
     assert "Dataset lint: no blocking coverage gaps found." in output
     assert "Dataset lint: no warnings." in output
+
+
+def test_emit_lint_report_accepts_explicit_file_stream() -> None:
+    out = StringIO()
+
+    story_brief._emit_lint_report(
+        DatasetLintReport(errors=["error one"], warnings=["warn one"]), file=out
+    )
+
+    output = out.getvalue()
+    assert "Dataset lint: errors" in output
+    assert "- error one" in output
+    assert "Dataset lint: warnings" in output
+    assert "- warn one" in output
 
 
 def test_data_file_uses_env_override_with_expanduser(

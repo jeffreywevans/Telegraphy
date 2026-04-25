@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import sys
 from datetime import date, timedelta
-from typing import Any, Mapping, NamedTuple, Sequence
+from typing import Any, Mapping, NamedTuple, Sequence, TextIO
 
 from ._constants import (
     CHARACTER_AVAILABILITY_KEY,
@@ -288,17 +289,19 @@ def lint_story_data(data: Mapping[str, Any]) -> DatasetLintReport:
     return DatasetLintReport(errors=errors, warnings=warnings)
 
 
-def emit_lint_report(report: DatasetLintReport) -> None:
+def emit_lint_report(report: DatasetLintReport, *, file: TextIO | None = None) -> None:
+    if file is None:
+        file = sys.stdout
     if report.errors:
-        print("Dataset lint: errors")
+        print("Dataset lint: errors", file=file)
         for message in report.errors:
-            print(f"  - {message}")
+            print(f"  - {message}", file=file)
     else:
-        print("Dataset lint: no blocking coverage gaps found.")
+        print("Dataset lint: no blocking coverage gaps found.", file=file)
 
     if report.warnings:
-        print("Dataset lint: warnings")
+        print("Dataset lint: warnings", file=file)
         for message in report.warnings:
-            print(f"  - {message}")
+            print(f"  - {message}", file=file)
     else:
-        print("Dataset lint: no warnings.")
+        print("Dataset lint: no warnings.", file=file)

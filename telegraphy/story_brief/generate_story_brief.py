@@ -119,16 +119,6 @@ class StoryData(TypedDict):
     partner_distributions: dict[str, tuple[dict[str, Any], ...]]
 
 
-def _data_file(filename: str) -> Any:
-    """Compatibility wrapper for data file resolution."""
-    return _data_io_module._data_file(filename)
-
-
-def _load_json(path: Any) -> dict[str, Any]:
-    """Compatibility wrapper for JSON loading."""
-    return _data_io_module._load_json(path)
-
-
 def load_story_data() -> StoryData:
     """Load, validate, and normalize the story dataset used by the generator."""
     dataset_payloads = _data_io_module.get_data()

@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import math
 import re
-from collections.abc import Mapping, Sequence
-from datetime import date, timedelta
+from collections.abc import Mapping
+from datetime import date
 from typing import Any, NamedTuple
 
 if __package__ in (None, ""):
@@ -13,6 +13,7 @@ if __package__ in (None, ""):
         PROMPT_LIST_KEYS,
         SETTING_AVAILABILITY_KEY,
     )
+    from _range_utils import add_clipped_range_checkpoints
     from partner_models import parse_partner_distribution_payload, require_keys
 else:
     from ._constants import (
@@ -21,6 +22,7 @@ else:
         PROMPT_LIST_KEYS,
         SETTING_AVAILABILITY_KEY,
     )
+    from ._range_utils import add_clipped_range_checkpoints
     from .partner_models import parse_partner_distribution_payload, require_keys
 
 ANY_TITLE_TOKEN_PATTERN = re.compile(r"@(?P<key>[A-Za-z_]\w*)\b")
@@ -414,30 +416,13 @@ def validate_story_data(
     )
 
 
-def _add_clipped_range_checkpoints(
-    *,
-    checkpoints: set[date],
-    ranges: Sequence[tuple[date, date]],
-    range_start: date,
-    range_end: date,
-) -> None:
-    one_day = timedelta(days=1)
-    for row_start, row_end in ranges:
-        clipped_start = max(range_start, row_start)
-        clipped_end = min(range_end, row_end)
-        if clipped_start <= clipped_end:
-            checkpoints.add(clipped_start)
-            if clipped_end < range_end:
-                checkpoints.add(clipped_end + one_day)
-
-
 def validate_story_data_strict(data: Mapping[str, Any]) -> None:
     """Validate per-date generation preconditions across the configured date range."""
     range_start = data["date_start"]
     range_end = data["date_end"]
     checkpoints: set[date] = {range_start, range_end}
     for source in (data[CHARACTER_AVAILABILITY_KEY], data[SETTING_AVAILABILITY_KEY]):
-        _add_clipped_range_checkpoints(
+        add_clipped_range_checkpoints(
             checkpoints=checkpoints,
             ranges=[(row_start, row_end) for _, row_start, row_end in source],
             range_start=range_start,

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import date, timedelta
-from typing import Any, Iterable, NamedTuple, Sequence
+from typing import Any, NamedTuple, Sequence
 
 if __package__ in (None, ""):
     from _constants import (
@@ -11,6 +11,7 @@ if __package__ in (None, ""):
         SETTING_AVAILABILITY_KEY,
         TITLE_TOKEN_PATTERN,
     )
+    from _range_utils import add_clipped_range_checkpoints
 else:
     from ._constants import (
         CHARACTER_AVAILABILITY_KEY,
@@ -19,6 +20,7 @@ else:
         SETTING_AVAILABILITY_KEY,
         TITLE_TOKEN_PATTERN,
     )
+    from ._range_utils import add_clipped_range_checkpoints
 
 
 class DatasetLintReport(NamedTuple):
@@ -36,23 +38,6 @@ class _IntervalLintResults(NamedTuple):
     missing_setting_ranges: list[tuple[date, date]]
     thin_setting_ranges: list[tuple[date, date]]
     partner_data_gap_ranges_by_protagonist: dict[str, list[tuple[date, date]]]
-
-
-def _add_clipped_range_checkpoints(
-    *,
-    checkpoints: set[date],
-    ranges: Iterable[tuple[date, date]],
-    range_start: date,
-    range_end: date,
-) -> None:
-    one_day = timedelta(days=1)
-    for row_start, row_end in ranges:
-        clipped_start = max(range_start, row_start)
-        clipped_end = min(range_end, row_end)
-        if clipped_start <= clipped_end:
-            checkpoints.add(clipped_start)
-            if clipped_end < range_end:
-                checkpoints.add(clipped_end + one_day)
 
 
 def _format_date_ranges(ranges: list[tuple[date, date]]) -> str:
@@ -90,14 +75,14 @@ def build_coverage_checkpoints(
     checkpoints.add(range_end + one_day if range_end < date.max else range_end)
 
     for source in (data[CHARACTER_AVAILABILITY_KEY], data[SETTING_AVAILABILITY_KEY]):
-        _add_clipped_range_checkpoints(
+        add_clipped_range_checkpoints(
             checkpoints=checkpoints,
             ranges=((row_start, row_end) for _, row_start, row_end in source),
             range_start=range_start,
             range_end=range_end,
         )
     for eras in data[PARTNER_DISTRIBUTIONS_KEY].values():
-        _add_clipped_range_checkpoints(
+        add_clipped_range_checkpoints(
             checkpoints=checkpoints,
             ranges=((era["date_start"], era["date_end"]) for era in eras),
             range_start=range_start,

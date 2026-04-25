@@ -68,7 +68,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             return code
         if code is None:
             return 0
-        print(code)
+        print(code, file=sys.stderr)
         return 1
     finally:
         sys.argv = original_argv

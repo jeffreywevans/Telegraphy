@@ -55,6 +55,8 @@ EXPECTED_GENERATED_FIELD_KEYS = frozenset(_EXPECTED_GENERATED_FIELD_KEYS)
 build_auto_filename = _filenames.build_auto_filename
 
 
+# Keep this underscored export for backward compatibility with callers that
+# historically imported `_emit_lint_report` from this facade module.
 __all__ = ["_emit_lint_report"]
 
 # Canonical dataset file mapping lives in telegraphy.story_brief.data_io.

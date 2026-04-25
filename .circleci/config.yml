@@ -12,9 +12,8 @@ jobs:
       - checkout
       - python/install-packages:
           pkg-manager: pip
-      - run:
-          name: Install tox
-          command: pip install tox
+          pip-dependency-file: ""
+          args: tox
       - run:
           name: Run tests
           command: tox

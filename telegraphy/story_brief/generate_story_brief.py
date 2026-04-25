@@ -14,15 +14,35 @@ from copy import deepcopy
 from datetime import date, datetime, timedelta
 from functools import lru_cache
 from importlib.resources import files
-from pathlib import Path, PurePath
+from pathlib import Path
 from typing import Any, Iterable, NamedTuple, Sequence, TypedDict, TypeVar
 
-import yaml
-
 if __package__ in (None, ""):
+    from filenames import (
+        DEFAULT_OUTPUT_DIR,
+        resolve_output_path,
+        sanitize_filename,
+        write_output_markdown as _write_output_markdown,
+    )
     from partner_models import parse_partner_distribution_payload, require_keys
+    from rendering import (
+        escape_markdown_heading as escape_markdown_heading_text,
+        render_title,
+        to_markdown as _to_markdown,
+    )
 else:
+    from .filenames import (
+        DEFAULT_OUTPUT_DIR,
+        resolve_output_path,
+        sanitize_filename,
+        write_output_markdown as _write_output_markdown,
+    )
     from .partner_models import parse_partner_distribution_payload, require_keys
+    from .rendering import (
+        escape_markdown_heading as escape_markdown_heading_text,
+        render_title,
+        to_markdown as _to_markdown,
+    )
 
 PoolValue = TypeVar("PoolValue", str, int)
 
@@ -80,14 +100,6 @@ ENTITY_AVAILABILITY_KEYS = frozenset(
         SETTING_AVAILABILITY_KEY,
     }
 )
-WINDOWS_RESERVED_BASENAMES = {
-    "con",
-    "prn",
-    "aux",
-    "nul",
-    *(f"com{i}" for i in range(1, 10)),
-    *(f"lpt{i}" for i in range(1, 10)),
-}
 
 
 class ValidatedStoryData(NamedTuple):
@@ -203,75 +215,6 @@ def _resolve_data_dir_override(path_raw: str) -> Path:
         )
 
     return candidate
-
-
-def _write_output_markdown(output_path: Path, markdown: str, *, force: bool) -> None:
-    """
-    Write markdown to output_path while guarding against symlink redirection.
-
-    Uses low-level os.open flags so writes fail closed for symlink targets and
-    so non-force writes are performed with O_EXCL.
-    """
-    trusted_base_dir = Path.cwd().resolve(strict=True)
-    raw_output_path = trusted_base_dir / output_path
-    resolved_parent = raw_output_path.parent.resolve(strict=False)
-    candidate_output_path = resolved_parent / raw_output_path.name
-    if not resolved_parent.is_relative_to(trusted_base_dir):
-        raise SystemExit("Resolved output path must be within the trusted base directory.")
-
-    flags = os.O_WRONLY | os.O_CREAT
-    flags |= os.O_TRUNC if force else os.O_EXCL
-    if hasattr(os, "O_NOFOLLOW"):
-        flags |= os.O_NOFOLLOW
-    mode = 0o600
-
-    try:
-        fd = os.open(candidate_output_path, flags, mode)
-        with os.fdopen(fd, "w", encoding="utf-8") as handle:
-            handle.write(markdown)
-    except FileExistsError:
-        raise SystemExit(
-            "Refusing to overwrite existing file. Use --force to overwrite."
-        ) from None
-    except OSError as exc:
-        raise SystemExit(
-            f"Unable to safely open or write output path ({exc.strerror})"
-        ) from None
-
-
-def _build_safe_relative_path(path_raw: str, *, trusted_base_dir: Path) -> Path:
-    """
-    Build a relative path from untrusted text by rejecting traversal segments.
-
-    This intentionally allows nested directories but blocks absolute paths, home
-    shortcuts, and parent-directory traversal.
-    """
-    trimmed = path_raw.strip()
-    if not trimmed:
-        return Path(".")
-    if trimmed.startswith("~"):
-        raise ValueError("path must not begin with '~'")
-
-    candidate = trimmed
-    if os.path.isabs(trimmed):
-        normalized_base = os.path.normcase(os.path.realpath(str(trusted_base_dir)))
-        normalized_candidate = os.path.normcase(os.path.realpath(trimmed))
-        try:
-            common_root = os.path.commonpath([normalized_base, normalized_candidate])
-        except ValueError as exc:
-            raise ValueError(
-                f"absolute paths must remain inside the base directory: {normalized_base!r}"
-            ) from exc
-        if common_root != normalized_base:
-            raise ValueError(
-                f"absolute paths must remain inside the base directory: {normalized_base!r}"
-            )
-        candidate = os.path.relpath(normalized_candidate, normalized_base)
-
-    raw_parts = [part for part in re.split(r"[\\/]+", candidate) if part and part != "."]
-    if any(part == ".." for part in raw_parts):
-        raise ValueError("path must not include parent-directory traversal ('..')")
-    return Path(*raw_parts) if raw_parts else Path(".")
 
 
 def _validate_string_list(section_name: str, key: str, values: Any) -> None:
@@ -766,81 +709,6 @@ def slugify(value: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
 
 
-MAX_FILENAME_STEM_LENGTH = 120
-MAX_FILENAME_TOTAL_BYTES = 255
-SAFE_FILENAME_INPUT_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 ._-]{0,254}$")
-
-
-def _validate_user_filename_input(filename: str) -> None:
-    """
-    Validate raw user-provided filename before sanitization.
-
-    Allows a conservative character set and rejects path semantics.
-    """
-    if not filename or filename.strip() != filename:
-        raise ValueError("filename must be non-empty and must not have leading/trailing spaces")
-    if "/" in filename or "\\" in filename:
-        raise ValueError("filename must not contain path separators")
-    if filename in {".", ".."} or ".." in filename:
-        raise ValueError("filename must not contain dot-segments")
-    if not SAFE_FILENAME_INPUT_PATTERN.fullmatch(filename):
-        raise ValueError(
-            "filename must be 1-255 characters, start with a letter or number, "
-            "and contain only letters, numbers, space, dot, underscore, or hyphen"
-        )
-
-
-def _truncate_utf8(value: str, max_bytes: int) -> str:
-    """Return value truncated to max_bytes when UTF-8 encoded."""
-    if max_bytes <= 0:
-        return ""
-    encoded = value.encode("utf-8")
-    if len(encoded) <= max_bytes:
-        return value
-    return encoded[:max_bytes].decode("utf-8", "ignore")
-
-
-def sanitize_filename(filename: str) -> str:
-    """
-    Sanitize filename for cross-platform safety while preserving extension.
-
-    Removes control chars and characters invalid on Windows/macOS/Linux,
-    strips trailing dots/spaces, and avoids reserved Windows base names.
-    """
-    name = PurePath(filename).name
-    stem, suffix = os.path.splitext(name)
-
-    # Remove control chars and characters invalid on common filesystems.
-    safe_stem = re.sub(r'[\x00-\x1f<>:"/\\|?*]+', "-", stem).rstrip(" .-")
-    safe_stem = safe_stem[:MAX_FILENAME_STEM_LENGTH].rstrip(" .-")
-    safe_suffix = re.sub(r'[\x00-\x1f<>:"/\\|?*]+', "", suffix).rstrip(" .")
-
-    if not safe_stem:
-        safe_stem = "story-brief"
-
-    if safe_stem.casefold() in WINDOWS_RESERVED_BASENAMES:
-        safe_stem = f"{safe_stem}-file"
-
-    if safe_suffix and not safe_suffix.startswith("."):
-        safe_suffix = f".{safe_suffix}"
-
-    safe_suffix = _truncate_utf8(safe_suffix, MAX_FILENAME_TOTAL_BYTES - 1).rstrip(" .")
-    if safe_suffix == ".":
-        safe_suffix = ""
-
-    max_stem_bytes = MAX_FILENAME_TOTAL_BYTES - len(safe_suffix.encode("utf-8"))
-    safe_stem = _truncate_utf8(safe_stem, max_stem_bytes).rstrip(" .-")
-    if not safe_stem:
-        safe_stem = _truncate_utf8("story-brief", max_stem_bytes).rstrip(" .-") or "s"
-
-    if safe_stem.casefold() in WINDOWS_RESERVED_BASENAMES:
-        safe_stem = _truncate_utf8(f"{safe_stem}-file", max_stem_bytes).rstrip(" .-")
-        if safe_stem.casefold() in WINDOWS_RESERVED_BASENAMES:
-            safe_stem = _truncate_utf8("file", max_stem_bytes) or "f"
-
-    return f"{safe_stem}{safe_suffix}"
-
-
 def build_auto_filename(title: str, today: date | datetime | str | None = None) -> str:
     """Build a sanitized default filename with a non-empty slug fallback."""
     slug = slugify(title) or "story-brief"
@@ -849,11 +717,6 @@ def build_auto_filename(title: str, today: date | datetime | str | None = None) 
     else:
         date_prefix = (today or datetime.now()).strftime("%Y-%m-%d")
     return sanitize_filename(f"{date_prefix} {slug}.md")
-
-
-def escape_markdown_heading_text(value: str) -> str:
-    """Escape Markdown-significant characters for safe heading rendering."""
-    return re.sub(r"([\\`*_{}\[\]()#+\-.!])", r"\\\1", value)
 
 
 def random_date_in_range(
@@ -944,18 +807,6 @@ def symmetric_peak_weights(length: int) -> tuple[float, ...]:
     if length <= 0:
         raise ValueError("length must be greater than zero")
     return tuple(float(min(index, length - 1 - index) + 1) for index in range(length))
-
-
-def render_title(
-    template: str, *, protagonist: str, setting: str, time_period: str
-) -> str:
-    """Render @token placeholders in title templates."""
-    values = {
-        "protagonist": protagonist,
-        "setting": setting,
-        "time_period": time_period,
-    }
-    return TITLE_TOKEN_PATTERN.sub(lambda match: values[match.group("key")], template)
 
 
 def _add_clipped_range_checkpoints(
@@ -1375,32 +1226,11 @@ def to_markdown(
 ) -> str:
     """Render selected story fields as Markdown with YAML front matter."""
     resolved_data = get_data() if data is None else data
-    ordered_fields = {key: fields[key] for key in resolved_data["ordered_keys"]}
-    yaml_text = yaml.safe_dump(
-        ordered_fields,
-        sort_keys=False,
-        allow_unicode=True,
-        default_flow_style=False,
-    ).strip()
-
-    body = [
-        "---",
-        yaml_text,
-        "---",
-        "",
-        resolved_data["writing_preamble"],
-        "",
-        f"# {escape_markdown_heading_text(str(fields['title']))}",
-        "",
-        "## Story Draft",
-        "",
-        (
-            f"*Write a story of approximately {fields['word_count_target']} words "
-            "using the YAML brief above.*"
-        ),
-        "",
-    ]
-    return "\n".join(body)
+    return _to_markdown(
+        fields,
+        ordered_keys=resolved_data["ordered_keys"],
+        writing_preamble=resolved_data["writing_preamble"],
+    )
 
 
 def main() -> None:
@@ -1412,7 +1242,7 @@ def main() -> None:
     parser.add_argument(
         "-o",
         "--output-dir",
-        default="output/story-seeds",
+        default=str(DEFAULT_OUTPUT_DIR),
         help="Directory where the markdown file will be written.",
     )
     parser.add_argument(
@@ -1492,42 +1322,18 @@ def main() -> None:
         print(markdown)
         return
 
-    trusted_base_dir = Path.cwd().resolve(strict=True)
+    generated_filename = build_auto_filename(
+        str(fields["title"]),
+        today=str(fields.get("time_period", date.today().isoformat())),
+    )
     try:
-        requested_output_dir = _build_safe_relative_path(
-            args.output_dir,
-            trusted_base_dir=trusted_base_dir,
+        candidate_output_path = resolve_output_path(
+            Path(args.output_dir),
+            args.filename,
+            generated_filename,
         )
     except ValueError as exc:
         raise SystemExit(f"Invalid --output-dir: {exc}") from exc
-    output_dir = (trusted_base_dir / requested_output_dir).resolve(strict=False)
-    if not output_dir.is_relative_to(trusted_base_dir):
-        raise SystemExit(
-            f"--output-dir must be within {trusted_base_dir}: {output_dir}"
-        )
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    if args.filename:
-        try:
-            _validate_user_filename_input(args.filename)
-        except ValueError as exc:
-            raise SystemExit(f"Invalid --filename: {exc}") from exc
-        filename = sanitize_filename(args.filename)
-    else:
-        filename = build_auto_filename(
-            str(fields["title"]),
-            today=str(fields["time_period"]),
-        )
-
-    safe_relative_output = _build_safe_relative_path(
-        str(requested_output_dir / filename),
-        trusted_base_dir=trusted_base_dir,
-    )
-    output_path = trusted_base_dir / safe_relative_output
-    resolved_output_parent = output_path.parent.resolve(strict=False)
-    candidate_output_path = resolved_output_parent / output_path.name
-    if not candidate_output_path.is_relative_to(trusted_base_dir):
-        raise SystemExit("Resolved output path must be within the trusted base directory.")
     _write_output_markdown(candidate_output_path, markdown, force=args.force)
     print("Generated story brief.")
 

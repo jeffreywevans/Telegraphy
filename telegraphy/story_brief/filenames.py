@@ -1,0 +1,195 @@
+from __future__ import annotations
+
+import os
+import re
+from pathlib import Path, PurePath
+
+DEFAULT_OUTPUT_DIR = Path("output") / "story-seeds"
+MAX_FILENAME_STEM_LENGTH = 120
+MAX_FILENAME_BYTES = 255
+SAFE_FILENAME_INPUT_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 ._-]{0,254}$")
+WINDOWS_RESERVED_NAMES = {
+    "con",
+    "prn",
+    "aux",
+    "nul",
+    *(f"com{i}" for i in range(1, 10)),
+    *(f"lpt{i}" for i in range(1, 10)),
+}
+
+
+def _validate_user_filename_input(filename: str) -> None:
+    """Validate raw user-provided filename before sanitization."""
+    if not filename or filename.strip() != filename:
+        raise ValueError("filename must be non-empty and must not have leading/trailing spaces")
+    if "/" in filename or "\\" in filename:
+        raise ValueError("filename must not contain path separators")
+    if filename in {".", ".."} or ".." in filename:
+        raise ValueError("filename must not contain dot-segments")
+    if not SAFE_FILENAME_INPUT_PATTERN.fullmatch(filename):
+        raise ValueError(
+            "filename must be 1-255 characters, start with a letter or number, "
+            "and contain only letters, numbers, space, dot, underscore, or hyphen"
+        )
+
+
+def _truncate_utf8_filename(stem: str, suffix: str, max_bytes: int = MAX_FILENAME_BYTES) -> str:
+    """Return a stem+suffix pair truncated to max UTF-8 bytes."""
+    if max_bytes <= 0:
+        return ""
+
+    suffix_bytes = suffix.encode("utf-8")
+    max_stem_bytes = max_bytes - len(suffix_bytes)
+    if max_stem_bytes <= 0:
+        return suffix_bytes[:max_bytes].decode("utf-8", "ignore")
+
+    encoded_stem = stem.encode("utf-8")
+    if len(encoded_stem) > max_stem_bytes:
+        stem = encoded_stem[:max_stem_bytes].decode("utf-8", "ignore")
+    return f"{stem}{suffix}"
+
+
+def sanitize_filename(filename: str, *, suffix: str = "") -> str:
+    """Sanitize filename for cross-platform safety while preserving extension."""
+    if suffix:
+        raw_name = f"{filename}{suffix}"
+    else:
+        raw_name = filename
+
+    name = PurePath(raw_name).name
+    stem, ext = os.path.splitext(name)
+
+    safe_stem = re.sub(r'[\x00-\x1f<>:"/\\|?*]+', "-", stem).rstrip(" .-")
+    safe_stem = safe_stem[:MAX_FILENAME_STEM_LENGTH].rstrip(" .-")
+    safe_suffix = re.sub(r'[\x00-\x1f<>:"/\\|?*]+', "", ext).rstrip(" .")
+
+    if not safe_stem:
+        safe_stem = "story-brief"
+
+    if safe_stem.casefold() in WINDOWS_RESERVED_NAMES:
+        safe_stem = f"{safe_stem}-file"
+
+    if safe_suffix and not safe_suffix.startswith("."):
+        safe_suffix = f".{safe_suffix}"
+
+    safe_suffix = _truncate_utf8_filename("", safe_suffix, MAX_FILENAME_BYTES - 1).rstrip(" .")
+    if safe_suffix == ".":
+        safe_suffix = ""
+
+    sanitized = _truncate_utf8_filename(safe_stem, safe_suffix, MAX_FILENAME_BYTES)
+    safe_stem, safe_suffix = os.path.splitext(sanitized)
+    safe_stem = safe_stem.rstrip(" .-")
+    if not safe_stem:
+        fallback = _truncate_utf8_filename("story-brief", safe_suffix, MAX_FILENAME_BYTES)
+        safe_stem, safe_suffix = os.path.splitext(fallback)
+        safe_stem = safe_stem.rstrip(" .-") or "s"
+
+    if safe_stem.casefold() in WINDOWS_RESERVED_NAMES:
+        candidate = _truncate_utf8_filename(f"{safe_stem}-file", safe_suffix, MAX_FILENAME_BYTES)
+        safe_stem, safe_suffix = os.path.splitext(candidate)
+        safe_stem = safe_stem.rstrip(" .-")
+        if safe_stem.casefold() in WINDOWS_RESERVED_NAMES:
+            candidate = _truncate_utf8_filename("file", safe_suffix, MAX_FILENAME_BYTES)
+            safe_stem, safe_suffix = os.path.splitext(candidate)
+            safe_stem = safe_stem or "f"
+
+    return f"{safe_stem}{safe_suffix}"
+
+
+def _build_safe_relative_path(path_raw: str, *, trusted_base_dir: Path) -> Path:
+    """Build a relative path from untrusted text by rejecting traversal segments."""
+    trimmed = path_raw.strip()
+    if not trimmed:
+        return Path(".")
+    if trimmed.startswith("~"):
+        raise ValueError("path must not begin with '~'")
+
+    candidate = trimmed
+    if os.path.isabs(trimmed):
+        normalized_base = os.path.normcase(os.path.realpath(str(trusted_base_dir)))
+        normalized_candidate = os.path.normcase(os.path.realpath(trimmed))
+        try:
+            common_root = os.path.commonpath([normalized_base, normalized_candidate])
+        except ValueError as exc:
+            raise ValueError(
+                f"absolute paths must remain inside the base directory: {normalized_base!r}"
+            ) from exc
+        if common_root != normalized_base:
+            raise ValueError(
+                f"absolute paths must remain inside the base directory: {normalized_base!r}"
+            )
+        candidate = os.path.relpath(normalized_candidate, normalized_base)
+
+    raw_parts = [part for part in re.split(r"[\\/]+", candidate) if part and part != "."]
+    if any(part == ".." for part in raw_parts):
+        raise ValueError("path must not include parent-directory traversal ('..')")
+    return Path(*raw_parts) if raw_parts else Path(".")
+
+
+def resolve_output_path(
+    output_dir: Path,
+    filename: str | None,
+    generated_filename: str,
+) -> Path:
+    """Resolve output path and ensure it remains inside the trusted cwd."""
+    trusted_base_dir = Path.cwd().resolve(strict=True)
+    requested_output_dir = _build_safe_relative_path(
+        str(output_dir),
+        trusted_base_dir=trusted_base_dir,
+    )
+    resolved_output_dir = (trusted_base_dir / requested_output_dir).resolve(strict=False)
+    if not resolved_output_dir.is_relative_to(trusted_base_dir):
+        raise SystemExit(
+            f"--output-dir must be within {trusted_base_dir}: {resolved_output_dir}"
+        )
+    resolved_output_dir.mkdir(parents=True, exist_ok=True)
+
+    if filename:
+        try:
+            _validate_user_filename_input(filename)
+        except ValueError as exc:
+            raise SystemExit(f"Invalid --filename: {exc}") from exc
+        output_name = sanitize_filename(filename)
+    else:
+        output_name = generated_filename
+
+    safe_relative_output = _build_safe_relative_path(
+        str(requested_output_dir / output_name),
+        trusted_base_dir=trusted_base_dir,
+    )
+    output_path = trusted_base_dir / safe_relative_output
+    resolved_output_parent = output_path.parent.resolve(strict=False)
+    candidate_output_path = resolved_output_parent / output_path.name
+    if not candidate_output_path.is_relative_to(trusted_base_dir):
+        raise SystemExit("Resolved output path must be within the trusted base directory.")
+    return candidate_output_path
+
+
+def write_output_markdown(
+    output_path: Path,
+    content: str,
+    *,
+    force: bool = False,
+    trusted_base_dir: Path | None = None,
+) -> None:
+    """Write markdown to output_path while guarding against symlink redirection."""
+    trusted_base_dir = (trusted_base_dir or Path.cwd()).resolve(strict=True)
+    raw_output_path = trusted_base_dir / output_path
+    resolved_parent = raw_output_path.parent.resolve(strict=False)
+    candidate_output_path = resolved_parent / raw_output_path.name
+    if not resolved_parent.is_relative_to(trusted_base_dir):
+        raise SystemExit("Resolved output path must be within the trusted base directory.")
+
+    flags = os.O_WRONLY | os.O_CREAT
+    flags |= os.O_TRUNC if force else os.O_EXCL
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+
+    try:
+        fd = os.open(candidate_output_path, flags, 0o600)
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            handle.write(content)
+    except FileExistsError:
+        raise SystemExit("Refusing to overwrite existing file. Use --force to overwrite.") from None
+    except OSError:
+        raise SystemExit("Unable to safely open or write output path") from None

@@ -61,18 +61,7 @@ def resolve_data_dir() -> Path | Traversable:
 
 
 def _data_file(filename: str) -> Path | Traversable:
-    override_raw = os.environ.get(DATA_DIR_ENV_VAR) or os.environ.get(
-        LEGACY_DATA_DIR_ENV_VAR
-    )
-    if override_raw:
-        return _resolve_override_data_dir(override_raw) / filename
-
-    repo_relative = Path(__file__).resolve().parent / "data" / filename
-
-    try:
-        return files("telegraphy.story_brief.data").joinpath(filename)
-    except (ModuleNotFoundError, FileNotFoundError):
-        return repo_relative
+    return resolve_data_dir().joinpath(filename)
 
 
 def _load_json(path: Any) -> Any:

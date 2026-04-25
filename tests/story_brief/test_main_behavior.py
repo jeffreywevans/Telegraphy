@@ -232,3 +232,11 @@ def test_main_write_failure_exits_cleanly(
     monkeypatch.setattr(filename_utils.os, "fdopen", fake_fdopen)
 
     assert story_cli.main() == 1
+
+
+def test_main_returns_zero_for_help_flag_without_raising() -> None:
+    assert story_cli.main(["--help"]) == 0
+
+
+def test_main_returns_two_for_unknown_flag_without_raising() -> None:
+    assert story_cli.main(["--unknown"]) == 2

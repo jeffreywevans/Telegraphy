@@ -102,40 +102,58 @@ def _collect_interval_lint_ranges(
     thin_setting_ranges: list[tuple[date, date]] = []
     partner_data_gap_ranges_by_protagonist: dict[str, list[tuple[date, date]]] = {}
 
-    for index, current_start in enumerate(sorted_checkpoints):
-        next_start = (
-            sorted_checkpoints[index + 1]
-            if index + 1 < len(sorted_checkpoints)
-            else (range_end + one_day if range_end < date.max else None)
-        )
+    def _resolve_interval_end(index: int, current_start: date) -> date | None:
+        if index + 1 < len(sorted_checkpoints):
+            next_start = sorted_checkpoints[index + 1]
+        elif range_end < date.max:
+            next_start = range_end + one_day
+        else:
+            next_start = None
         interval_end = range_end if next_start is None else min(range_end, next_start - one_day)
-        if interval_end < current_start:
-            continue
+        return None if interval_end < current_start else interval_end
 
+    def _record_availability_gaps(
+        *,
+        interval: tuple[date, date],
+        characters: Sequence[str],
+        settings: Sequence[str],
+    ) -> None:
+        if len(characters) < 2:
+            missing_character_ranges.append(interval)
+        elif len(characters) == 2:
+            thin_character_ranges.append(interval)
+
+        if not settings:
+            missing_setting_ranges.append(interval)
+        elif len(settings) == 1:
+            thin_setting_ranges.append(interval)
+
+    def _record_partner_gaps(
+        *, interval: tuple[date, date], current_start: date, protagonists: Sequence[str]
+    ) -> None:
+        for protagonist in protagonists:
+            eras = data[PARTNER_DISTRIBUTIONS_KEY].get(protagonist, [])
+            has_partner_data = any(
+                era["date_start"] <= current_start <= era["date_end"] for era in eras
+            )
+            if not has_partner_data:
+                partner_data_gap_ranges_by_protagonist.setdefault(protagonist, []).append(interval)
+
+    for index, current_start in enumerate(sorted_checkpoints):
+        interval_end = _resolve_interval_end(index, current_start)
+        if interval_end is None:
+            continue
+        interval = (current_start, interval_end)
         characters = _available_entities(
             data[CHARACTER_AVAILABILITY_KEY], selected_date=current_start
         )
         settings = _available_entities(
             data[SETTING_AVAILABILITY_KEY], selected_date=current_start
         )
-
-        if len(characters) < 2:
-            missing_character_ranges.append((current_start, interval_end))
-        elif len(characters) == 2:
-            thin_character_ranges.append((current_start, interval_end))
-
-        if not settings:
-            missing_setting_ranges.append((current_start, interval_end))
-        elif len(settings) == 1:
-            thin_setting_ranges.append((current_start, interval_end))
-
-        for protagonist in characters:
-            eras = data[PARTNER_DISTRIBUTIONS_KEY].get(protagonist, [])
-            if any(era["date_start"] <= current_start <= era["date_end"] for era in eras):
-                continue
-            partner_data_gap_ranges_by_protagonist.setdefault(protagonist, []).append(
-                (current_start, interval_end)
-            )
+        _record_availability_gaps(interval=interval, characters=characters, settings=settings)
+        _record_partner_gaps(
+            interval=interval, current_start=current_start, protagonists=characters
+        )
 
     return _IntervalLintResults(
         missing_character_ranges=missing_character_ranges,

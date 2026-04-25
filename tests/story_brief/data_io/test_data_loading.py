@@ -5,9 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from telegraphy.story_brief import data_io
+from telegraphy.story_brief import data_io, validation
 from telegraphy.story_brief import generate_story_brief as story_brief
-from telegraphy.story_brief import validation
 
 
 def _write_payload(path: Path, payload: object) -> None:

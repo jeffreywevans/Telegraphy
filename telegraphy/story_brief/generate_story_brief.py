@@ -16,7 +16,7 @@ from ._constants import (
     PROMPT_LIST_KEYS,
     SETTING_AVAILABILITY_KEY,
 )
-from .filenames import build_auto_filename as _build_auto_filename
+from .filenames import build_auto_filename
 from .generation import (
     available_characters as _available_characters,
 )
@@ -249,23 +249,6 @@ def to_markdown(
     )
 
 
-def build_auto_filename(title: str, *, today: str | None = None) -> str:
-    """Compatibility wrapper for filename generation helper."""
-    return _build_auto_filename(title, today=today)
-
-
 def _emit_lint_report(report: Any) -> None:
     """Compatibility wrapper for legacy lint-report emission helper."""
     _emit_lint_report_impl(report)
-
-
-def main() -> None:
-    """Compatibility wrapper that delegates CLI orchestration to ``cli.py``."""
-    from .cli import main as _cli_main
-    exit_code = _cli_main()
-    if exit_code:
-        raise SystemExit(exit_code)
-
-
-if __name__ == "__main__":
-    main()

@@ -106,7 +106,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(list(argv) if argv is not None else None)
 
-    data = story_brief_cli.get_data()
+    try:
+        data = story_brief_cli.get_data()
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
 
     rng = _build_rng(args.seed)
 

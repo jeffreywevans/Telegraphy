@@ -7,6 +7,7 @@ import random
 import secrets
 from copy import deepcopy
 from datetime import date
+from functools import lru_cache
 from typing import Any, TypedDict
 
 from . import data_io as _data_io_module
@@ -88,6 +89,7 @@ class StoryData(TypedDict):
     partner_distributions: dict[str, tuple[dict[str, Any], ...]]
 
 
+@lru_cache(maxsize=1)
 def load_story_data() -> StoryData:
     """Load, validate, and normalize the story dataset used by the generator."""
     dataset_payloads = _data_io_module.get_data()
@@ -156,6 +158,7 @@ def _get_data_cached() -> StoryData:
 
 
 def _clear_get_data_cache() -> None:
+    load_story_data.cache_clear()
     _data_io_module.clear_data_cache()
 
 

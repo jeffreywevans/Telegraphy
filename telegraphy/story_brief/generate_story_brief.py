@@ -43,18 +43,15 @@ from .validation import validate_story_data
 EXPECTED_GENERATED_FIELD_KEYS = frozenset(_EXPECTED_GENERATED_FIELD_KEYS)
 build_auto_filename = _filenames.build_auto_filename
 
-TITLES_FILENAME = "titles.json"
-ENTITIES_FILENAME = "entities.json"
-PROMPTS_FILENAME = "prompts.json"
-CONFIG_FILENAME = "config.json"
-PARTNER_DISTRIBUTIONS_FILENAME = "partner_distributions.json"
-STORY_DATASET_FILES = {
-    "titles": TITLES_FILENAME,
-    "entities": ENTITIES_FILENAME,
-    "prompts": PROMPTS_FILENAME,
-    "config": CONFIG_FILENAME,
-    "partner_distributions": PARTNER_DISTRIBUTIONS_FILENAME,
-}
+# Canonical dataset file mapping lives in telegraphy.story_brief.data_io.
+STORY_DATASET_FILES = _data_io_module.DATA_FILENAMES
+
+# Backward-compatible aliases re-exported from the canonical mapping.
+TITLES_FILENAME = STORY_DATASET_FILES["titles"]
+ENTITIES_FILENAME = STORY_DATASET_FILES["entities"]
+PROMPTS_FILENAME = STORY_DATASET_FILES["prompts"]
+CONFIG_FILENAME = STORY_DATASET_FILES["config"]
+PARTNER_DISTRIBUTIONS_FILENAME = STORY_DATASET_FILES["partner_distributions"]
 
 
 class StoryData(TypedDict):

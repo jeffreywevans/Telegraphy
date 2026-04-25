@@ -90,7 +90,7 @@ def weighted_choice(
     threshold = rng.random() * total
     cumulative = 0.0
 
-    for option, weight in zip(options, weights):
+    for option, weight in zip(options, weights, strict=True):
         cumulative += weight
         if threshold < cumulative:
             return option
@@ -256,6 +256,7 @@ def build_sexual_scene_tag_count_distribution(
             "sexual_scene_tag_count_weights",
             tuple(DEFAULT_SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION.values()),
         ),
+        strict=False,
     )
     tag_count_options: list[int] = []
     tag_count_weights: list[float] = []

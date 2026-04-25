@@ -133,7 +133,7 @@ def _validate_availability_name_windows(
 
     for name_windows in windows_by_name.values():
         name_windows.sort(key=lambda item: item[0])
-        for prev, curr in zip(name_windows, name_windows[1:]):
+        for prev, curr in zip(name_windows, name_windows[1:], strict=False):
             _, prev_end, prev_idx = prev
             curr_start, _, curr_idx = curr
             if curr_start <= prev_end:

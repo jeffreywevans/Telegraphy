@@ -11,8 +11,8 @@ import pytest
 
 pytestmark = pytest.mark.integration
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
-SCRIPT = REPO_ROOT / "telegraphy" / "story_brief" / "generate_story_brief.py"
+REPO_ROOT = Path(__file__).resolve().parents[3]
+ENTRYPOINT = "telegraphy.story_brief"
 CLI_TIMEOUT_SECONDS = 20
 
 
@@ -90,10 +90,13 @@ def run_cli(
     env.pop("COMMUTED_STORY_BRIEF_DATA_DIR", None)
     if data_dir is not None:
         env["TELEGRAPHY_DATA_DIR"] = str(data_dir)
+    env["PYTHONPATH"] = os.pathsep.join(
+        [str(REPO_ROOT), env.get("PYTHONPATH", "")]
+    ).rstrip(os.pathsep)
     if env_overrides:
         env.update(env_overrides)
     return subprocess.run(
-        [sys.executable, str(SCRIPT), *args],
+        [sys.executable, "-m", ENTRYPOINT, *args],
         cwd=cwd,
         env=env,
         capture_output=True,

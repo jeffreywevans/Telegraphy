@@ -117,41 +117,21 @@ def pick_story_fields(
 
     selected_date = resolve_selected_date(rng, selected_date, data)
     time_period = selected_date.isoformat()
+    protagonist, secondary_character = pick_story_characters(rng, selected_date, data)
+    setting = pick_story_setting(rng, selected_date, data)
 
-    characters_for_date = stable_sorted_pool(available_characters(selected_date, data))
-    if len(characters_for_date) < 2:
-        raise ValueError(
-            "Need at least two distinct available characters for year "
-            f"{selected_date.year}."
-        )
-
-    settings_for_date = stable_sorted_pool(available_settings(selected_date, data))
-    if not settings_for_date:
-        raise ValueError(
-            f"No settings are available for year {selected_date.year}. "
-            "Check setting availability data."
-        )
-
-    protagonist = rng.choice(characters_for_date)
-    eligible_secondary = [name for name in characters_for_date if name != protagonist]
-    if not eligible_secondary:
-        raise ValueError(
-            "Need at least two distinct available characters for year "
-            f"{selected_date.year}."
-        )
-    secondary_character = rng.choice(eligible_secondary)
-    setting = rng.choice(settings_for_date)
-    title_template: str = rng.choice(cast(Sequence[str], sorted_pool_from_data(data, "titles")))
+    title_template: str = rng.choice(
+        cast(Sequence[str], sorted_pool_from_data(data, "titles"))
+    )
     sexual_content_level = weighted_choice(
         rng, data["sexual_content_options"], data["sexual_content_weights"]
     )
     sexual_scene_tags = pick_sexual_scene_tags(rng, sexual_content_level, data)
-
     sexual_partner = pick_sexual_partner(
         rng, sexual_content_level, data, protagonist, selected_date
     )
 
-    result: dict[str, str | int | list[str] | None] = {
+    return {
         "title": render_title(
             title_template,
             protagonist=protagonist,
@@ -176,7 +156,44 @@ def pick_story_fields(
         "sexual_scene_tags": sexual_scene_tags,
         "word_count_target": rng.choice(sorted_pool_from_data(data, "word_count_targets")),
     }
-    return result
+
+
+def pick_story_characters(
+    rng: random.Random | secrets.SystemRandom,
+    selected_date: date,
+    data: Mapping[str, Any],
+) -> tuple[str, str]:
+    """Pick protagonist and secondary character for a date."""
+    characters_for_date = stable_sorted_pool(available_characters(selected_date, data))
+    if len(characters_for_date) < 2:
+        raise ValueError(
+            "Need at least two distinct available characters for year "
+            f"{selected_date.year}."
+        )
+
+    protagonist = rng.choice(characters_for_date)
+    eligible_secondary = [name for name in characters_for_date if name != protagonist]
+    if not eligible_secondary:
+        raise ValueError(
+            "Need at least two distinct available characters for year "
+            f"{selected_date.year}."
+        )
+    return protagonist, rng.choice(eligible_secondary)
+
+
+def pick_story_setting(
+    rng: random.Random | secrets.SystemRandom,
+    selected_date: date,
+    data: Mapping[str, Any],
+) -> str:
+    """Pick an available setting for a date."""
+    settings_for_date = stable_sorted_pool(available_settings(selected_date, data))
+    if not settings_for_date:
+        raise ValueError(
+            f"No settings are available for year {selected_date.year}. "
+            "Check setting availability data."
+        )
+    return rng.choice(settings_for_date)
 
 
 def resolve_selected_date(

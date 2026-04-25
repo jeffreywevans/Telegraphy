@@ -307,5 +307,6 @@ def weighted_partner_for_era(
     if not partners:
         return None
     sorted_partner_pairs = stable_sorted_pool(partners)
-    partner_options, partner_weights = map(list, zip(*sorted_partner_pairs))
+    partner_options: list[str] = [partner_name for partner_name, _ in sorted_partner_pairs]
+    partner_weights: list[float] = [partner_weight for _, partner_weight in sorted_partner_pairs]
     return weighted_choice(rng, partner_options, partner_weights)

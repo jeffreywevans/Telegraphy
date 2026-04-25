@@ -129,7 +129,7 @@ def _availability_gap_flags(
 
 def _record_partner_gaps(
     *,
-    partner_distributions: Mapping[str, Sequence[Mapping[str, date]]],
+    partner_distributions: Mapping[str, Sequence[Mapping[str, Any]]],
     interval: tuple[date, date],
     protagonists: Sequence[str],
     partner_data_gap_ranges_by_protagonist: dict[str, list[tuple[date, date]]],
@@ -137,7 +137,9 @@ def _record_partner_gaps(
     current_start, _ = interval
     for protagonist in protagonists:
         eras = partner_distributions.get(protagonist, [])
-        has_partner_data = any(era["date_start"] <= current_start <= era["date_end"] for era in eras)
+        has_partner_data = any(
+            era["date_start"] <= current_start <= era["date_end"] for era in eras
+        )
         if not has_partner_data:
             partner_data_gap_ranges_by_protagonist.setdefault(
                 protagonist, []

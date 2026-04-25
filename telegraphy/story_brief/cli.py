@@ -11,7 +11,7 @@ from datetime import date
 from pathlib import Path
 
 if __package__ in (None, ""):
-    import generate_story_brief as _legacy_cli
+    import generate_story_brief as story_brief_cli
     from filenames import (
         DEFAULT_OUTPUT_DIR,
         OutputPathError,
@@ -20,7 +20,7 @@ if __package__ in (None, ""):
         write_output_markdown,
     )
 else:
-    from . import generate_story_brief as _legacy_cli
+    from . import generate_story_brief as story_brief_cli
     from .filenames import (
         DEFAULT_OUTPUT_DIR,
         OutputPathError,
@@ -93,7 +93,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         raise exc
 
     try:
-        data = _legacy_cli._get_data_cached() if args.lint_dataset else _legacy_cli.get_data()
+        data = story_brief_cli._get_data_cached() if args.lint_dataset else story_brief_cli.get_data()
     except ValueError as exc:
         print(str(exc), file=sys.stderr)
         return 1
@@ -125,8 +125,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             return 1
 
     try:
-        fields = _legacy_cli.pick_story_fields(rng, selected_date=selected_date, data=data)
-        markdown = _legacy_cli.to_markdown(fields, data=data)
+        fields = story_brief_cli.pick_story_fields(rng, selected_date=selected_date, data=data)
+        markdown = story_brief_cli.to_markdown(fields, data=data)
     except ValueError as exc:
         print(str(exc), file=sys.stderr)
         return 1
@@ -135,7 +135,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(markdown)
         return 0
 
-    generated_filename = _legacy_cli.build_auto_filename(
+    generated_filename = story_brief_cli.build_auto_filename(
         str(fields["title"]),
         today=str(fields.get("time_period", date.today().isoformat())),
     )

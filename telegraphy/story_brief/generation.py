@@ -14,7 +14,7 @@ from ._constants import (
 )
 from .rendering import render_title
 
-PoolValue = TypeVar("PoolValue", str, int)
+PoolValue = TypeVar("PoolValue", str, int, tuple[str, float])
 DEFAULT_SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION = {
     2: 0.7,
     3: 0.1,
@@ -141,7 +141,7 @@ def pick_story_fields(
         )
     secondary_character = rng.choice(eligible_secondary)
     setting = rng.choice(settings_for_date)
-    title_template = rng.choice(sorted_pool_from_data(data, "titles"))
+    title_template: str = rng.choice(cast(Sequence[str], sorted_pool_from_data(data, "titles")))
     sexual_content_level = weighted_choice(
         rng, data["sexual_content_options"], data["sexual_content_weights"]
     )

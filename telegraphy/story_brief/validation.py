@@ -277,35 +277,46 @@ def _validate_sexual_scene_tag_count_weights(config: dict[str, Any]) -> None:
     group_count = len(config["sexual_scene_tag_groups"])
     weight_sum = 0.0
     for raw_count, weight in raw_weights.items():
-        try:
-            count = int(raw_count)
-            if str(count) != str(raw_count) or count <= 0:
-                raise ValueError
-        except (TypeError, ValueError) as exc:
-            raise ValueError(
-                "config.sexual_scene_tag_count_weights keys must be positive integers"
-            ) from exc
+        count = _parse_positive_weight_count(raw_count)
         if count > group_count:
             raise ValueError(
                 "config.sexual_scene_tag_count_weights keys must not exceed the "
                 "available sexual_scene_tag_groups count"
             )
-        if isinstance(weight, bool) or not isinstance(weight, (int, float)):
-            raise ValueError(
-                "config.sexual_scene_tag_count_weights values must be real numbers"
-            )
-        if not math.isfinite(weight):
-            raise ValueError(
-                "config.sexual_scene_tag_count_weights values must be finite"
-            )
-        if weight < 0:
-            raise ValueError(
-                "config.sexual_scene_tag_count_weights values must be non-negative"
-            )
-        weight_sum += float(weight)
+        weight_sum += _coerce_non_negative_finite_weight(weight)
 
     if weight_sum <= 0:
         raise ValueError("config.sexual_scene_tag_count_weights values must sum to > 0")
+
+
+def _parse_positive_weight_count(raw_count: Any) -> int:
+    try:
+        count = int(raw_count)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(
+            "config.sexual_scene_tag_count_weights keys must be positive integers"
+        ) from exc
+    if str(count) != str(raw_count) or count <= 0:
+        raise ValueError(
+            "config.sexual_scene_tag_count_weights keys must be positive integers"
+        )
+    return count
+
+
+def _coerce_non_negative_finite_weight(weight: Any) -> float:
+    if isinstance(weight, bool) or not isinstance(weight, (int, float)):
+        raise ValueError(
+            "config.sexual_scene_tag_count_weights values must be real numbers"
+        )
+    if not math.isfinite(weight):
+        raise ValueError(
+            "config.sexual_scene_tag_count_weights values must be finite"
+        )
+    if weight < 0:
+        raise ValueError(
+            "config.sexual_scene_tag_count_weights values must be non-negative"
+        )
+    return float(weight)
 
 
 def _validate_ordered_keys(config: dict[str, Any]) -> None:

@@ -84,7 +84,7 @@ def load_data(data_dir: Path | Traversable | None = None) -> dict[str, Any]:
     try:
         if data_dir is not None:
             payloads = {
-                key: _load_json(data_dir / filename)
+                key: _load_json(data_dir.joinpath(filename))
                 for key, filename in DATA_FILENAMES.items()
             }
         else:

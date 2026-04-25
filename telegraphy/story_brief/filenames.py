@@ -73,50 +73,60 @@ def _truncate_utf8_filename(stem: str, suffix: str, max_bytes: int = MAX_FILENAM
     return f"{stem}{suffix}"
 
 
-def sanitize_filename(filename: str, *, suffix: str = "") -> str:
-    """Sanitize filename for cross-platform safety while preserving extension."""
-    if suffix:
-        raw_name = f"{filename}{suffix}"
-    else:
-        raw_name = filename
-
-    name = PurePath(raw_name).name
+def _sanitize_stem_and_suffix(name: str) -> tuple[str, str]:
+    """Sanitize stem and suffix while preserving extension shape."""
     stem, ext = os.path.splitext(name)
-
     safe_stem = re.sub(r'[\x00-\x1f<>:"/\\|?*]+', "-", stem).rstrip(" .-")
     safe_stem = safe_stem[:MAX_FILENAME_STEM_LENGTH].rstrip(" .-")
     safe_suffix = re.sub(r'[\x00-\x1f<>:"/\\|?*]+', "", ext).rstrip(" .")
+    if safe_suffix and not safe_suffix.startswith("."):
+        safe_suffix = f".{safe_suffix}"
+    safe_suffix = _truncate_utf8_filename("", safe_suffix, MAX_FILENAME_BYTES - 1).rstrip(" .")
+    if safe_suffix == ".":
+        safe_suffix = ""
+    return safe_stem, safe_suffix
+
+
+def _apply_windows_reserved_name_guard(stem: str, suffix: str) -> tuple[str, str]:
+    """Ensure stem is never a Windows reserved device name."""
+    if stem.casefold() not in WINDOWS_RESERVED_NAMES:
+        return stem, suffix
+
+    candidate = _truncate_utf8_filename(f"{stem}-file", suffix, MAX_FILENAME_BYTES)
+    reserved_stem, reserved_suffix = os.path.splitext(candidate)
+    reserved_stem = reserved_stem.rstrip(" .-")
+    if reserved_stem.casefold() in WINDOWS_RESERVED_NAMES:
+        candidate = _truncate_utf8_filename("file", suffix, MAX_FILENAME_BYTES)
+        reserved_stem, reserved_suffix = os.path.splitext(candidate)
+        reserved_stem = reserved_stem or "f"
+    return reserved_stem, reserved_suffix
+
+
+def _truncate_sanitized_filename(stem: str, suffix: str) -> tuple[str, str]:
+    """Apply UTF-8 length limits and fallback stems after truncation."""
+    sanitized = _truncate_utf8_filename(stem, suffix, MAX_FILENAME_BYTES)
+    truncated_stem, truncated_suffix = os.path.splitext(sanitized)
+    truncated_stem = truncated_stem.rstrip(" .-")
+
+    if not truncated_stem:
+        fallback = _truncate_utf8_filename("story-brief", truncated_suffix, MAX_FILENAME_BYTES)
+        truncated_stem, truncated_suffix = os.path.splitext(fallback)
+        truncated_stem = truncated_stem.rstrip(" .-") or "s"
+    return truncated_stem, truncated_suffix
+
+
+def sanitize_filename(filename: str, *, suffix: str = "") -> str:
+    """Sanitize filename for cross-platform safety while preserving extension."""
+    raw_name = f"{filename}{suffix}" if suffix else filename
+    name = PurePath(raw_name).name
+    safe_stem, safe_suffix = _sanitize_stem_and_suffix(name)
 
     if not safe_stem:
         safe_stem = "story-brief"
 
-    if safe_stem.casefold() in WINDOWS_RESERVED_NAMES:
-        safe_stem = f"{safe_stem}-file"
-
-    if safe_suffix and not safe_suffix.startswith("."):
-        safe_suffix = f".{safe_suffix}"
-
-    safe_suffix = _truncate_utf8_filename("", safe_suffix, MAX_FILENAME_BYTES - 1).rstrip(" .")
-    if safe_suffix == ".":
-        safe_suffix = ""
-
-    sanitized = _truncate_utf8_filename(safe_stem, safe_suffix, MAX_FILENAME_BYTES)
-    safe_stem, safe_suffix = os.path.splitext(sanitized)
-    safe_stem = safe_stem.rstrip(" .-")
-    if not safe_stem:
-        fallback = _truncate_utf8_filename("story-brief", safe_suffix, MAX_FILENAME_BYTES)
-        safe_stem, safe_suffix = os.path.splitext(fallback)
-        safe_stem = safe_stem.rstrip(" .-") or "s"
-
-    if safe_stem.casefold() in WINDOWS_RESERVED_NAMES:
-        candidate = _truncate_utf8_filename(f"{safe_stem}-file", safe_suffix, MAX_FILENAME_BYTES)
-        safe_stem, safe_suffix = os.path.splitext(candidate)
-        safe_stem = safe_stem.rstrip(" .-")
-        if safe_stem.casefold() in WINDOWS_RESERVED_NAMES:
-            candidate = _truncate_utf8_filename("file", safe_suffix, MAX_FILENAME_BYTES)
-            safe_stem, safe_suffix = os.path.splitext(candidate)
-            safe_stem = safe_stem or "f"
-
+    safe_stem, safe_suffix = _apply_windows_reserved_name_guard(safe_stem, safe_suffix)
+    safe_stem, safe_suffix = _truncate_sanitized_filename(safe_stem, safe_suffix)
+    safe_stem, safe_suffix = _apply_windows_reserved_name_guard(safe_stem, safe_suffix)
     return f"{safe_stem}{safe_suffix}"
 
 
@@ -215,6 +225,9 @@ def write_output_markdown(
     flags |= os.O_TRUNC if force else os.O_EXCL
     if hasattr(os, "O_NOFOLLOW"):
         flags |= os.O_NOFOLLOW
+    # O_NOFOLLOW is not available on Windows. In that case we still enforce the
+    # trusted base-directory boundary above, but cannot request kernel-level
+    # no-symlink-follow behavior from os.open.
 
     try:
         fd = os.open(candidate_output_path, flags, 0o600)

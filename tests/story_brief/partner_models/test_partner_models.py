@@ -6,6 +6,9 @@ from typing import Callable
 import pytest
 
 from telegraphy.story_brief.partner_models import (
+    _parse_character_distribution,
+    _parse_eras,
+    _parse_partners,
     CharacterPartnerDistribution,
     PartnerDistributionDataset,
     PartnerEra,
@@ -109,6 +112,44 @@ def test_parse_partner_distribution_payload_round_trips_to_legacy_index(
     assert legacy_index["Alex"][0]["date_start"] == date(2000, 1, 1)
     assert legacy_index["Alex"][0]["partners"] == [("Jordan", 1.0)]
     assert legacy_index["Alex"][1]["partners"] == []
+
+
+def test_parse_partners_rejects_case_insensitive_duplicates() -> None:
+    with pytest.raises(ValueError, match="contains duplicate partner"):
+        _parse_partners(
+            "partner_distributions.partner_distributions[0].eras[0]",
+            [
+                {"partner": "Jordan", "weight": 0.7},
+                {"partner": "jordan", "weight": 0.3},
+            ],
+        )
+
+
+def test_parse_eras_rejects_range_outside_parent_character() -> None:
+    with pytest.raises(ValueError, match="must be within parent character date range"):
+        _parse_eras(
+            "partner_distributions.partner_distributions[0]",
+            [
+                {
+                    "date_start": "1999-12-31",
+                    "date_end": "2000-01-01",
+                    "partners": [{"partner": "Jordan", "weight": 1.0}],
+                }
+            ],
+            char_start=date(2000, 1, 1),
+            char_end=date(2000, 12, 31),
+        )
+
+
+def test_parse_character_distribution_uses_partner_distribution_key_in_path() -> None:
+    with pytest.raises(ValueError, match=r"partner_distributions\.entries\[0\] must be an object"):
+        _parse_character_distribution(
+            0,
+            "bad-entry",
+            known_characters={"Alex"},
+            seen_characters=set(),
+            partner_distributions_key="entries",
+        )
 
 
 @pytest.mark.parametrize(

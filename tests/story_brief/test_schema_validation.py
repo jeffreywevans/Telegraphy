@@ -5,9 +5,8 @@ import pytest
 from telegraphy.story_brief.generate_story_brief import (
     lint_story_data,
     load_story_data,
-    validate_story_data,
-    validate_story_data_strict,
 )
+from telegraphy.story_brief.validation import validate_story_data, validate_story_data_strict
 
 
 def test_schema_validation_accepts_current_data(story_dataset_payloads) -> None:

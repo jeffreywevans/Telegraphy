@@ -6,7 +6,10 @@ from typing import Any
 
 import yaml
 
-TITLE_TOKEN_PATTERN = re.compile(r"@(?P<key>protagonist|setting|time_period)\b")
+if __package__ in (None, ""):
+    from _constants import TITLE_TOKEN_PATTERN
+else:
+    from ._constants import TITLE_TOKEN_PATTERN
 
 
 def render_title(

@@ -8,8 +8,18 @@ from functools import lru_cache
 from typing import Any, Iterable, Sequence, TypeVar
 
 if __package__ in (None, ""):
+    from _constants import (
+        CHARACTER_AVAILABILITY_KEY,
+        PARTNER_DISTRIBUTIONS_KEY,
+        SETTING_AVAILABILITY_KEY,
+    )
     from rendering import render_title
 else:
+    from ._constants import (
+        CHARACTER_AVAILABILITY_KEY,
+        PARTNER_DISTRIBUTIONS_KEY,
+        SETTING_AVAILABILITY_KEY,
+    )
     from .rendering import render_title
 
 PoolValue = TypeVar("PoolValue", str, int)
@@ -19,10 +29,6 @@ DEFAULT_SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION = {
     4: 0.1,
     5: 0.1,
 }
-CHARACTER_AVAILABILITY_KEY = "character_availability"
-SETTING_AVAILABILITY_KEY = "setting_availability"
-PARTNER_DISTRIBUTIONS_KEY = "partner_distributions"
-
 
 def random_date_in_range(
     rng: random.Random | secrets.SystemRandom, start: date, end: date

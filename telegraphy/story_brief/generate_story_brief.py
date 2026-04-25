@@ -40,6 +40,10 @@ from .validation import (
 )
 from .validation import validate_story_data
 
+# NOTE:
+# - validation.EXPECTED_GENERATED_FIELD_KEYS is intentionally a mutable `set`
+#   for internal set arithmetic in validation helpers.
+# - The public re-export here is a `frozenset` to provide an immutable API.
 EXPECTED_GENERATED_FIELD_KEYS = frozenset(_EXPECTED_GENERATED_FIELD_KEYS)
 build_auto_filename = _filenames.build_auto_filename
 

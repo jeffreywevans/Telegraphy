@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from datetime import date, datetime
+from pathlib import Path
 
-from telegraphy.story_brief.filenames import sanitize_filename
+from telegraphy.story_brief.filenames import resolve_output_path, sanitize_filename
 from telegraphy.story_brief.generate_story_brief import build_auto_filename
 
 
@@ -47,3 +48,17 @@ def test_build_auto_filename_accepts_iso_date_string_for_today() -> None:
         build_auto_filename("Hello World", today="2026-04-21")
         == "2026-04-21 hello-world.md"
     )
+
+
+def test_resolve_output_path_does_not_create_directories(tmp_path, monkeypatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    output_dir = Path("nested") / "missing"
+
+    resolved = resolve_output_path(
+        output_dir=output_dir,
+        filename="brief.md",
+        generated_filename="fallback.md",
+    )
+
+    assert resolved == tmp_path / "nested" / "missing" / "brief.md"
+    assert not (tmp_path / "nested" / "missing").exists()

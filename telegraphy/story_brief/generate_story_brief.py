@@ -20,6 +20,8 @@ from typing import Any, Iterable, NamedTuple, Sequence, TypedDict, TypeVar
 if __package__ in (None, ""):
     from filenames import (
         DEFAULT_OUTPUT_DIR,
+        OutputPathError,
+        OutputWriteError,
         resolve_output_path,
         sanitize_filename,
         write_output_markdown as _write_output_markdown,
@@ -33,6 +35,8 @@ if __package__ in (None, ""):
 else:
     from .filenames import (
         DEFAULT_OUTPUT_DIR,
+        OutputPathError,
+        OutputWriteError,
         resolve_output_path,
         sanitize_filename,
         write_output_markdown as _write_output_markdown,
@@ -1332,9 +1336,12 @@ def main() -> None:
             args.filename,
             generated_filename,
         )
-    except ValueError as exc:
-        raise SystemExit(f"Invalid --output-dir: {exc}") from exc
-    _write_output_markdown(candidate_output_path, markdown, force=args.force)
+        candidate_output_path.parent.mkdir(parents=True, exist_ok=True)
+        _write_output_markdown(candidate_output_path, markdown, force=args.force)
+    except OutputPathError as exc:
+        raise SystemExit(str(exc)) from exc
+    except OutputWriteError as exc:
+        raise SystemExit(str(exc)) from exc
     print("Generated story brief.")
 
 

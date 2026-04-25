@@ -131,7 +131,7 @@ def _load_json(path: Any) -> dict[str, Any]:
 
 def load_story_data() -> StoryData:
     """Load, validate, and normalize the story dataset used by the generator."""
-    dataset_payloads = _data_io_module.load_data()
+    dataset_payloads = _data_io_module.get_data()
     titles = dataset_payloads["titles"]
     entities = dataset_payloads["entities"]
     prompts = dataset_payloads["prompts"]
@@ -191,25 +191,24 @@ def load_story_data() -> StoryData:
     }
 
 
-@lru_cache(maxsize=1)
 def _get_data_cached() -> StoryData:
-    """Load and cache story-brief data on first use."""
+    """Compatibility wrapper for callers expecting a cached getter."""
     return load_story_data()
 
 
 def _clear_get_data_cache() -> None:
-    _get_data_cached.cache_clear()
+    _data_io_module.clear_data_cache()
 
 
 def clear_get_data_cache() -> None:
-    """Clear the memoized story dataset cache."""
+    """Clear the authoritative raw dataset cache in data_io."""
     _clear_get_data_cache()
 
 
 def get_data() -> StoryData:
-    """Load and cache story-brief data on first use.
+    """Load story-brief data from the authoritative data_io cache.
 
-    Returns a deep copy of cached data to prevent cache poisoning when callers
+    Returns a deep copy of processed data to prevent cache poisoning when callers
     mutate nested structures.
     """
     return deepcopy(_get_data_cached())

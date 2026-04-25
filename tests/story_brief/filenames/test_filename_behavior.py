@@ -3,7 +3,14 @@ from __future__ import annotations
 from datetime import date, datetime
 from pathlib import Path
 
-from telegraphy.story_brief.filenames import resolve_output_path, sanitize_filename
+import pytest
+
+from telegraphy.story_brief.filenames import (
+    OutputPathError,
+    resolve_output_path,
+    sanitize_filename,
+    write_output_markdown,
+)
 from telegraphy.story_brief.generate_story_brief import build_auto_filename
 
 
@@ -62,3 +69,27 @@ def test_resolve_output_path_does_not_create_directories(tmp_path, monkeypatch) 
 
     assert resolved == tmp_path / "nested" / "missing" / "brief.md"
     assert not (tmp_path / "nested" / "missing").exists()
+
+
+def test_write_output_markdown_accepts_absolute_path_within_base(tmp_path) -> None:
+    output_path = tmp_path / "nested" / "brief.md"
+    output_path.parent.mkdir(parents=True)
+
+    write_output_markdown(
+        output_path=output_path,
+        content="hello",
+        trusted_base_dir=tmp_path,
+    )
+
+    assert output_path.read_text(encoding="utf-8") == "hello"
+
+
+def test_write_output_markdown_rejects_absolute_path_outside_base(tmp_path) -> None:
+    outside_path = tmp_path.parent / "outside-brief.md"
+
+    with pytest.raises(OutputPathError, match="trusted base directory"):
+        write_output_markdown(
+            output_path=outside_path,
+            content="hello",
+            trusted_base_dir=tmp_path,
+        )

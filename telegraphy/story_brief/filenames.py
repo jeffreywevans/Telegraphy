@@ -205,7 +205,10 @@ def write_output_markdown(
 ) -> None:
     """Write markdown to output_path while guarding against symlink redirection."""
     trusted_base_dir = (trusted_base_dir or Path.cwd()).resolve(strict=True)
-    raw_output_path = trusted_base_dir / output_path
+    if output_path.is_absolute():
+        raw_output_path = output_path
+    else:
+        raw_output_path = trusted_base_dir / output_path
     resolved_parent = raw_output_path.parent.resolve(strict=False)
     candidate_output_path = resolved_parent / raw_output_path.name
     if not resolved_parent.is_relative_to(trusted_base_dir):

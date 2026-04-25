@@ -68,6 +68,41 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _build_rng(seed: int | None) -> random.Random | secrets.SystemRandom:
+    """Build a random number generator based on an optional deterministic seed."""
+    if seed is None:
+        return secrets.SystemRandom()
+    return random.Random(seed)
+
+
+def _parse_selected_date(raw_date: str | None) -> date | None:
+    """Parse an optional YYYY-MM-DD date value."""
+    if not raw_date:
+        return None
+    try:
+        return date.fromisoformat(raw_date)
+    except ValueError as exc:
+        raise ValueError("--date must be in YYYY-MM-DD format") from exc
+
+
+def _write_story_markdown(
+    output_dir: str,
+    provided_filename: str | None,
+    generated_filename: str,
+    markdown: str,
+    *,
+    force: bool,
+) -> None:
+    """Resolve, create, and write the story brief markdown file."""
+    candidate_output_path = resolve_output_path(
+        Path(output_dir),
+        provided_filename,
+        generated_filename,
+    )
+    candidate_output_path.parent.mkdir(parents=True, exist_ok=True)
+    write_output_markdown(candidate_output_path, markdown, force=force)
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """Run the story brief CLI and return an exit code."""
     parser = build_parser()
@@ -84,11 +119,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(str(exc), file=sys.stderr)
         return 1
 
-    rng: random.Random | secrets.SystemRandom
-    if args.seed is None:
-        rng = secrets.SystemRandom()
-    else:
-        rng = random.Random(args.seed)
+    rng = _build_rng(args.seed)
 
     if args.lint_dataset:
         report = lint_story_data(data)
@@ -102,13 +133,11 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(str(exc), file=sys.stderr)
             return 1
 
-    selected_date: date | None = None
-    if args.date:
-        try:
-            selected_date = date.fromisoformat(args.date)
-        except ValueError:
-            print("--date must be in YYYY-MM-DD format", file=sys.stderr)
-            return 1
+    try:
+        selected_date = _parse_selected_date(args.date)
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
 
     try:
         fields = story_brief_cli.pick_story_fields(rng, selected_date=selected_date, data=data)
@@ -126,13 +155,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         today=str(fields.get("time_period", date.today().isoformat())),
     )
     try:
-        candidate_output_path = resolve_output_path(
-            Path(args.output_dir),
+        _write_story_markdown(
+            args.output_dir,
             args.filename,
             generated_filename,
+            markdown,
+            force=args.force,
         )
-        candidate_output_path.parent.mkdir(parents=True, exist_ok=True)
-        write_output_markdown(candidate_output_path, markdown, force=args.force)
     except OutputPathError as exc:
         print(str(exc), file=sys.stderr)
         return 1

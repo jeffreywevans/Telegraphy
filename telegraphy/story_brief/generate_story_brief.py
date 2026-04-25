@@ -47,6 +47,9 @@ if __package__ in (None, ""):
         lint_story_data,
     )
     from rendering import to_markdown as _to_markdown
+    from validation import (
+        EXPECTED_GENERATED_FIELD_KEYS as _EXPECTED_GENERATED_FIELD_KEYS,
+    )
     from validation import validate_story_data, validate_story_data_strict
 else:
     from . import data_io as _data_io_module
@@ -82,7 +85,12 @@ else:
         lint_story_data,
     )
     from .rendering import to_markdown as _to_markdown
+    from .validation import (
+        EXPECTED_GENERATED_FIELD_KEYS as _EXPECTED_GENERATED_FIELD_KEYS,
+    )
     from .validation import validate_story_data, validate_story_data_strict
+
+EXPECTED_GENERATED_FIELD_KEYS = frozenset(_EXPECTED_GENERATED_FIELD_KEYS)
 
 PROMPT_LIST_KEYS = (
     "central_conflicts",

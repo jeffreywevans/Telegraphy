@@ -232,7 +232,7 @@ def test_strict_validation_accepts_well_formed_small_range() -> None:
     validate_story_data_strict(data)
 
 
-def test_strict_validation_accepts_current_dataset_range() -> None:
+def test_real_dataset_passes_strict_validation() -> None:
     validate_story_data_strict(load_story_data())
 
 

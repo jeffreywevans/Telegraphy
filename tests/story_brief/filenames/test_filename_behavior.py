@@ -7,6 +7,10 @@ import pytest
 
 from telegraphy.story_brief.filenames import (
     OutputPathError,
+    OutputWriteError,
+    _apply_windows_reserved_name_guard,
+    _build_safe_relative_path,
+    _truncate_utf8_filename,
     resolve_output_path,
     sanitize_filename,
     write_output_markdown,
@@ -91,5 +95,102 @@ def test_write_output_markdown_rejects_absolute_path_outside_base(tmp_path) -> N
         write_output_markdown(
             output_path=outside_path,
             content="hello",
+            trusted_base_dir=tmp_path,
+        )
+
+
+def test_truncate_utf8_filename_returns_empty_for_non_positive_max_bytes() -> None:
+    assert _truncate_utf8_filename("name", ".md", max_bytes=0) == ""
+
+
+def test_apply_windows_reserved_name_guard_falls_back_to_file() -> None:
+    stem, suffix = _apply_windows_reserved_name_guard("con", "." + ("a" * 251))
+    assert stem.startswith("fil")
+    assert stem.casefold() not in {"con", "prn", "aux", "nul"}
+    assert suffix.startswith(".")
+
+
+def test_build_safe_relative_path_rejects_home_and_traversal(tmp_path) -> None:
+    with pytest.raises(ValueError, match="must not begin with '~'"):
+        _build_safe_relative_path("~/docs", trusted_base_dir=tmp_path)
+    with pytest.raises(ValueError, match="must not include parent-directory traversal"):
+        _build_safe_relative_path("../docs", trusted_base_dir=tmp_path)
+
+
+def test_build_safe_relative_path_accepts_absolute_inside_base(tmp_path) -> None:
+    nested = tmp_path / "safe" / "area"
+    assert _build_safe_relative_path(str(nested), trusted_base_dir=tmp_path) == Path("safe/area")
+
+
+def test_resolve_output_path_uses_generated_filename_when_filename_not_supplied(
+    tmp_path, monkeypatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    resolved = resolve_output_path(
+        output_dir=Path("reports"),
+        filename=None,
+        generated_filename="auto.md",
+    )
+    assert resolved == tmp_path / "reports" / "auto.md"
+
+
+def test_resolve_output_path_reports_invalid_output_dir(tmp_path, monkeypatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    with pytest.raises(OutputPathError, match="Invalid --output-dir"):
+        resolve_output_path(
+            output_dir=Path("~/unsafe"),
+            filename="brief.md",
+            generated_filename="auto.md",
+        )
+
+
+def test_resolve_output_path_reports_invalid_filename(tmp_path, monkeypatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    with pytest.raises(OutputPathError, match="Invalid --filename"):
+        resolve_output_path(
+            output_dir=Path("safe"),
+            filename="bad/name.md",
+            generated_filename="auto.md",
+        )
+
+
+def test_write_output_markdown_force_overwrites_existing_file(tmp_path) -> None:
+    output_path = tmp_path / "brief.md"
+    output_path.write_text("old", encoding="utf-8")
+
+    write_output_markdown(
+        output_path=output_path,
+        content="new",
+        force=True,
+        trusted_base_dir=tmp_path,
+    )
+
+    assert output_path.read_text(encoding="utf-8") == "new"
+
+
+def test_write_output_markdown_refuses_existing_file_without_force(tmp_path) -> None:
+    output_path = tmp_path / "brief.md"
+    output_path.write_text("existing", encoding="utf-8")
+
+    with pytest.raises(OutputWriteError, match="Refusing to overwrite existing file"):
+        write_output_markdown(
+            output_path=output_path,
+            content="new",
+            trusted_base_dir=tmp_path,
+        )
+
+
+def test_write_output_markdown_wraps_oserror(monkeypatch, tmp_path) -> None:
+    target = tmp_path / "brief.md"
+
+    def fake_open(*_args, **_kwargs):
+        raise OSError("disk error")
+
+    monkeypatch.setattr("telegraphy.story_brief.filenames.os.open", fake_open)
+
+    with pytest.raises(OutputWriteError, match="Unable to safely open or write output path"):
+        write_output_markdown(
+            output_path=target,
+            content="content",
             trusted_base_dir=tmp_path,
         )

@@ -10,30 +10,16 @@ from collections.abc import Sequence
 from datetime import date
 from pathlib import Path
 
-if __package__ in (None, ""):
-    import generate_story_brief as story_brief_cli
-    from filenames import (
-        DEFAULT_OUTPUT_DIR,
-        OutputPathError,
-        OutputWriteError,
-        resolve_output_path,
-        write_output_markdown,
-    )
-else:
-    from . import generate_story_brief as story_brief_cli
-    from .filenames import (
-        DEFAULT_OUTPUT_DIR,
-        OutputPathError,
-        OutputWriteError,
-        resolve_output_path,
-        write_output_markdown,
-    )
-    from .linting import emit_lint_report, lint_story_data
-    from .validation import validate_story_data_strict
-
-if __package__ in (None, ""):
-    from linting import emit_lint_report, lint_story_data
-    from validation import validate_story_data_strict
+from . import generate_story_brief as story_brief_cli
+from .filenames import (
+    DEFAULT_OUTPUT_DIR,
+    OutputPathError,
+    OutputWriteError,
+    resolve_output_path,
+    write_output_markdown,
+)
+from .linting import emit_lint_report, lint_story_data
+from .validation import validate_story_data_strict
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -93,7 +79,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         raise exc
 
     try:
-        data = story_brief_cli._get_data_cached() if args.lint_dataset else story_brief_cli.get_data()
+        data = (
+            story_brief_cli._get_data_cached()
+            if args.lint_dataset
+            else story_brief_cli.get_data()
+        )
     except ValueError as exc:
         print(str(exc), file=sys.stderr)
         return 1

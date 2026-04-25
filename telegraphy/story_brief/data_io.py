@@ -51,8 +51,6 @@ def resolve_data_dir() -> Path:
         return _resolve_override_data_dir(override_raw)
 
     repo_relative = Path(__file__).resolve().parent / "data"
-    if __package__ in (None, "") and repo_relative.exists():
-        return repo_relative
 
     try:
         package_data = files("telegraphy.story_brief.data")
@@ -69,8 +67,6 @@ def _data_file(filename: str) -> Any:
         return _resolve_override_data_dir(override_raw) / filename
 
     repo_relative = Path(__file__).resolve().parent / "data" / filename
-    if __package__ in (None, "") and repo_relative.exists():
-        return repo_relative
 
     try:
         return files("telegraphy.story_brief.data").joinpath(filename)

@@ -13,8 +13,8 @@ from typing import Any
 
 import pytest
 
-from telegraphy.story_brief.data_io import _data_file, _load_json
 from telegraphy.story_brief import generate_story_brief as story_brief
+from telegraphy.story_brief.data_io import _data_file, _load_json
 
 _STORY_DATASET_FILES = tuple(story_brief.STORY_DATASET_FILES.values())
 

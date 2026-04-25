@@ -6,24 +6,14 @@ from collections.abc import Mapping
 from datetime import date
 from typing import Any, NamedTuple
 
-if __package__ in (None, ""):
-    from _constants import (
-        CHARACTER_AVAILABILITY_KEY,
-        PARTNER_DISTRIBUTIONS_KEY,
-        PROMPT_LIST_KEYS,
-        SETTING_AVAILABILITY_KEY,
-    )
-    from _range_utils import add_clipped_range_checkpoints
-    from partner_models import parse_partner_distribution_payload, require_keys
-else:
-    from ._constants import (
-        CHARACTER_AVAILABILITY_KEY,
-        PARTNER_DISTRIBUTIONS_KEY,
-        PROMPT_LIST_KEYS,
-        SETTING_AVAILABILITY_KEY,
-    )
-    from ._range_utils import add_clipped_range_checkpoints
-    from .partner_models import parse_partner_distribution_payload, require_keys
+from ._constants import (
+    CHARACTER_AVAILABILITY_KEY,
+    PARTNER_DISTRIBUTIONS_KEY,
+    PROMPT_LIST_KEYS,
+    SETTING_AVAILABILITY_KEY,
+)
+from ._range_utils import add_clipped_range_checkpoints
+from .partner_models import parse_partner_distribution_payload, require_keys
 
 ANY_TITLE_TOKEN_PATTERN = re.compile(r"@(?P<key>[A-Za-z_]\w*)\b")
 EXPECTED_GENERATED_FIELD_KEYS = {

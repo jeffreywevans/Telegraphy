@@ -7,20 +7,12 @@ from datetime import date, timedelta
 from functools import lru_cache
 from typing import Any, Iterable, Sequence, TypeVar
 
-if __package__ in (None, ""):
-    from _constants import (
-        CHARACTER_AVAILABILITY_KEY,
-        PARTNER_DISTRIBUTIONS_KEY,
-        SETTING_AVAILABILITY_KEY,
-    )
-    from rendering import render_title
-else:
-    from ._constants import (
-        CHARACTER_AVAILABILITY_KEY,
-        PARTNER_DISTRIBUTIONS_KEY,
-        SETTING_AVAILABILITY_KEY,
-    )
-    from .rendering import render_title
+from ._constants import (
+    CHARACTER_AVAILABILITY_KEY,
+    PARTNER_DISTRIBUTIONS_KEY,
+    SETTING_AVAILABILITY_KEY,
+)
+from .rendering import render_title
 
 PoolValue = TypeVar("PoolValue", str, int)
 DEFAULT_SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION = {

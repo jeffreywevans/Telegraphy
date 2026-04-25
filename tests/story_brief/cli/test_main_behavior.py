@@ -91,7 +91,9 @@ def test_main_force_flag_allows_overwrite_for_existing_file(
         ],
     )
     monkeypatch.setattr(
-        story_cli.story_brief_cli, "pick_story_fields", lambda *_args, **_kwargs: {"title": "Forced"}
+        story_cli.story_brief_cli,
+        "pick_story_fields",
+        lambda *_args, **_kwargs: {"title": "Forced"},
     )
     monkeypatch.setattr(
         story_cli.story_brief_cli,

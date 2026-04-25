@@ -40,6 +40,13 @@ from .validation import (
 )
 from .validation import validate_story_data
 
+
+class NormalizedPartnerEra(TypedDict):
+    date_start: date
+    date_end: date
+    partners: tuple[tuple[str, float], ...]
+
+
 # NOTE:
 # - validation.EXPECTED_GENERATED_FIELD_KEYS is intentionally a mutable `set`
 #   for internal set arithmetic in validation helpers.
@@ -90,7 +97,7 @@ class StoryData(TypedDict):
     ordered_keys: tuple[str, ...]
     writing_preamble: str
     dataset_version: str
-    partner_distributions: dict[str, tuple[dict[str, Any], ...]]
+    partner_distributions: dict[str, tuple[NormalizedPartnerEra, ...]]
 
 
 def _build_story_data() -> StoryData:
@@ -152,7 +159,11 @@ def _build_story_data() -> StoryData:
         "dataset_version": str(config["dataset_version"]),
         "partner_distributions": {
             protagonist: tuple(
-                {**era, "partners": tuple(era["partners"])}
+                {
+                    "date_start": era["date_start"],
+                    "date_end": era["date_end"],
+                    "partners": tuple(era["partners"]),
+                }
                 for era in eras
             )
             for protagonist, eras in validated.partner_distributions.items()

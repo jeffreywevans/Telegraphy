@@ -4,10 +4,10 @@
 from __future__ import annotations
 
 import random
-import re
 import secrets
 from copy import deepcopy
-from datetime import date, datetime
+from datetime import date
+from functools import lru_cache
 from typing import Any, TypedDict
 
 if __package__ in (None, ""):
@@ -18,7 +18,7 @@ if __package__ in (None, ""):
         PROMPT_LIST_KEYS,
         SETTING_AVAILABILITY_KEY,
     )
-    from filenames import sanitize_filename
+    from filenames import build_auto_filename
     from generation import (
         available_characters as _available_characters,
     )
@@ -48,7 +48,7 @@ else:
         PROMPT_LIST_KEYS,
         SETTING_AVAILABILITY_KEY,
     )
-    from .filenames import sanitize_filename
+    from .filenames import build_auto_filename
     from .generation import (
         available_characters as _available_characters,
     )
@@ -242,20 +242,6 @@ def __getattr__(name: str) -> Any:
     if name in _COMPAT_ALIASES:
         return deepcopy(_get_data_cached()[_COMPAT_ALIASES[name]])
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
-
-
-def slugify(value: str) -> str:
-    return re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
-
-
-def build_auto_filename(title: str, today: date | datetime | str | None = None) -> str:
-    """Build a sanitized default filename with a non-empty slug fallback."""
-    slug = slugify(title) or "story-brief"
-    if isinstance(today, str):
-        date_prefix = today
-    else:
-        date_prefix = (today or datetime.now()).strftime("%Y-%m-%d")
-    return sanitize_filename(f"{date_prefix} {slug}.md")
 
 
 def random_date_in_range(

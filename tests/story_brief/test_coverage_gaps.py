@@ -6,8 +6,8 @@ from typing import Callable
 
 import pytest
 
-from telegraphy.story_brief import generate_story_brief as story_brief
 from telegraphy.story_brief import data_io
+from telegraphy.story_brief import generate_story_brief as story_brief
 from telegraphy.story_brief.linting import DatasetLintReport
 from telegraphy.story_brief.partner_models import parse_partner_distribution_payload
 

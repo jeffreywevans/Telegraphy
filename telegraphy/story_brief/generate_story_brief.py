@@ -164,11 +164,6 @@ def load_story_data() -> StoryData:
     return deepcopy(_load_story_data_cached())
 
 
-def _get_data_cached() -> StoryData:
-    """Compatibility wrapper for callers expecting a cached getter."""
-    return load_story_data()
-
-
 def _clear_get_data_cache() -> None:
     try:
         _data_io_module.clear_data_cache()

@@ -129,7 +129,7 @@ def _availability_gap_flags(
 
 def _record_partner_gaps(
     *,
-    partner_distributions: Mapping[str, Sequence[Mapping[str, date]]],
+    partner_distributions: Mapping[str, Sequence[Mapping[str, Any]]],
     interval: tuple[date, date],
     protagonists: Sequence[str],
     partner_data_gap_ranges_by_protagonist: dict[str, list[tuple[date, date]]],

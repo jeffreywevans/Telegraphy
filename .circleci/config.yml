@@ -10,9 +10,11 @@ jobs:
       - image: cimg/python:3.12-node
     steps:
       - checkout
-      - python/install-packages
       - python/install-packages:
-          args: tox
+          pkg-manager: pip
+      - run:
+          name: Install tox
+          command: pip install tox
       - run:
           name: Run tests
           command: tox

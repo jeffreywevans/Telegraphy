@@ -33,7 +33,7 @@ from .generation import (
 from .generation import (
     stable_sorted_pool,
 )
-from .linting import emit_lint_report as _emit_lint_report_impl
+from .linting import emit_lint_report as _emit_lint_report
 from .rendering import to_markdown as _to_markdown
 from .validation import (
     EXPECTED_GENERATED_FIELD_KEYS as _EXPECTED_GENERATED_FIELD_KEYS,
@@ -262,7 +262,3 @@ def to_markdown(
         writing_preamble=resolved_data["writing_preamble"],
     )
 
-
-def _emit_lint_report(report: Any) -> None:
-    """Compatibility wrapper for legacy lint-report emission helper."""
-    _emit_lint_report_impl(report)

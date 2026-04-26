@@ -19,6 +19,13 @@ def test_legacy_compat_alias_attribute_resolves_to_data_copy() -> None:
     assert isinstance(titles, tuple)
     assert titles == legacy.get_data()["titles"]
 
+    groups_1 = legacy.SEXUAL_SCENE_TAG_GROUPS
+    groups_2 = legacy.SEXUAL_SCENE_TAG_GROUPS
+
+    assert isinstance(groups_1, dict)
+    assert groups_1 is not groups_2
+    assert groups_1 == legacy.get_data()["sexual_scene_tag_groups"]
+
 
 def test_legacy_unknown_attribute_raises_attribute_error() -> None:
     with pytest.raises(AttributeError, match="has no attribute"):

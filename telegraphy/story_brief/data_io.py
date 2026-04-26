@@ -34,6 +34,15 @@ def _resolve_override_data_dir(raw_value: str) -> Path:
         raise ValueError("Configured data directory must be an absolute path")
 
     candidate = raw_path.resolve(strict=True)
+    safe_root = (Path(__file__).resolve().parent / "data").parent.resolve(strict=True)
+    try:
+        candidate.relative_to(safe_root)
+    except ValueError as exc:
+        raise ValueError(
+            "Configured data directory must be within the allowed project data root: "
+            f"{safe_root}"
+        ) from exc
+
     if not candidate.is_dir():
         raise ValueError(
             "Configured data directory must be an existing directory: "

@@ -25,11 +25,11 @@ env:
 
 jobs:
   claude-code:
-    if: ${{ secrets.ANTHROPIC_API_KEY != '' && (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Run Claude Code Action
+        if: ${{ secrets.ANTHROPIC_API_KEY != '' && (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')) }}
         uses: anthropics/claude-code-action@1c8b699d43e9bfed42b48ef15da85d89bab70960 # v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}

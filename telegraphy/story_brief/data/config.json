@@ -58,10 +58,13 @@
     ],
     "tone": [
       "detached",
+      "disinterest",
       "dominating",
+      "enthusiastic",
       "guilty",
       "playful",
       "power-exchange",
+      "talkative",
       "taunting",
       "teasing",
       "worshipful"

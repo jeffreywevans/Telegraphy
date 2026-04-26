@@ -207,7 +207,9 @@ def test_resolve_override_data_dir_rejects_existing_file(tmp_path: Path) -> None
         data_io._resolve_override_data_dir(str(file_path))
 
 
-def test_load_data_missing_filename_without_exc_filename(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_load_data_missing_filename_without_exc_filename(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     def raise_missing(_path: object) -> object:
         raise FileNotFoundError()
 
@@ -215,8 +217,8 @@ def test_load_data_missing_filename_without_exc_filename(monkeypatch: pytest.Mon
     monkeypatch.delenv("TELEGRAPHY_DATA_DIR", raising=False)
     monkeypatch.delenv("COMMUTED_STORY_BRIEF_DATA_DIR", raising=False)
 
-    with pytest.raises(ValueError, match="unknown file"):
-        data_io.load_data(Path("/tmp"))
+    with pytest.raises(ValueError, match="file 'unknown file' from data directory"):
+        data_io.load_data(tmp_path)
 
 
 def test_get_data_returns_defensive_copies() -> None:

@@ -6,7 +6,11 @@ from telegraphy.story_brief.generate_story_brief import (
     load_story_data,
 )
 from telegraphy.story_brief.linting import lint_story_data
-from telegraphy.story_brief.validation import validate_story_data, validate_story_data_strict
+from telegraphy.story_brief.validation import (
+    MAX_SEXUAL_SCENE_TAG_GROUPS,
+    validate_story_data,
+    validate_story_data_strict,
+)
 
 
 def test_schema_validation_accepts_current_data(story_dataset_payloads) -> None:
@@ -165,10 +169,13 @@ def test_schema_validation_rejects_too_many_sexual_scene_tag_groups(story_datase
     partner_distributions = story_dataset_payloads["partner_distributions"]
     config["sexual_scene_tag_groups"] = {
         f"group_{index}": [f"tag_{index}_a", f"tag_{index}_b"]
-        for index in range(11)
+        for index in range(MAX_SEXUAL_SCENE_TAG_GROUPS + 1)
     }
 
-    with pytest.raises(ValueError, match="at most 10 groups"):
+    with pytest.raises(
+        ValueError,
+        match=rf"at most {MAX_SEXUAL_SCENE_TAG_GROUPS} groups",
+    ):
         validate_story_data(titles, entities, prompts, config, partner_distributions)
 
 

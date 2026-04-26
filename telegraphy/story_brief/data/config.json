@@ -58,7 +58,6 @@
     ],
     "tone": [
       "detached",
-      "disinterest",
       "dominating",
       "enthusiastic",
       "guilty",
@@ -67,6 +66,7 @@
       "talkative",
       "taunting",
       "teasing",
+      "uninterested",
       "worshipful"
     ],
     "type": [

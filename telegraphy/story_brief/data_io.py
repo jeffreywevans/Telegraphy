@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import json
 import os
+import re
 from functools import lru_cache
 from importlib.resources import files
 from importlib.resources.abc import Traversable
@@ -21,6 +22,18 @@ DATA_FILENAMES = {
 }
 
 
+def _expanduser_with_home(raw_path: str) -> str:
+    """Expand leading user-home markers while honoring HOME across platforms."""
+    if not raw_path.startswith("~"):
+        return raw_path
+
+    home = os.environ.get("HOME")
+    if home and (raw_path == "~" or raw_path.startswith("~/") or raw_path.startswith("~\\")):
+        return re.sub(r"^~(?=$|[/\\])", home, raw_path, count=1)
+
+    return os.path.expanduser(raw_path)
+
+
 def _resolve_override_data_dir(raw_value: str) -> Path:
     """Resolve and validate TELEGRAPHY_DATA_DIR style overrides."""
     trimmed = raw_value.strip()
@@ -29,7 +42,7 @@ def _resolve_override_data_dir(raw_value: str) -> Path:
     if "\x00" in trimmed:
         raise ValueError("Configured data directory must not contain NUL bytes")
 
-    raw_path = Path(trimmed).expanduser()
+    raw_path = Path(_expanduser_with_home(trimmed))
     if not raw_path.is_absolute():
         raise ValueError("Configured data directory must be an absolute path")
 

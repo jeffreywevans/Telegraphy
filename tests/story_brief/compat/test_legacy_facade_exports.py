@@ -28,5 +28,5 @@ def test_legacy_compat_alias_attribute_resolves_to_data_copy() -> None:
 
 
 def test_legacy_unknown_attribute_raises_attribute_error() -> None:
-    with pytest.raises(AttributeError, match="has no attribute"):
+    with pytest.raises(AttributeError, match=r"has no attribute 'DOES_NOT_EXIST'"):
         _ = legacy.DOES_NOT_EXIST

@@ -98,6 +98,28 @@ def test_data_file_falls_back_to_repo_relative_when_resources_unavailable(
     assert Path(data_io._data_file("titles.json")) == repo_relative
 
 
+@pytest.mark.parametrize(
+    "error",
+    [FileNotFoundError("missing package data"), TypeError("invalid package type")],
+)
+def test_data_file_repo_relative_fallback_for_resource_resolution_errors(
+    error: Exception, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    expected = tmp_path / "data" / "titles.json"
+    expected.parent.mkdir(parents=True)
+    expected.write_text("{}", encoding="utf-8")
+
+    monkeypatch.setattr(data_io, "__file__", str(tmp_path / "data_io.py"))
+    monkeypatch.setattr(data_io, "__package__", "telegraphy.story_brief")
+
+    def raise_error(_package: str) -> object:
+        raise error
+
+    monkeypatch.setattr(data_io, "files", raise_error)
+
+    assert Path(data_io._data_file("titles.json")) == expected
+
+
 def _parse_payload(
     payload: dict[str, object], character_rows: list[tuple[str, date, date]]
 ) -> None:

@@ -183,6 +183,42 @@ def test_env_override_requires_absolute_directory(
         story_brief.load_story_data()
 
 
+@pytest.mark.parametrize(
+    ("raw_value", "message"),
+    [
+        ("   ", "must not be empty"),
+        ("/tmp/\x00bad", "must not contain NUL bytes"),
+        ("/tmp/bad*path", "unsupported characters"),
+        ("/tmp/../escape", "must not include parent-directory traversal"),
+    ],
+)
+def test_resolve_override_data_dir_rejects_invalid_values(
+    raw_value: str, message: str
+) -> None:
+    with pytest.raises(ValueError, match=message):
+        data_io._resolve_override_data_dir(raw_value)
+
+
+def test_resolve_override_data_dir_rejects_existing_file(tmp_path: Path) -> None:
+    file_path = tmp_path / "not-a-dir.json"
+    file_path.write_text("{}", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="must be an existing directory"):
+        data_io._resolve_override_data_dir(str(file_path))
+
+
+def test_load_data_missing_filename_without_exc_filename(monkeypatch: pytest.MonkeyPatch) -> None:
+    def raise_missing(_path: object) -> object:
+        raise FileNotFoundError()
+
+    monkeypatch.setattr(data_io, "_load_json", raise_missing)
+    monkeypatch.delenv("TELEGRAPHY_DATA_DIR", raising=False)
+    monkeypatch.delenv("COMMUTED_STORY_BRIEF_DATA_DIR", raising=False)
+
+    with pytest.raises(ValueError, match="unknown file"):
+        data_io.load_data(Path("/tmp"))
+
+
 def test_get_data_returns_defensive_copies() -> None:
     story_brief.clear_get_data_cache()
 

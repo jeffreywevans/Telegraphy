@@ -18,6 +18,15 @@ def test_weighted_choice_returns_option_from_domain() -> None:
     assert value in options
 
 
+def test_weighted_choice_supports_non_string_options() -> None:
+    rng = random.Random(3)
+    options = [2, 3, 4]
+    weights = [0.7, 0.2, 0.1]
+
+    value = weighted_choice(rng, options, weights)
+    assert value in options
+
+
 @pytest.mark.parametrize(
     ("options", "weights", "expected_exc"),
     [

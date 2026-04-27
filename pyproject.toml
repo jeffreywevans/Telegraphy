@@ -14,17 +14,10 @@ dependencies = ["PyYAML>=6.0.3"]
 [project.optional-dependencies]
 dev = [
     "mypy>=1.18.0",
-<<<<<<< dependabot/pip/dev-pytest-5b3fba28ee
     "pytest>=9.0.3",
     "pytest-cov>=7.1.0",
     "ruff>=0.15.12",
-    "types-PyYAML>=6.0.12.20250822",
-=======
-    "pytest>=8.0.0",
-    "pytest-cov>=5.0.0",
-    "ruff>=0.8.0",
     "types-PyYAML>=6.0.12.20260408",
->>>>>>> main
 ]
 
 [project.scripts]

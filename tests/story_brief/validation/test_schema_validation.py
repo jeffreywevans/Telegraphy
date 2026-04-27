@@ -1,4 +1,7 @@
-from datetime import timedelta
+import math
+from collections.abc import Callable
+from datetime import date, timedelta
+from typing import Any
 
 import pytest
 
@@ -438,3 +441,269 @@ def test_dataset_lint_treats_empty_partner_eras_as_intentional_celibacy() -> Non
         "Partner data coverage gap: protagonist 'Jordan'" in msg
         for msg in report.warnings
     )
+
+
+PayloadMutator = Callable[
+    [dict[str, Any], dict[str, Any], dict[str, Any], dict[str, Any]],
+    None,
+]
+
+
+def _assert_schema_rejects(
+    story_dataset_payloads: dict[str, dict[str, Any]],
+    mutator: PayloadMutator,
+    expected_message: str,
+) -> None:
+    titles = story_dataset_payloads["titles"]
+    entities = story_dataset_payloads["entities"]
+    prompts = story_dataset_payloads["prompts"]
+    config = story_dataset_payloads["config"]
+    partner_distributions = story_dataset_payloads["partner_distributions"]
+    mutator(titles, entities, prompts, config)
+
+    with pytest.raises(ValueError, match=expected_message):
+        validate_story_data(titles, entities, prompts, config, partner_distributions)
+
+
+def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) -> None:
+    partner_distributions.clear()
+    partner_distributions.update(
+        {
+            "schema_version": 1,
+            "dataset_version": "branch-condition-test",
+            "date_start": "2000-01-01",
+            "date_end": "2000-01-01",
+            "partner_distributions": [
+                {
+                    "character": "Alex",
+                    "date_start": "2000-01-01",
+                    "date_end": "2000-01-01",
+                    "eras": [
+                        {
+                            "date_start": "2000-01-01",
+                            "date_end": "2000-01-01",
+                            "partners": [{"partner": "Jordan", "weight": 1.0}],
+                        }
+                    ],
+                },
+                {
+                    "character": "Jordan",
+                    "date_start": "2000-01-01",
+                    "date_end": "2000-01-01",
+                    "eras": [
+                        {
+                            "date_start": "2000-01-01",
+                            "date_end": "2000-01-01",
+                            "partners": [{"partner": "Alex", "weight": 1.0}],
+                        }
+                    ],
+                },
+            ],
+        }
+    )
+
+
+@pytest.mark.parametrize(
+    ("mutator", "expected_message"),
+    [
+        (
+            lambda titles, _entities, _prompts, _config: titles.update({"titles": []}),
+            r"titles\.titles must be a non-empty list",
+        ),
+        (
+            lambda _titles, _entities, prompts, _config: prompts.update({"weather": [" "]}),
+            r"prompts\.weather\[0\] must be a non-empty string",
+        ),
+        (
+            lambda _titles, entities, _prompts, _config: entities.update(
+                {"character_availability": []}
+            ),
+            r"entities\.character_availability must be a non-empty list",
+        ),
+        (
+            lambda _titles, entities, _prompts, _config: entities[
+                "character_availability"
+            ].append(["Bad Date", "not-a-date", 2000]),
+            r"boundary string values must be ISO dates",
+        ),
+        (
+            lambda _titles, entities, _prompts, _config: entities[
+                "character_availability"
+            ].append(["Bad Boundary", None, 2000]),
+            r"boundary values must be an integer year or ISO date string",
+        ),
+        (
+            lambda _titles, entities, _prompts, _config: entities[
+                "character_availability"
+            ].append([" ", 2000, 2001]),
+            r"entities\.character_availability\[\d+\]\[0\] must be a non-empty string",
+        ),
+        (
+            lambda _titles, entities, _prompts, _config: entities[
+                "character_availability"
+            ].append(["Backward", "2001-01-01", "2000-01-01"]),
+            r"start must be <= end",
+        ),
+        (
+            lambda _titles, _entities, _prompts, config: config.update({"schema_version": 0}),
+            r"config\.schema_version must be an integer >= 1",
+        ),
+        (
+            lambda _titles, _entities, _prompts, config: config.update(
+                {"date_start": "2001-01-01", "date_end": "2000-01-01"}
+            ),
+            r"config\.date_start must be <= config\.date_end",
+        ),
+        (
+            lambda _titles, _entities, _prompts, config: config.update(
+                {"sexual_content_weights": []}
+            ),
+            r"config\.sexual_content_weights must be a non-empty list",
+        ),
+        (
+            lambda _titles, _entities, _prompts, config: config.update(
+                {"sexual_content_weights": [1.0]}
+            ),
+            r"sexual_content_options/weights must be the same length",
+        ),
+        (
+            lambda _titles, _entities, _prompts, config: config.update(
+                {"sexual_content_weights": [True, 1.0, 1.0, 1.0, 1.0]}
+            ),
+            r"config\.sexual_content_weights\[0\] must be a real number",
+        ),
+        (
+            lambda _titles, _entities, _prompts, config: config.update(
+                {"sexual_content_weights": [math.inf, 1.0, 1.0, 1.0, 1.0]}
+            ),
+            r"config\.sexual_content_weights\[0\] must be finite",
+        ),
+        (
+            lambda _titles, _entities, _prompts, config: config.update(
+                {"sexual_content_weights": [-1.0, 1.0, 1.0, 1.0, 1.0]}
+            ),
+            r"config\.sexual_content_weights\[0\] must be non-negative",
+        ),
+        (
+            lambda _titles, _entities, _prompts, config: config.update(
+                {"word_count_targets": []}
+            ),
+            r"config\.word_count_targets must be a non-empty list",
+        ),
+        (
+            lambda _titles, _entities, _prompts, config: config.update(
+                {"sexual_scene_tag_groups": {}}
+            ),
+            r"config\.sexual_scene_tag_groups must be a non-empty object",
+        ),
+        (
+            lambda _titles, _entities, _prompts, config: config.update(
+                {"sexual_scene_tag_groups": {"": ["one"], "tone": ["two"]}}
+            ),
+            r"config\.sexual_scene_tag_groups keys must be non-empty strings",
+        ),
+        (
+            lambda _titles, _entities, _prompts, config: config.update(
+                {"sexual_scene_tag_count_weights": {}}
+            ),
+            r"config\.sexual_scene_tag_count_weights must be a non-empty object",
+        ),
+        (
+            lambda _titles, _entities, _prompts, config: config.update(
+                {"sexual_scene_tag_count_weights": {"abc": 1.0}}
+            ),
+            r"sexual_scene_tag_count_weights keys must be positive integers",
+        ),
+        (
+            lambda _titles, _entities, _prompts, config: config.update(
+                {"sexual_scene_tag_count_weights": {"1": 0.0, "2": 0.0}}
+            ),
+            r"sexual_scene_tag_count_weights values must sum to > 0",
+        ),
+        (
+            lambda _titles, _entities, _prompts, config: config.update(
+                {"sexual_scene_tag_count_weights": {"1": True}}
+            ),
+            r"sexual_scene_tag_count_weights values must be real numbers",
+        ),
+        (
+            lambda _titles, _entities, _prompts, config: config.update(
+                {"sexual_scene_tag_count_weights": {"1": math.inf}}
+            ),
+            r"sexual_scene_tag_count_weights values must be finite",
+        ),
+        (
+            lambda _titles, _entities, _prompts, config: config.update(
+                {"sexual_scene_tag_count_weights": {"1": -1.0}}
+            ),
+            r"sexual_scene_tag_count_weights values must be non-negative",
+        ),
+        (
+            lambda _titles, _entities, _prompts, config: config.update({"ordered_keys": []}),
+            r"config\.ordered_keys must be a non-empty list",
+        ),
+        (
+            lambda _titles, _entities, _prompts, config: config.update(
+                {"ordered_keys": [" ", *config["ordered_keys"][1:]]}
+            ),
+            r"config\.ordered_keys\[0\] must be a non-empty string",
+        ),
+        (
+            lambda _titles, _entities, _prompts, config: config.update(
+                {"ordered_keys": [key for key in config["ordered_keys"] if key != "title"]}
+            ),
+            r"missing expected keys: title",
+        ),
+        (
+            lambda _titles, _entities, _prompts, config: config.update(
+                {"ordered_keys": [*config["ordered_keys"], "bonus_field"]}
+            ),
+            r"unexpected keys: bonus_field",
+        ),
+        (
+            lambda _titles, _entities, _prompts, config: config.update({"writing_preamble": ""}),
+            r"config\.writing_preamble must be a non-empty string",
+        ),
+    ],
+)
+def test_schema_validation_rejects_uncovered_branch_conditions(
+    story_dataset_payloads: dict[str, dict[str, Any]],
+    mutator: PayloadMutator,
+    expected_message: str,
+) -> None:
+    _assert_schema_rejects(story_dataset_payloads, mutator, expected_message)
+
+
+def test_schema_validation_accepts_integer_year_availability_boundaries(
+    story_dataset_payloads: dict[str, dict[str, Any]],
+) -> None:
+    titles = story_dataset_payloads["titles"]
+    entities = story_dataset_payloads["entities"]
+    prompts = story_dataset_payloads["prompts"]
+    config = story_dataset_payloads["config"]
+    partner_distributions = story_dataset_payloads["partner_distributions"]
+
+    titles["titles"] = ["A Night in @setting with @protagonist"]
+    entities["character_availability"] = [
+        ["Alex", 2000, 2000],
+        ["Jordan", 2000, 2000],
+    ]
+    entities["setting_availability"] = [["Seattle", 2000, 2000]]
+    config.update({"date_start": "2000-01-01", "date_end": "2000-01-01"})
+    _set_minimal_partner_distributions(partner_distributions)
+
+    validated_data = validate_story_data(
+        titles,
+        entities,
+        prompts,
+        config,
+        partner_distributions,
+    )
+
+    assert validated_data.character_availability == [
+        ("Alex", date(2000, 1, 1), date(2000, 1, 1)),
+        ("Jordan", date(2000, 1, 1), date(2000, 1, 1)),
+    ]
+    assert validated_data.setting_availability == [
+        ("Seattle", date(2000, 1, 1), date(2000, 1, 1)),
+    ]

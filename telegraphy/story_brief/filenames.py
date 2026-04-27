@@ -79,8 +79,6 @@ def _sanitize_stem_and_suffix(name: str) -> tuple[str, str]:
     safe_stem = re.sub(r'[\x00-\x1f<>:"/\\|?*]+', "-", stem).rstrip(" .-")
     safe_stem = safe_stem[:MAX_FILENAME_STEM_LENGTH].rstrip(" .-")
     safe_suffix = re.sub(r'[\x00-\x1f<>:"/\\|?*]+', "", ext).rstrip(" .")
-    if safe_suffix and not safe_suffix.startswith("."):
-        safe_suffix = f".{safe_suffix}"
     safe_suffix = _truncate_utf8_filename("", safe_suffix, MAX_FILENAME_BYTES - 1).rstrip(" .")
     if safe_suffix == ".":
         safe_suffix = ""
@@ -180,7 +178,7 @@ def resolve_output_path(
             f"--output-dir must be within {trusted_base_dir}: {resolved_output_dir}"
         )
 
-    if filename:
+    if filename is not None:
         try:
             _validate_user_filename_input(filename)
         except ValueError as exc:

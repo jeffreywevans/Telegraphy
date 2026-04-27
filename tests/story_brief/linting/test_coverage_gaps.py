@@ -207,7 +207,7 @@ def test_resolve_interval_end_returns_none_for_invalid_interval() -> None:
 
 
 @pytest.mark.parametrize(
-    ("distributions", "expected_gaps"),
+    ("distributions", "interval", "protagonists", "expected_gaps"),
     [
         (
             {
@@ -215,6 +215,8 @@ def test_resolve_interval_end_returns_none_for_invalid_interval() -> None:
                     {"date_start": date(2025, 4, 4), "date_end": date(2025, 4, 4), "partners": []}
                 ]
             },
+            (date(2025, 4, 4), date(2025, 4, 4)),
+            ["Alex"],
             {},
         ),
         (
@@ -223,21 +225,24 @@ def test_resolve_interval_end_returns_none_for_invalid_interval() -> None:
                     {"date_start": date(2025, 4, 5), "date_end": date(2025, 4, 5), "partners": []}
                 ]
             },
+            (date(2025, 4, 4), date(2025, 4, 4)),
+            ["Alex"],
             {"Alex": [(date(2025, 4, 4), date(2025, 4, 4))]},
         ),
     ],
 )
 def test_record_partner_gaps(
     distributions: dict[str, list[dict[str, object]]],
+    interval: tuple[date, date],
+    protagonists: list[str],
     expected_gaps: dict[str, list[tuple[date, date]]],
 ) -> None:
-    day = date(2025, 4, 4)
     gaps: dict[str, list[tuple[date, date]]] = {}
 
     _record_partner_gaps(
         partner_distributions=distributions,
-        interval=(day, day),
-        protagonists=["Alex"],
+        interval=interval,
+        protagonists=protagonists,
         partner_data_gap_ranges_by_protagonist=gaps,
     )
 
@@ -245,15 +250,15 @@ def test_record_partner_gaps(
 
 
 @pytest.mark.parametrize(
-    ("data_overrides", "expected_warning_count"),
+    ("data_overrides", "expected_warning_substrings"),
     [
-        ({}, 0),
-        ({"central_conflicts": ["A"]}, 1),
-        ({"word_count_targets": [700]}, 1),
+        ({}, []),
+        ({"central_conflicts": ["A"]}, ["central_conflicts"]),
+        ({"word_count_targets": [700]}, ["word_count_targets"]),
     ],
 )
 def test_append_prompt_depth_warnings(
-    data_overrides: dict[str, list[str] | list[int]], expected_warning_count: int
+    data_overrides: dict[str, list[str] | list[int]], expected_warning_substrings: list[str]
 ) -> None:
     data = {
         **{key: ["A", "B", "C"] for key in PROMPT_LIST_KEYS},
@@ -264,4 +269,6 @@ def test_append_prompt_depth_warnings(
 
     _append_prompt_depth_warnings(data, warnings=warnings)
 
-    assert len(warnings) == expected_warning_count
+    assert len(warnings) == len(expected_warning_substrings)
+    for substring in expected_warning_substrings:
+        assert any(substring in warning for warning in warnings)

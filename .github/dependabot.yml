@@ -10,7 +10,7 @@ updates:
     schedule:
       interval: "weekly"
       day: "monday"
-      time: "08:00"
+      time: "21:00"
       timezone: "UTC"
     labels:
       - "dependencies"

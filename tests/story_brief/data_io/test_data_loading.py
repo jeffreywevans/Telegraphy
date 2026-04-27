@@ -122,6 +122,37 @@ def test_legacy_env_override_loads_dataset_from_custom_directory(
     assert loaded["titles"] == ("A Night in @setting",)
 
 
+def test_load_story_data_normalizes_sexual_scene_tag_count_weights(
+    override_data_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _write_payload(
+        override_data_dir / "config.json",
+        {
+            "schema_version": 1,
+            "dataset_version": "test",
+            "date_start": "2000-01-01",
+            "date_end": "2005-12-31",
+            "sexual_content_options": ["none"],
+            "sexual_content_weights": [1],
+            "sexual_scene_tag_groups": {
+                "tone": ["tender"],
+                "partner": ["married"],
+            },
+            "sexual_scene_tag_count_weights": {"2": 0.3, "1": 0.7},
+            "word_count_targets": [1200],
+            "ordered_keys": sorted(story_brief.EXPECTED_GENERATED_FIELD_KEYS),
+            "writing_preamble": "Write.",
+        },
+    )
+    monkeypatch.setenv("TELEGRAPHY_DATA_DIR", str(override_data_dir))
+    story_brief.clear_get_data_cache()
+
+    loaded = story_brief.load_story_data()
+
+    assert loaded["sexual_scene_tag_count_options"] == (1, 2)
+    assert loaded["sexual_scene_tag_count_weights"] == (0.7, 0.3)
+
+
 def test_env_override_rejects_unresolved_title_token(
     override_data_dir: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

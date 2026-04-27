@@ -164,7 +164,7 @@ def test_env_override_requires_existing_directory(
     monkeypatch.setenv("TELEGRAPHY_DATA_DIR", str(missing_dir))
     story_brief.clear_get_data_cache()
 
-    with pytest.raises(ValueError, match="Failed to load story brief dataset file"):
+    with pytest.raises(ValueError, match="must be an existing directory"):
         story_brief.load_story_data()
 
 
@@ -188,7 +188,7 @@ def test_env_override_requires_absolute_directory(
     [
         ("   ", "must not be empty"),
         ("/tmp/\x00bad", "must not contain NUL bytes"),
-        ("/tmp/bad*path", "unsupported characters"),
+        ("/tmp/does-not-exist*", "must be an existing directory"),
         ("/tmp/../escape", "must not include parent-directory traversal"),
     ],
 )
@@ -205,6 +205,15 @@ def test_resolve_override_data_dir_rejects_existing_file(tmp_path: Path) -> None
 
     with pytest.raises(ValueError, match="must be an existing directory"):
         data_io._resolve_override_data_dir(str(file_path))
+
+
+def test_resolve_override_data_dir_accepts_spaces_and_unicode(tmp_path: Path) -> None:
+    custom_data_dir = tmp_path / "Story Data 🚀"
+    custom_data_dir.mkdir()
+
+    resolved = data_io._resolve_override_data_dir(str(custom_data_dir))
+
+    assert resolved == custom_data_dir.resolve()
 
 
 def test_load_data_missing_filename_without_exc_filename(

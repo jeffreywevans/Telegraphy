@@ -11,6 +11,7 @@ from telegraphy.story_brief import data_io
 from telegraphy.story_brief import generate_story_brief as story_brief
 from telegraphy.story_brief.linting import (
     DatasetLintReport,
+    PROMPT_LIST_KEYS,
     _append_prompt_depth_warnings,
     _coalesce_ranges,
     _format_date_ranges,
@@ -205,34 +206,54 @@ def test_resolve_interval_end_returns_none_for_invalid_interval() -> None:
     assert interval_end is None
 
 
-def test_record_partner_gaps_skips_protagonists_with_covering_era() -> None:
+@pytest.mark.parametrize(
+    ("distributions", "expected_gaps"),
+    [
+        (
+            {"Alex": [{"date_start": date(2025, 4, 4), "date_end": date(2025, 4, 4), "partners": []}]},
+            {},
+        ),
+        (
+            {"Alex": [{"date_start": date(2025, 4, 5), "date_end": date(2025, 4, 5), "partners": []}]},
+            {"Alex": [(date(2025, 4, 4), date(2025, 4, 4))]},
+        ),
+    ],
+)
+def test_record_partner_gaps(
+    distributions: dict[str, list[dict[str, object]]],
+    expected_gaps: dict[str, list[tuple[date, date]]],
+) -> None:
     day = date(2025, 4, 4)
-    partner_distributions = {
-        "Alex": [{"date_start": day, "date_end": day, "partners": []}],
-    }
     gaps: dict[str, list[tuple[date, date]]] = {}
 
     _record_partner_gaps(
-        partner_distributions=partner_distributions,
+        partner_distributions=distributions,
         interval=(day, day),
         protagonists=["Alex"],
         partner_data_gap_ranges_by_protagonist=gaps,
     )
 
-    assert gaps == {}
+    assert gaps == expected_gaps
 
 
-def test_append_prompt_depth_warnings_skips_when_depth_is_sufficient() -> None:
+@pytest.mark.parametrize(
+    ("data_overrides", "expected_warning_count"),
+    [
+        ({}, 0),
+        ({"central_conflicts": ["A"]}, 1),
+        ({"word_count_targets": [700]}, 1),
+    ],
+)
+def test_append_prompt_depth_warnings(
+    data_overrides: dict[str, list[str] | list[int]], expected_warning_count: int
+) -> None:
     data = {
-        "central_conflicts": ["A", "B", "C"],
-        "inciting_pressures": ["A", "B", "C"],
-        "ending_types": ["A", "B", "C"],
-        "style_guidance": ["A", "B", "C"],
-        "weather": ["A", "B", "C"],
+        **{key: ["A", "B", "C"] for key in PROMPT_LIST_KEYS},
         "word_count_targets": [700, 900, 1200],
+        **data_overrides,
     }
     warnings: list[str] = []
 
     _append_prompt_depth_warnings(data, warnings=warnings)
 
-    assert warnings == []
+    assert len(warnings) == expected_warning_count

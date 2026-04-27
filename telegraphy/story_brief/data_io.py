@@ -42,7 +42,7 @@ def _resolve_override_data_dir(raw_value: str) -> Path:
 
     try:
         candidate = raw_path.resolve(strict=True)
-    except FileNotFoundError as exc:
+    except OSError as exc:
         raise ValueError(
             "Configured data directory must be an existing directory: "
             f"{raw_path}"

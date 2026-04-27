@@ -255,10 +255,7 @@ def test_write_output_markdown_without_onofollow_when_unavailable(
     captured_flags: list[int] = []
     original_open = os.open
 
-    if hasattr(
-        __import__("telegraphy.story_brief.filenames", fromlist=["os"]).os, "O_NOFOLLOW"
-    ):
-        monkeypatch.delattr("telegraphy.story_brief.filenames.os.O_NOFOLLOW", raising=False)
+    monkeypatch.delattr("telegraphy.story_brief.filenames.os.O_NOFOLLOW", raising=False)
 
     def fake_open(path, flags, mode):
         captured_flags.append(flags)

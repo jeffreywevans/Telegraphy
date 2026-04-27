@@ -80,8 +80,6 @@ def _sanitize_stem_and_suffix(name: str) -> tuple[str, str]:
     safe_stem = safe_stem[:MAX_FILENAME_STEM_LENGTH].rstrip(" .-")
     safe_suffix = re.sub(r'[\x00-\x1f<>:"/\\|?*]+', "", ext).rstrip(" .")
     safe_suffix = _truncate_utf8_filename("", safe_suffix, MAX_FILENAME_BYTES - 1).rstrip(" .")
-    if safe_suffix == ".":
-        safe_suffix = ""
     return safe_stem, safe_suffix
 
 

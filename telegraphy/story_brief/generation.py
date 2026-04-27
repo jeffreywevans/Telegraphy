@@ -165,20 +165,15 @@ def pick_story_characters(
 ) -> tuple[str, str]:
     """Pick protagonist and secondary character for a date."""
     characters_for_date = stable_sorted_pool(available_characters(selected_date, data))
-    if len(characters_for_date) < 2:
+    distinct_characters_for_date = list(dict.fromkeys(characters_for_date))
+    if len(distinct_characters_for_date) < 2:
         raise ValueError(
             "Need at least two distinct available characters for year "
             f"{selected_date.year}."
         )
 
-    protagonist = rng.choice(characters_for_date)
-    eligible_secondary = [name for name in characters_for_date if name != protagonist]
-    if not eligible_secondary:
-        raise ValueError(
-            "Need at least two distinct available characters for year "
-            f"{selected_date.year}."
-        )
-    return protagonist, rng.choice(eligible_secondary)
+    protagonist, secondary_character = rng.sample(distinct_characters_for_date, 2)
+    return protagonist, secondary_character
 
 
 def pick_story_setting(

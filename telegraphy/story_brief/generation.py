@@ -64,9 +64,9 @@ def available_settings(selected_date: date, data: Mapping[str, Any]) -> list[str
 
 def weighted_choice(
     rng: random.Random | secrets.SystemRandom,
-    options: Sequence[OptionValue],
+    options: Sequence[OptionT],
     weights: Sequence[float],
-) -> OptionValue:
+) -> OptionT:
     """Pick one option using relative weights."""
     if not options:
         raise ValueError("options must not be empty")

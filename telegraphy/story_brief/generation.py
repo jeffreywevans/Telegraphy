@@ -240,16 +240,17 @@ def pick_sexual_scene_tags(
 def build_sexual_scene_tag_count_distribution(
     tag_group_names: Sequence[str], data: Mapping[str, Any]
 ) -> tuple[list[int], list[float]]:
-    """Build valid sexual scene tag count options and weights."""
+    """Build valid sexual scene tag count options and weights from normalized data."""
+    configured_weights = data.get(
+        "sexual_scene_tag_count_weights",
+        tuple(DEFAULT_SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION.values()),
+    )
     configured_tag_count_pairs = zip(
         data.get(
             "sexual_scene_tag_count_options",
             tuple(DEFAULT_SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION),
         ),
-        data.get(
-            "sexual_scene_tag_count_weights",
-            tuple(DEFAULT_SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION.values()),
-        ),
+        configured_weights,
         strict=False,
     )
     tag_count_options: list[int] = []

@@ -15,7 +15,7 @@ from ._constants import (
 from .rendering import render_title
 
 PoolValue = TypeVar("PoolValue", bound=str | int | tuple[str, float])
-OptionValue = TypeVar("OptionValue")
+OptionT = TypeVar("OptionT")
 DEFAULT_SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION = {
     2: 0.7,
     3: 0.1,

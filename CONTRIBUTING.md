@@ -18,9 +18,15 @@ Before opening a pull request, run:
 
 ```bash
 ruff check .
-ruff format --check .
-mypy telegraphy
+ruff format .
+mypy .
 pytest
+```
+
+For the full suite in a consistent environment, run:
+
+```bash
+tox
 ```
 
 If you change generation logic, add or update tests in `tests/` to cover both success and failure cases.
@@ -28,7 +34,7 @@ If you change generation logic, add or update tests in `tests/` to cover both su
 ## Dataset and behavior changes
 
 - Keep JSON data changes focused and intentional.
-- If changing `telegraphy/story_brief/data/*`, run `story-brief --lint-dataset` and at least one generation command to validate behavior.
+- If changing `telegraphy/story_brief/data/*`, run `story-brief --lint-dataset` and a generation command (e.g., `story-brief --print-only`) to validate behavior.
 - Preserve deterministic behavior for seeded generation.
 
 ## Pull requests
@@ -45,3 +51,4 @@ Keep PRs small when possible.
 
 - For bugs/feature requests, open a GitHub issue with reproduction steps.
 - For security issues, follow `SECURITY.md` and do not disclose publicly first.
+- Adhere to the [Code of Conduct](CODE_OF_CONDUCT.md) in all interactions.

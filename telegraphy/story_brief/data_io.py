@@ -12,6 +12,10 @@ from typing import Any
 DATA_DIR_ENV_VAR = "TELEGRAPHY_DATA_DIR"
 LEGACY_DATA_DIR_ENV_VAR = "COMMUTED_STORY_BRIEF_DATA_DIR"
 
+class DataDirError(ValueError):
+    """Raised when the configured data directory is invalid or unreachable."""
+
+
 DATA_FILENAMES = {
     "titles": "titles.json",
     "entities": "entities.json",
@@ -24,31 +28,31 @@ def _resolve_override_data_dir(raw_value: str) -> Path:
     """Resolve and validate TELEGRAPHY_DATA_DIR style overrides."""
     trimmed = raw_value.strip()
     if not trimmed:
-        raise ValueError("Configured data directory must not be empty")
+        raise DataDirError("Configured data directory must not be empty")
     if "\x00" in trimmed:
-        raise ValueError("Configured data directory must not contain NUL bytes")
+        raise DataDirError("Configured data directory must not contain NUL bytes")
 
     # Defend against path-injection style traversal before constructing a Path.
     normalized_for_validation = trimmed.replace("\\", "/")
     segments = [part for part in normalized_for_validation.split("/") if part]
     if any(part == ".." for part in segments):
-        raise ValueError(
+        raise DataDirError(
             "Configured data directory must not include parent-directory traversal"
         )
 
     raw_path = Path(trimmed).expanduser()
     if not raw_path.is_absolute():
-        raise ValueError("Configured data directory must be an absolute path")
+        raise DataDirError("Configured data directory must be an absolute path")
 
     try:
         candidate = raw_path.resolve(strict=True)
     except OSError as exc:
-        raise ValueError(
+        raise DataDirError(
             "Configured data directory must be an existing directory: "
             f"{raw_path}"
         ) from exc
     if not candidate.is_dir():
-        raise ValueError(
+        raise DataDirError(
             "Configured data directory must be an existing directory: "
             f"{candidate}"
         )

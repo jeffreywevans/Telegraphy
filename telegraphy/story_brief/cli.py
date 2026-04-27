@@ -11,6 +11,7 @@ from datetime import date
 from pathlib import Path
 
 from . import generate_story_brief as story_brief_cli
+from .data_io import DataDirError
 from .filenames import (
     DEFAULT_OUTPUT_DIR,
     OutputPathError,
@@ -108,8 +109,11 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     try:
         data = story_brief_cli.get_data()
-    except ValueError as exc:
+    except DataDirError as exc:
         print(f"Failed to load story brief dataset file. {exc}", file=sys.stderr)
+        return 1
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
         return 1
 
     rng = _build_rng(args.seed)

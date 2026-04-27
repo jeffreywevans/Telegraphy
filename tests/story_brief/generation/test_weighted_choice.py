@@ -2,7 +2,11 @@ import random
 
 import pytest
 
-from telegraphy.story_brief.generation import symmetric_peak_weights, weighted_choice
+from telegraphy.story_brief.generation import (
+    build_sexual_scene_tag_count_distribution,
+    symmetric_peak_weights,
+    weighted_choice,
+)
 
 
 def test_weighted_choice_returns_option_from_domain() -> None:
@@ -55,3 +59,16 @@ def test_symmetric_peak_weights_rejects_non_positive_lengths() -> None:
     for length in (0, -1):
         with pytest.raises(ValueError, match="greater than zero"):
             symmetric_peak_weights(length)
+
+
+def test_build_sexual_scene_tag_count_distribution_rejects_empty_result() -> None:
+    data = {
+        "sexual_scene_tag_count_options": (3, 4),
+        "sexual_scene_tag_count_weights": (0.5, 0.5),
+    }
+
+    with pytest.raises(
+        ValueError,
+        match="No valid sexual scene tag count options remain",
+    ):
+        build_sexual_scene_tag_count_distribution(("tone", "location"), data)

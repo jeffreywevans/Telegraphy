@@ -264,6 +264,15 @@ def build_sexual_scene_tag_count_distribution(
         if count <= len(tag_group_names):
             tag_count_options.append(count)
             tag_count_weights.append(weight)
+
+    if not tag_count_options:
+        max_supported_count = len(tag_group_names)
+        raise ValueError(
+            "No valid sexual scene tag count options remain after filtering "
+            "configured counts against available sexual scene tag groups "
+            f"(max supported count: {max_supported_count})"
+        )
+
     return tag_count_options, tag_count_weights
 
 

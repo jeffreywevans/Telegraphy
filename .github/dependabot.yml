@@ -10,8 +10,8 @@ updates:
     schedule:
       interval: "weekly"
       day: "monday"
-      time: "21:00"
-      timezone: "UTC"
+      time: "19:00"
+      timezone: "America/New_York"
     labels:
       - "dependencies"
       - "python"
@@ -32,8 +32,8 @@ updates:
     schedule:
       interval: "weekly"
       day: "monday"
-      time: "08:00"
-      timezone: "UTC"
+      time: "19:00"
+      timezone: "America/New_York"
     labels:
       - "dependencies"
       - "github-actions"

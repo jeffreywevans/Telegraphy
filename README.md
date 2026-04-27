@@ -422,24 +422,7 @@ The current gaps are not alarming, but they are knowable:
 | Medium   | Add `CONTRIBUTING.md`, `CODEOWNERS`, and a serious conduct escalation path | Medium |    Low |    Low |
 | Medium   | Rename or better document `generate_story_brief.py` as a facade/API module | Medium | Medium | Medium |
 
-### Proposed patch for CI coverage alignment
 
-This fixes the current mismatch where tox sets subprocess coverage env vars but GitHub Actions does not.
-
-```diff
-diff --git a/.github/workflows/build.yml b/.github/workflows/build.yml
-@@
-       - name: Run tests with coverage
--        run: python -m telegraphy.scripts.run_coverage_workflow
-+        env:
-+          COVERAGE_PROCESS_START: ${{ github.workspace }}/tox.ini
-+          COVERAGE_FILE: ${{ github.workspace }}/.coverage
-+          TOX_PROJECT_ROOT: ${{ github.workspace }}
-+          PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/telegraphy/scripts/cov_init
-+        run: python -m telegraphy.scripts.run_coverage_workflow
-```
-
-Why this is worth doing: the repository already has the subprocess coverage plumbing (`cov_init/sitecustomize.py`) and tox already relies on it, so GitHub Actions should use the same contract instead of a similar-but-not-identical path. 
 ### Proposed patch for build-and-install artifact verification
 
 Right now CI proves editable-install success, not distribution success. This adds actual package smoke tests.
@@ -466,64 +449,6 @@ diff --git a/.github/workflows/build.yml b/.github/workflows/build.yml
 ```
 
 This is the fastest way to catch “works editable, breaks as a package” problems. It also gives you real confidence before ever publishing a release. 
-
-### Proposed patch for `data_io.py` path validation
-
-The current allowlist rejects many legitimate absolute paths with spaces. You can keep the safety model and lose the needless friction.
-
-```diff
-diff --git a/telegraphy/story_brief/data_io.py b/telegraphy/story_brief/data_io.py
-@@
--import re
-@@
--_SAFE_PATH_PATTERN = re.compile(r"^[A-Za-z0-9._/\\~:-]+$")
--
--
- def _resolve_override_data_dir(raw_value: str) -> Path:
-     """Resolve and validate TELEGRAPHY_DATA_DIR style overrides."""
-     trimmed = raw_value.strip()
-     if not trimmed:
-         raise ValueError("Configured data directory must not be empty")
-     if "\x00" in trimmed:
-         raise ValueError("Configured data directory must not contain NUL bytes")
--    if not _SAFE_PATH_PATTERN.fullmatch(trimmed):
--        raise ValueError(
--            "Configured data directory contains unsupported characters"
--        )
- 
-     # Defend against path-injection style traversal before constructing a Path.
-     normalized_for_validation = trimmed.replace("\\", "/")
-     segments = [part for part in normalized_for_validation.split("/") if part]
-     if any(part == ".." for part in segments):
-         raise ValueError(
-             "Configured data directory must not include parent-directory traversal"
-         )
-```
-
-That keeps the important guards: non-empty, no NUL, no explicit parent traversal, absolute only, must exist, must be a directory. It just stops treating normal spaces like contraband. [data_io.py 27-58](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/telegraphy/story_brief/data_io.py#L27-L58) 
-
-### Proposed README replacement outline
-
-This deserves to happen even if nothing else changes:
-
-```text
-Telegraphy
-- What it is
-- Quick start
-- Supported Python versions
-- Installation
-- CLI usage
-- Dataset structure
-- Reproducibility with --seed and --date
-- Validation and lint modes
-- Output file behavior and safety constraints
-- Development workflow
-- Running tests
-- Repository layout
-- Contributing
-```
-
-That would instantly fix the biggest “what is this thing?” problem.
 
 ## CI, packaging, compliance, and action plan
 
@@ -562,9 +487,3 @@ The weaker points are **project-governance compliance**, not OSS licensing:
 | Near term | Add `CONTRIBUTING.md` and `CODEOWNERS` | Improves maintainability/governance | Low | Low |
 | Optional | Rename/document `generate_story_brief.py` as facade/API | Improves conceptual clarity for new maintainers | Medium | Medium |
 | Optional | Reassess `setuptools>=82.0.1` minimum | Reduces isolated-build fragility if unnecessarily strict | Low | Low |
-
-### Open questions and limitations
-
-I used the provided ZIP and the public repo pages as primary evidence, and I consulted the `Commuted` repository as contextual upstream. The `Commuted` repo was accessible at the repository-page level, but file-level retrieval there was less complete than for Telegraphy, so I treated it as **context**, not as the canonical source of Telegraphy behavior. 
-
-I also did not elevate any legal-content conclusions beyond software/project governance, because the repo’s fictional/narrative content sits in a different risk bucket than the Python package itself. If this tool is intended for wider distribution or commercial reuse, a separate pass on **content governance and contributor policy** would be prudent.

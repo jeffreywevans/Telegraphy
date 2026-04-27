@@ -3,7 +3,6 @@ from __future__ import annotations
 import copy
 import json
 import os
-import re
 from functools import lru_cache
 from importlib.resources import files
 from importlib.resources.abc import Traversable
@@ -21,9 +20,6 @@ DATA_FILENAMES = {
     "partner_distributions": "partner_distributions.json",
 }
 
-_SAFE_PATH_PATTERN = re.compile(r"^[A-Za-z0-9._/\\~:-]+$")
-
-
 def _resolve_override_data_dir(raw_value: str) -> Path:
     """Resolve and validate TELEGRAPHY_DATA_DIR style overrides."""
     trimmed = raw_value.strip()
@@ -31,10 +27,6 @@ def _resolve_override_data_dir(raw_value: str) -> Path:
         raise ValueError("Configured data directory must not be empty")
     if "\x00" in trimmed:
         raise ValueError("Configured data directory must not contain NUL bytes")
-    if not _SAFE_PATH_PATTERN.fullmatch(trimmed):
-        raise ValueError(
-            "Configured data directory contains unsupported characters"
-        )
 
     # Defend against path-injection style traversal before constructing a Path.
     normalized_for_validation = trimmed.replace("\\", "/")
@@ -48,7 +40,13 @@ def _resolve_override_data_dir(raw_value: str) -> Path:
     if not raw_path.is_absolute():
         raise ValueError("Configured data directory must be an absolute path")
 
-    candidate = raw_path.resolve(strict=True)
+    try:
+        candidate = raw_path.resolve(strict=True)
+    except OSError as exc:
+        raise ValueError(
+            "Configured data directory must be an existing directory: "
+            f"{raw_path}"
+        ) from exc
     if not candidate.is_dir():
         raise ValueError(
             "Configured data directory must be an existing directory: "

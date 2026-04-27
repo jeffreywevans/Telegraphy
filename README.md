@@ -194,7 +194,7 @@ These JSON files are the actual story universe inputs:
 - `config.json`
 - `partner_distributions.json`
 
-The split is sensible: domain-based rather than one-monolith or one-file-per-key. That decision is also explicitly justified in the maintainer guide. [docs/STORY-BRIEF-MAINTAINER.md 5-35](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/docs/STORY-BRIEF-MAINTAINER.md#L5-L35) citeturn1view0
+The split is sensible: domain-based rather than one-monolith or one-file-per-key. That decision is also explicitly justified in the maintainer guide. [docs/STORY-BRIEF-MAINTAINER.md 5-35](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/docs/STORY-BRIEF-MAINTAINER.md#L5-L35) 
 
 #### `telegraphy/scripts/run_coverage_workflow.py` and `telegraphy/scripts/cov_init/sitecustomize.py`
 
@@ -207,7 +207,7 @@ These are development/CI-only helpers. `run_coverage_workflow.py` runs pytest wi
 The package exposes the same functionality through:
 
 - `story-brief`
-- `python -m telegraphy.story_brief` fileciteturn11file0L1-L1
+- `python -m telegraphy.story_brief`
 
 ### Effective usage synopsis
 

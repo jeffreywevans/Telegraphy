@@ -26,7 +26,7 @@ pytest
 For the full suite in a consistent environment, run:
 
 ```bash
-tox
+tox -e py312
 ```
 
 If you change generation logic, add or update tests in `tests/` to cover both success and failure cases.

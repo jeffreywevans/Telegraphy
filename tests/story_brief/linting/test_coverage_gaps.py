@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, timedelta
 from io import StringIO
 from pathlib import Path
 from typing import Callable
@@ -9,7 +9,14 @@ import pytest
 
 from telegraphy.story_brief import data_io
 from telegraphy.story_brief import generate_story_brief as story_brief
-from telegraphy.story_brief.linting import DatasetLintReport
+from telegraphy.story_brief.linting import (
+    DatasetLintReport,
+    _append_prompt_depth_warnings,
+    _coalesce_ranges,
+    _format_date_ranges,
+    _record_partner_gaps,
+    _resolve_interval_end,
+)
 from telegraphy.story_brief.partner_models import parse_partner_distribution_payload
 
 
@@ -176,3 +183,56 @@ def test_partner_payload_validation_error_cases_are_parameterized(
 
     with pytest.raises(ValueError, match=message):
         _parse_payload(payload, partner_character_rows)
+
+
+def test_format_and_coalesce_helpers_handle_empty_inputs() -> None:
+    assert _format_date_ranges([]) == "none"
+    assert _coalesce_ranges([]) == []
+
+
+def test_resolve_interval_end_returns_none_for_invalid_interval() -> None:
+    day = date(2025, 1, 10)
+    checkpoints = [day, day]
+
+    interval_end = _resolve_interval_end(
+        index=0,
+        current_start=day,
+        sorted_checkpoints=checkpoints,
+        range_end=day,
+        one_day=timedelta(days=1),
+    )
+
+    assert interval_end is None
+
+
+def test_record_partner_gaps_skips_protagonists_with_covering_era() -> None:
+    day = date(2025, 4, 4)
+    partner_distributions = {
+        "Alex": [{"date_start": day, "date_end": day, "partners": []}],
+    }
+    gaps: dict[str, list[tuple[date, date]]] = {}
+
+    _record_partner_gaps(
+        partner_distributions=partner_distributions,
+        interval=(day, day),
+        protagonists=["Alex"],
+        partner_data_gap_ranges_by_protagonist=gaps,
+    )
+
+    assert gaps == {}
+
+
+def test_append_prompt_depth_warnings_skips_when_depth_is_sufficient() -> None:
+    data = {
+        "central_conflicts": ["A", "B", "C"],
+        "inciting_pressures": ["A", "B", "C"],
+        "ending_types": ["A", "B", "C"],
+        "style_guidance": ["A", "B", "C"],
+        "weather": ["A", "B", "C"],
+        "word_count_targets": [700, 900, 1200],
+    }
+    warnings: list[str] = []
+
+    _append_prompt_depth_warnings(data, warnings=warnings)
+
+    assert warnings == []

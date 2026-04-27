@@ -109,7 +109,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         data = story_brief_cli.get_data()
     except ValueError as exc:
-        print(str(exc), file=sys.stderr)
+        print(f"Failed to load story brief dataset file. {exc}", file=sys.stderr)
         return 1
 
     rng = _build_rng(args.seed)

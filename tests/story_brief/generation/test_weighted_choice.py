@@ -124,6 +124,7 @@ def test_build_sexual_scene_tag_count_distribution_mapping_null_value_defaults_z
     assert options == [1, 2]
     assert weights == [1.0, 0.0]
 
+
 def test_build_sexual_scene_tag_count_distribution_empty_mapping_falls_back_to_defaults() -> None:
     data = {
         "sexual_scene_tag_count_options": (2, 3),

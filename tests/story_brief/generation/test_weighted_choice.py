@@ -95,3 +95,31 @@ def test_build_sexual_scene_tag_count_distribution_supports_mapping_weights() ->
 
     assert options == [2, 1]
     assert weights == [0.25, 0.75]
+
+
+def test_build_sexual_scene_tag_count_distribution_mapping_missing_key_defaults_zero() -> None:
+    data = {
+        "sexual_scene_tag_count_options": (1, 2),
+        "sexual_scene_tag_count_weights": {"1": 1.0},
+    }
+
+    options, weights = build_sexual_scene_tag_count_distribution(
+        ("tone", "location"), data
+    )
+
+    assert options == [1, 2]
+    assert weights == [1.0, 0.0]
+
+
+def test_build_sexual_scene_tag_count_distribution_empty_mapping_falls_back_to_defaults() -> None:
+    data = {
+        "sexual_scene_tag_count_options": (2, 3),
+        "sexual_scene_tag_count_weights": {},
+    }
+
+    options, weights = build_sexual_scene_tag_count_distribution(
+        ("tone", "location", "dynamic"), data
+    )
+
+    assert options == [2, 3]
+    assert weights == [0.7, 0.1]

@@ -253,6 +253,6 @@ def test_cli_handles_missing_dataset_override_without_traceback(tmp_path: Path) 
     result = run_cli(
         "--print-only",
         cwd=tmp_path,
-        env_overrides={"TELEGRAPHY_DATA_DIR": str(missing_dir)},
+        data_dir=missing_dir,
     )
     assert_cli_error_without_traceback(result, "Failed to load story brief dataset file")

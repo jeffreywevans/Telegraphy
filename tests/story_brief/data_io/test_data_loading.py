@@ -164,7 +164,7 @@ def test_env_override_requires_existing_directory(
     monkeypatch.setenv("TELEGRAPHY_DATA_DIR", str(missing_dir))
     story_brief.clear_get_data_cache()
 
-    with pytest.raises(ValueError, match="must be an existing directory"):
+    with pytest.raises(data_io.DataDirError, match="must be an existing directory"):
         story_brief.load_story_data()
 
 
@@ -179,7 +179,7 @@ def test_env_override_requires_absolute_directory(
     monkeypatch.setenv("TELEGRAPHY_DATA_DIR", "override-data")
     story_brief.clear_get_data_cache()
 
-    with pytest.raises(ValueError, match="must be an absolute path"):
+    with pytest.raises(data_io.DataDirError, match="must be an absolute path"):
         story_brief.load_story_data()
 
 
@@ -195,7 +195,7 @@ def test_env_override_requires_absolute_directory(
 def test_resolve_override_data_dir_rejects_invalid_values(
     raw_value: str, message: str
 ) -> None:
-    with pytest.raises(ValueError, match=message):
+    with pytest.raises(data_io.DataDirError, match=message):
         data_io._resolve_override_data_dir(raw_value)
 
 
@@ -203,7 +203,7 @@ def test_resolve_override_data_dir_rejects_existing_file(tmp_path: Path) -> None
     file_path = tmp_path / "not-a-dir.json"
     file_path.write_text("{}", encoding="utf-8")
 
-    with pytest.raises(ValueError, match="must be an existing directory"):
+    with pytest.raises(data_io.DataDirError, match="must be an existing directory"):
         data_io._resolve_override_data_dir(str(file_path))
 
 

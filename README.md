@@ -92,7 +92,7 @@ In a local execution against the provided ZIP, `pytest -q` passed **240/240 test
 
 ## What the repository is
 
-At a high level, Telegraphy is a small but well-structured codebase that turns structured JSON data into randomized story briefs. The repository root exposes the main directories as `.github`, `docs`, `telegraphy`, and `tests`, along with `pyproject.toml`, `tox.ini`, `pytest.ini`, and policy files. The repository page shows 384 commits and no releases; the related `Commuted` repo is larger, with `.github`, `commuted_calligraphy`, `docs`, `scripts`, and `tests`, plus similarly named story-brief materials. That is a strong sign that Telegraphy is a focused tool repo inside a larger fictional-universe ecosystem. 
+At a high level, Telegraphy is a small but well-structured codebase that turns structured JSON data into randomized story briefs. The repository root exposes the main directories as `.github`, `docs`, `telegraphy`, and `tests`, along with `pyproject.toml`, `tox.ini`, `pytest.ini`, and policy files. The repository page shows 384 commits and no releases; the related `Commuted` repo is larger, with `.github`, `docs`, `scripts`, and `tests`, plus similarly named story-brief materials. That is a strong sign that Telegraphy is a focused tool repo inside a larger fictional-universe ecosystem. 
 
 The package metadata declares the distribution name `telegraphy`, Python `>=3.12`, a single runtime dependency on `PyYAML`, and one console entry point: `story-brief = telegraphy.story_brief.cli:main`.
 

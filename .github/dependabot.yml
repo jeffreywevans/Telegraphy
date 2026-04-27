@@ -38,3 +38,7 @@ updates:
       - "dependencies"
       - "github-actions"
     open-pull-requests-limit: 3
+    groups:
+      github-actions:
+        patterns:
+          - "*"

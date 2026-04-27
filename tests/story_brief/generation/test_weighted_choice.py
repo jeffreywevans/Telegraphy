@@ -81,3 +81,14 @@ def test_build_sexual_scene_tag_count_distribution_rejects_empty_result() -> Non
         match="No valid sexual scene tag count options remain",
     ):
         build_sexual_scene_tag_count_distribution(("tone", "location"), data)
+
+
+def test_build_sexual_scene_tag_count_distribution_supports_mapping_weights() -> None:
+    data = {
+        "sexual_scene_tag_count_weights": {"1": 0.6, "2": 0.3, "3": 0.1},
+    }
+
+    options, weights = build_sexual_scene_tag_count_distribution(("tone", "location"), data)
+
+    assert options == [1, 2]
+    assert weights == [0.6, 0.3]

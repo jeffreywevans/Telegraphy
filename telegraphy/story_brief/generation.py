@@ -249,6 +249,7 @@ def build_sexual_scene_tag_count_distribution(
         ),
     )
     raw_weights = data.get("sexual_scene_tag_count_weights")
+    weights: Sequence[float]
     if isinstance(raw_weights, Mapping):
         weights = [float(raw_weights[str(option)]) for option in options]
     else:

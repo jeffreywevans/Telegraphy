@@ -10,8 +10,8 @@ import pytest
 from telegraphy.story_brief import data_io
 from telegraphy.story_brief import generate_story_brief as story_brief
 from telegraphy.story_brief.linting import (
-    DatasetLintReport,
     PROMPT_LIST_KEYS,
+    DatasetLintReport,
     _append_prompt_depth_warnings,
     _coalesce_ranges,
     _format_date_ranges,
@@ -210,11 +210,19 @@ def test_resolve_interval_end_returns_none_for_invalid_interval() -> None:
     ("distributions", "expected_gaps"),
     [
         (
-            {"Alex": [{"date_start": date(2025, 4, 4), "date_end": date(2025, 4, 4), "partners": []}]},
+            {
+                "Alex": [
+                    {"date_start": date(2025, 4, 4), "date_end": date(2025, 4, 4), "partners": []}
+                ]
+            },
             {},
         ),
         (
-            {"Alex": [{"date_start": date(2025, 4, 5), "date_end": date(2025, 4, 5), "partners": []}]},
+            {
+                "Alex": [
+                    {"date_start": date(2025, 4, 5), "date_end": date(2025, 4, 5), "partners": []}
+                ]
+            },
             {"Alex": [(date(2025, 4, 4), date(2025, 4, 4))]},
         ),
     ],

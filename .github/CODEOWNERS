@@ -1,0 +1,9 @@
+# Default owners for all files
+* @jeffreywevans
+
+# Core package and tests
+/telegraphy/ @jeffreywevans
+/tests/ @jeffreywevans
+
+# GitHub automation
+/.github/ @jeffreywevans

@@ -11,6 +11,7 @@ from telegraphy.story_brief.filenames import (
     _apply_windows_reserved_name_guard,
     _build_safe_relative_path,
     _truncate_utf8_filename,
+    _validate_user_filename_input,
     resolve_output_path,
     sanitize_filename,
     write_output_markdown,
@@ -103,11 +104,38 @@ def test_truncate_utf8_filename_returns_empty_for_non_positive_max_bytes() -> No
     assert _truncate_utf8_filename("name", ".md", max_bytes=0) == ""
 
 
+def test_truncate_utf8_filename_returns_suffix_when_suffix_exhausts_budget() -> None:
+    assert _truncate_utf8_filename("name", ".markdown", max_bytes=4) == ".mar"
+
+
 def test_apply_windows_reserved_name_guard_falls_back_to_file() -> None:
     stem, suffix = _apply_windows_reserved_name_guard("con", "." + ("a" * 251))
     assert stem.startswith("fil")
     assert stem.casefold() not in {"con", "prn", "aux", "nul"}
     assert suffix.startswith(".")
+
+
+def test_apply_windows_reserved_name_guard_keeps_non_reserved_names() -> None:
+    stem, suffix = _apply_windows_reserved_name_guard("brief", ".md")
+    assert stem == "brief"
+    assert suffix == ".md"
+
+
+@pytest.mark.parametrize(
+    "filename",
+    [
+        "",
+        " trailing ",
+        "bad/name.md",
+        "bad\\name.md",
+        ".hidden.md",
+        "..",
+        "name..md",
+    ],
+)
+def test_validate_user_filename_input_rejects_unsafe_values(filename: str) -> None:
+    with pytest.raises(ValueError):
+        _validate_user_filename_input(filename)
 
 
 def test_build_safe_relative_path_rejects_home_and_traversal(tmp_path) -> None:
@@ -120,6 +148,16 @@ def test_build_safe_relative_path_rejects_home_and_traversal(tmp_path) -> None:
 def test_build_safe_relative_path_accepts_absolute_inside_base(tmp_path) -> None:
     nested = tmp_path / "safe" / "area"
     assert _build_safe_relative_path(str(nested), trusted_base_dir=tmp_path) == Path("safe/area")
+
+
+def test_build_safe_relative_path_maps_blank_to_current_directory(tmp_path) -> None:
+    assert _build_safe_relative_path("   ", trusted_base_dir=tmp_path) == Path(".")
+
+
+def test_build_safe_relative_path_rejects_absolute_path_outside_base(tmp_path) -> None:
+    outside = tmp_path.parent / "outside"
+    with pytest.raises(ValueError, match="must remain inside the base directory"):
+        _build_safe_relative_path(str(outside), trusted_base_dir=tmp_path)
 
 
 def test_resolve_output_path_uses_generated_filename_when_filename_not_supplied(
@@ -151,6 +189,18 @@ def test_resolve_output_path_reports_invalid_filename(tmp_path, monkeypatch) -> 
             output_dir=Path("safe"),
             filename="bad/name.md",
             generated_filename="auto.md",
+        )
+
+
+def test_resolve_output_path_reports_invalid_output_filename_path_combination(
+    tmp_path, monkeypatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    with pytest.raises(OutputPathError, match="Invalid output filename/path combination"):
+        resolve_output_path(
+            output_dir=Path("safe"),
+            filename=None,
+            generated_filename="../escape.md",
         )
 
 
@@ -194,3 +244,32 @@ def test_write_output_markdown_wraps_oserror(monkeypatch, tmp_path) -> None:
             content="content",
             trusted_base_dir=tmp_path,
         )
+
+
+def test_write_output_markdown_without_onofollow_when_unavailable(
+    monkeypatch, tmp_path
+) -> None:
+    import os
+
+    target = tmp_path / "brief.md"
+    captured_flags: list[int] = []
+    original_open = os.open
+
+    if hasattr(
+        __import__("telegraphy.story_brief.filenames", fromlist=["os"]).os, "O_NOFOLLOW"
+    ):
+        monkeypatch.delattr("telegraphy.story_brief.filenames.os.O_NOFOLLOW", raising=False)
+
+    def fake_open(path, flags, mode):
+        captured_flags.append(flags)
+        return original_open(path, flags, mode)
+
+    monkeypatch.setattr("telegraphy.story_brief.filenames.os.open", fake_open)
+
+    write_output_markdown(
+        output_path=target,
+        content="content",
+        trusted_base_dir=tmp_path,
+    )
+
+    assert captured_flags

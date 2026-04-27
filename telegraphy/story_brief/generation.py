@@ -15,6 +15,7 @@ from ._constants import (
 from .rendering import render_title
 
 PoolValue = TypeVar("PoolValue", bound=str | int | tuple[str, float])
+OptionValue = TypeVar("OptionValue")
 DEFAULT_SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION = {
     2: 0.7,
     3: 0.1,
@@ -63,9 +64,9 @@ def available_settings(selected_date: date, data: Mapping[str, Any]) -> list[str
 
 def weighted_choice(
     rng: random.Random | secrets.SystemRandom,
-    options: Sequence[str],
+    options: Sequence[OptionValue],
     weights: Sequence[float],
-) -> str:
+) -> OptionValue:
     """Pick one option using relative weights."""
     if not options:
         raise ValueError("options must not be empty")
@@ -232,12 +233,10 @@ def pick_sexual_scene_tags(
     tag_count_options, tag_count_weights = build_sexual_scene_tag_count_distribution(
         tag_group_names, data
     )
-    selected_tag_count = int(
-        weighted_choice(
-            rng,
-            [str(value) for value in tag_count_options],
-            tag_count_weights,
-        )
+    selected_tag_count = weighted_choice(
+        rng,
+        tag_count_options,
+        tag_count_weights,
     )
     selected_tag_groups = rng.sample(tag_group_names, selected_tag_count)
     return pick_tags_from_selected_groups(rng, selected_tag_groups, data)

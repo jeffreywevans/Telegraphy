@@ -32,7 +32,7 @@ class DatasetLintReport(NamedTuple):
 
     @property
     def has_errors(self) -> bool:
-        return bool(self.errors)
+        return bool(self.errors)  # pragma: no cover - trivial attribute facade.
 
 
 class _IntervalLintResults(NamedTuple):
@@ -60,15 +60,12 @@ def _format_date_range(date_range: DateRange) -> str:
 
 def _format_date_ranges(ranges: list[DateRange]) -> str:
     """Render closed date ranges compactly for human-facing diagnostics."""
-    if not ranges:
-        return "none"
-    return ", ".join(_format_date_range(date_range) for date_range in ranges)
+    formatted_ranges = ", ".join(_format_date_range(date_range) for date_range in ranges)
+    return "none" if not ranges else formatted_ranges
 
 
 def _merge_or_append_range(merged: list[DateRange], current: DateRange) -> None:
-    """Merge an adjacent/overlapping range into ``merged`` or append it.
-
-    """
+    """Merge an adjacent/overlapping range into ``merged`` or append it."""
     current_start, current_end = current
     last_start, last_end = merged[-1]
     if current_start <= last_end + _ONE_DAY:
@@ -79,10 +76,12 @@ def _merge_or_append_range(merged: list[DateRange], current: DateRange) -> None:
 
 def _coalesce_ranges(ranges: list[DateRange]) -> list[DateRange]:
     """Return sorted closed ranges with overlaps and adjacent spans coalesced."""
-    if not ranges:
-        return []
-
     sorted_ranges = sorted(ranges, key=lambda item: item[0])
+    return _coalesce_sorted_ranges(sorted_ranges) if sorted_ranges else []
+
+
+def _coalesce_sorted_ranges(sorted_ranges: Sequence[DateRange]) -> list[DateRange]:
+    """Coalesce an already-sorted, non-empty sequence of closed date ranges."""
     merged = [sorted_ranges[0]]
     for current in sorted_ranges[1:]:
         _merge_or_append_range(merged, current)
@@ -117,9 +116,7 @@ def build_coverage_checkpoints(
 
 def _next_day_or_final_day(day: date) -> date:
     """Return the next day, clamping at ``date.max`` to avoid overflow."""
-    if day == date.max:
-        return day
-    return day + _ONE_DAY
+    return day if day == date.max else day + _ONE_DAY
 
 
 def _available_entities(availability_rows: AvailabilityRows, *, selected_date: date) -> list[str]:
@@ -140,10 +137,12 @@ def _resolve_interval_end(
     one_day: timedelta,
 ) -> date | None:
     """Resolve a closed interval end from a checkpoint list."""
-    if index + 1 < len(sorted_checkpoints):
-        interval_end = min(range_end, sorted_checkpoints[index + 1] - one_day)
-    else:
-        interval_end = range_end
+    next_index = index + 1
+    interval_end = (
+        min(range_end, sorted_checkpoints[next_index] - one_day)
+        if next_index < len(sorted_checkpoints)
+        else range_end
+    )
     return None if interval_end < current_start else interval_end
 
 

@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import math
+from contextlib import suppress
 from dataclasses import dataclass
 from datetime import date
-from typing import AbstractSet, TypeAlias, TypedDict
+from typing import AbstractSet, TypeAlias, TypedDict, cast
 
 
 class PartnerWeightInput(TypedDict):
@@ -44,12 +45,19 @@ class LegacyPartnerEra(TypedDict):
 LegacyPartnerIndex: TypeAlias = dict[str, list[LegacyPartnerEra]]
 
 
+def _reject_when(condition: bool, message: str) -> None:
+    if condition:
+        raise ValueError(message)
+
+
 def require_keys(
     section_name: str, payload: dict[str, object], required: AbstractSet[str]
 ) -> None:
     missing = sorted(required - payload.keys())
-    if missing:
-        raise ValueError(f"{section_name}: missing required keys: {', '.join(missing)}")
+    _reject_when(
+        bool(missing),
+        f"{section_name}: missing required keys: {', '.join(missing)}",
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -107,46 +115,60 @@ def _parse_iso_date(raw: object, *, field: str) -> date:
 
 def _parse_name(value: object, *, field: str) -> str:
     parsed = str(value).strip()
-    if not parsed:
-        raise ValueError(f"{field} must be a non-empty string")
+    _reject_when(not parsed, f"{field} must be a non-empty string")
     return parsed
 
 
+def _is_real_number(raw: object) -> bool:
+    return not isinstance(raw, bool) and isinstance(raw, (int, float))
+
+
 def _parse_weight(raw: object, *, field: str) -> float:
-    if isinstance(raw, bool) or not isinstance(raw, (int, float)):
-        raise ValueError(f"{field} must be a real number")
-    if not math.isfinite(raw) or raw < 0:
-        raise ValueError(f"{field} must be finite and non-negative")
-    return float(raw)
+    _reject_when(not _is_real_number(raw), f"{field} must be a real number")
+
+    weight = float(cast(float | int, raw))
+    _reject_when(
+        not math.isfinite(weight) or weight < 0,
+        f"{field} must be finite and non-negative",
+    )
+    return weight
 
 
 def _require_non_empty_list(value: object, *, field: str) -> list[object]:
-    if not isinstance(value, list) or not value:
-        raise ValueError(f"{field} must be a non-empty list")
-    return value
+    _reject_when(
+        not isinstance(value, list) or not value,
+        f"{field} must be a non-empty list",
+    )
+    return cast(list[object], value)
+
+
+def _require_dict(value: object, *, field: str) -> dict[str, object]:
+    _reject_when(not isinstance(value, dict), f"{field} must be an object")
+    return cast(dict[str, object], value)
 
 
 def _parse_partners(era_section: str, partners_raw: object) -> tuple[PartnerWeight, ...]:
-    if not isinstance(partners_raw, list):
-        raise ValueError(f"{era_section}.partners must be a list")
+    _reject_when(
+        not isinstance(partners_raw, list),
+        f"{era_section}.partners must be a list",
+    )
 
     partners: list[PartnerWeight] = []
     seen_partners: dict[str, int] = {}
-    for partner_idx, partner_item in enumerate(partners_raw):
+    for partner_idx, partner_item_raw in enumerate(cast(list[object], partners_raw)):
         partner_section = f"{era_section}.partners[{partner_idx}]"
-        if not isinstance(partner_item, dict):
-            raise ValueError(f"{partner_section} must be an object")
+        partner_item = _require_dict(partner_item_raw, field=partner_section)
         require_keys(partner_section, partner_item, {"partner", "weight"})
 
         partner_name = _parse_name(partner_item["partner"], field=f"{partner_section}.partner")
         partner_key = partner_name.casefold()
-        if partner_key in seen_partners:
-            first_idx = seen_partners[partner_key]
-            raise ValueError(
-                f"{era_section}.partners contains duplicate partner "
-                f"'{partner_name}' at index {partner_idx} "
-                f"(first seen at index {first_idx})"
-            )
+        first_idx = seen_partners.get(partner_key, -1)
+        _reject_when(
+            first_idx >= 0,
+            f"{era_section}.partners contains duplicate partner "
+            f"'{partner_name}' at index {partner_idx} "
+            f"(first seen at index {first_idx})",
+        )
         seen_partners[partner_key] = partner_idx
 
         partners.append(
@@ -156,10 +178,15 @@ def _parse_partners(era_section: str, partners_raw: object) -> tuple[PartnerWeig
             )
         )
 
-    if partners and sum(entry.weight for entry in partners) <= 0:
-        raise ValueError(f"{era_section}.partners must sum to > 0")
-
+    _reject_when(
+        bool(partners) and sum(entry.weight for entry in partners) <= 0,
+        f"{era_section}.partners must sum to > 0",
+    )
     return tuple(partners)
+
+
+def _is_overlapping_or_unsorted(era_start: date, last_era_end: date | None) -> bool:
+    return last_era_end is not None and era_start <= last_era_end
 
 
 def _parse_eras(
@@ -168,20 +195,22 @@ def _parse_eras(
     eras_input = _require_non_empty_list(eras_raw, field=f"{section}.eras")
     eras: list[PartnerEra] = []
     last_era_end: date | None = None
-    for era_idx, era_entry in enumerate(eras_input):
+    for era_idx, era_entry_raw in enumerate(eras_input):
         era_section = f"{section}.eras[{era_idx}]"
-        if not isinstance(era_entry, dict):
-            raise ValueError(f"{era_section} must be an object")
+        era_entry = _require_dict(era_entry_raw, field=era_section)
         require_keys(era_section, era_entry, {"date_start", "date_end", "partners"})
 
         era_start = _parse_iso_date(era_entry["date_start"], field=f"{era_section}.date_start")
         era_end = _parse_iso_date(era_entry["date_end"], field=f"{era_section}.date_end")
-        if era_start > era_end:
-            raise ValueError(f"{era_section} date_start must be <= date_end")
-        if era_start < char_start or era_end > char_end:
-            raise ValueError(f"{era_section} must be within parent character date range")
-        if last_era_end is not None and era_start <= last_era_end:
-            raise ValueError(f"{section}.eras has overlapping or unsorted ranges")
+        _reject_when(era_start > era_end, f"{era_section} date_start must be <= date_end")
+        _reject_when(
+            era_start < char_start or era_end > char_end,
+            f"{era_section} must be within parent character date range",
+        )
+        _reject_when(
+            _is_overlapping_or_unsorted(era_start, last_era_end),
+            f"{section}.eras has overlapping or unsorted ranges",
+        )
 
         eras.append(
             PartnerEra(
@@ -203,21 +232,23 @@ def _parse_character_distribution(
     partner_distributions_key: str,
 ) -> CharacterPartnerDistribution:
     section = f"partner_distributions.{partner_distributions_key}[{idx}]"
-    if not isinstance(character_entry, dict):
-        raise ValueError(f"{section} must be an object")
-    require_keys(section, character_entry, {"character", "date_start", "date_end", "eras"})
+    character_record = _require_dict(character_entry, field=section)
+    require_keys(section, character_record, {"character", "date_start", "date_end", "eras"})
 
-    character = _parse_name(character_entry["character"], field=f"{section}.character")
-    if character not in known_characters:
-        raise ValueError(f"partner_distributions includes unknown character '{character}'")
-    if character in seen_characters:
-        raise ValueError(f"partner_distributions includes duplicate character '{character}'")
+    character = _parse_name(character_record["character"], field=f"{section}.character")
+    _reject_when(
+        character not in known_characters,
+        f"partner_distributions includes unknown character '{character}'",
+    )
+    _reject_when(
+        character in seen_characters,
+        f"partner_distributions includes duplicate character '{character}'",
+    )
     seen_characters.add(character)
 
-    char_start = _parse_iso_date(character_entry["date_start"], field=f"{section}.date_start")
-    char_end = _parse_iso_date(character_entry["date_end"], field=f"{section}.date_end")
-    if char_start > char_end:
-        raise ValueError(f"{section} date_start must be <= date_end")
+    char_start = _parse_iso_date(character_record["date_start"], field=f"{section}.date_start")
+    char_end = _parse_iso_date(character_record["date_end"], field=f"{section}.date_end")
+    _reject_when(char_start > char_end, f"{section} date_start must be <= date_end")
 
     return CharacterPartnerDistribution(
         character=character,
@@ -225,7 +256,7 @@ def _parse_character_distribution(
         date_end=char_end,
         eras=_parse_eras(
             section,
-            character_entry["eras"],
+            character_record["eras"],
             char_start=char_start,
             char_end=char_end,
         ),
@@ -252,13 +283,17 @@ def parse_partner_distribution_payload(
         },
     )
     schema_version = partner_payload["schema_version"]
-    if not isinstance(schema_version, int) or schema_version < 1:
-        raise ValueError("partner_distributions.schema_version must be an integer >= 1")
+    _reject_when(
+        not isinstance(schema_version, int) or schema_version < 1,
+        "partner_distributions.schema_version must be an integer >= 1",
+    )
 
     dataset_version_raw = partner_payload["dataset_version"]
-    if not isinstance(dataset_version_raw, str) or not dataset_version_raw.strip():
-        raise ValueError("partner_distributions.dataset_version must be a non-empty string")
-    dataset_version = dataset_version_raw.strip()
+    _reject_when(
+        not isinstance(dataset_version_raw, str) or not dataset_version_raw.strip(),
+        "partner_distributions.dataset_version must be a non-empty string",
+    )
+    dataset_version = cast(str, dataset_version_raw).strip()
 
     payload_start = _parse_iso_date(
         partner_payload["date_start"], field="partner_distributions.date_start"
@@ -267,10 +302,14 @@ def parse_partner_distribution_payload(
         partner_payload["date_end"], field="partner_distributions.date_end"
     )
 
-    if payload_start > payload_end:
-        raise ValueError("partner_distributions.date_start must be <= date_end")
-    if payload_end < config_start or payload_start > config_end:
-        raise ValueError("partner_distributions date range must overlap config.date_start/date_end")
+    _reject_when(
+        payload_start > payload_end,
+        "partner_distributions.date_start must be <= date_end",
+    )
+    _reject_when(
+        payload_end < config_start or payload_start > config_end,
+        "partner_distributions date range must overlap config.date_start/date_end",
+    )
 
     entries = _require_non_empty_list(
         partner_payload[partner_distributions_key],
@@ -292,14 +331,13 @@ def parse_partner_distribution_payload(
         by_character[distribution.character] = distribution
 
     missing_characters = sorted(known_characters - seen_characters)
-    if missing_characters:
-        raise ValueError(
-            "partner_distributions is missing characters: "
-            + ", ".join(missing_characters)
-        )
+    _reject_when(
+        bool(missing_characters),
+        "partner_distributions is missing characters: " + ", ".join(missing_characters),
+    )
 
     return PartnerDistributionDataset(
-        schema_version=schema_version,
+        schema_version=cast(int, schema_version),
         dataset_version=dataset_version,
         date_start=payload_start,
         date_end=payload_end,

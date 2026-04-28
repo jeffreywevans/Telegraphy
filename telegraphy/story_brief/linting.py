@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import sys
 from datetime import date, timedelta
-from typing import Any, Mapping, NamedTuple, Sequence, TextIO
+from typing import Any, Mapping, NamedTuple, Sequence, TextIO, cast
 
 from ._constants import (
     CHARACTER_AVAILABILITY_KEY,
@@ -164,7 +164,9 @@ def _availability_gap_flags(
 
 
 def _era_covers_date(era: Mapping[str, Any], *, selected_date: date) -> bool:
-    return era["date_start"] <= selected_date <= era["date_end"]
+    date_start = cast(date, era["date_start"])
+    date_end = cast(date, era["date_end"])
+    return date_start <= selected_date <= date_end
 
 
 def _has_partner_data(eras: PartnerEras, *, selected_date: date) -> bool:

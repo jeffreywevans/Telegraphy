@@ -107,12 +107,10 @@ class PartnerDistributionDataset:
 
 
 def _parse_iso_date(raw: object, *, field: str) -> date:
-    parsed: date | None = None
-    with suppress(ValueError):
-        parsed = date.fromisoformat(str(raw))
-
-    _reject_when(parsed is None, f"{field} must be an ISO date (YYYY-MM-DD)")
-    return parsed
+    try:
+        return date.fromisoformat(str(raw))
+    except ValueError as exc:
+        raise ValueError(f"{field} must be an ISO date (YYYY-MM-DD)") from exc
 
 
 def _parse_name(value: object, *, field: str) -> str:

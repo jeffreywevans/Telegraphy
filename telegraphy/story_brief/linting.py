@@ -294,7 +294,7 @@ def _append_prompt_depth_warnings(data: Mapping[str, Any], *, warnings: list[str
 
     if len(data["word_count_targets"]) < _MINIMUM_PROMPT_OPTIONS:
         warnings.append(
-            "Prompt depth warning: word_count_targets has fewer than 3 options; "
+            f"Prompt depth warning: word_count_targets has fewer than {_MINIMUM_PROMPT_OPTIONS} options; "
             "consider adding more range variety."
         )
 

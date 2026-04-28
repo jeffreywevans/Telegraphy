@@ -236,14 +236,14 @@ def __getattr__(name: str) -> Any:
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
-def random_date_in_range(
+def random_date_in_range(  # pragma: no cover - legacy facade delegation
     rng: random.Random | secrets.SystemRandom, start: date, end: date
 ) -> date:
     """Return a random date between start and end (inclusive)."""
     return _random_date_in_range(rng, start, end)
 
 
-def available_characters(
+def available_characters(  # pragma: no cover - legacy facade delegation
     selected_date: date, data: Mapping[str, Any] | None = None
 ) -> list[str]:
     """Return characters available for the selected date."""
@@ -251,7 +251,7 @@ def available_characters(
     return _available_characters(selected_date, resolved_data)
 
 
-def available_settings(
+def available_settings(  # pragma: no cover - legacy facade delegation
     selected_date: date, data: Mapping[str, Any] | None = None
 ) -> list[str]:
     """Return settings available for the selected date."""

@@ -404,7 +404,7 @@ The current gaps are not alarming, but they are knowable:
 | Package artifact path is under-tested                 | Wheels/sdists can fail even while editable installs pass                        | `tox` uses `skipsdist = True`, and GitHub Actions installs editable mode only.                                                                                                                                                                                                                                                                                                                                 | Add `python -m build`, `twine check`, and wheel-install smoke tests         |
 | Build-system dependency floor looks over-constrained  | Higher chance of isolated-build failures in offline or controlled environments  | `build-system.requires = ["setuptools>=82.0.1"]` is strong for a small pure-Python package.                                                                                                                                                                                                                                                                                                                    | Verify actual minimum and lower it if 82.x is not required                  |
 | Coverage setup differs between tox and GitHub Actions | Easy to drift; subprocess coverage can silently be incomplete in CI             | tox exports `COVERAGE_PROCESS_START` and adds `cov_init` to `PYTHONPATH`; the Actions Sonar step does not.                                                                                                                                                                                                                                                                                                     | Unify on one coverage invocation path and env contract                      |
-| Governance/compliance docs are thin                   | Friction for outside contributors and some enterprise review processes          | MIT and security policy exist, but there is no `CONTRIBUTING.md` or `CODEOWNERS`, and the conduct contact is not serious. [CODE_OF_CONDUCT.md 21-25](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/CODE_OF_CONDUCT.md#L21-L25), [SECURITY.md 16-49](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/SECURITY.md#L16-L49) | Add `CONTRIBUTING.md`, `CODEOWNERS`, and make conduct escalation actionable |
+| Governance/compliance docs are thin                   | Friction for outside contributors and some enterprise review processes          | MIT and security policy exist, but there is no `CONTRIBUTING.md` or `CODEOWNERS`, and the conduct contact is not serious. [CODE_OF_CONDUCT.md 21-25](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/CODE_OF_CONDUCT.md#L21-L25), [SECURITY.md 16-49](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/SECURITY.md#L16-L49) | Update `CONTRIBUTING.md`, `CODEOWNERS`, and make conduct escalation actionable |
 | No published releases                                 | Harder dependency pinning and change communication                              | Repo page shows no releases.                                                                                                                                                                                                                                                                                                                                                                 | Start lightweight releases once docs and artifact checks are in place       |
 
 ## Recommended patches and refactorings
@@ -418,7 +418,6 @@ The current gaps are not alarming, but they are knowable:
 | Highest  | Align subprocess coverage setup between tox and GitHub Actions             |   High |    Low |    Low |
 | High     | Relax `TELEGRAPHY_DATA_DIR` path validation while keeping traversal checks | Medium |    Low | Medium |
 | Medium   | Improve packaging metadata and verify the real minimum `setuptools` floor  | Medium |    Low |    Low |
-| Medium   | Add `CONTRIBUTING.md`, `CODEOWNERS`, and a serious conduct escalation path | Medium |    Low |    Low |
 | Medium   | Rename or better document `generate_story_brief.py` as a facade/API module | Medium | Medium | Medium |
 
 
@@ -460,7 +459,7 @@ This is the fastest way to catch “works editable, breaks as a package” probl
 | Public docs | Vivid, thematic, but under-documented for developers | Accurate product description + full CLI/dev docs |
 | Release management | No releases published | Lightweight tagged releases once artifact checks pass |
 | Metadata | Minimal PEP 621 fields | Add URLs, classifiers, authors/maintainers if desired |
-| Governance | License and security policy present | Add `CONTRIBUTING.md`, `CODEOWNERS`, improve conduct doc |
+| Governance | License and security policy present | Update `CONTRIBUTING.md`, `CODEOWNERS`, improve conduct doc |
 | Compliance posture | Acceptable for a small internal/open project | Stronger for reuse, enterprise review, and onboarding |
 
 ### License and compliance findings
@@ -469,8 +468,6 @@ There is **not** a missing software license problem. The repo includes an MIT li
 
 The weaker points are **project-governance compliance**, not OSS licensing:
 
-- no `CONTRIBUTING.md`,
-- no `CODEOWNERS`,
 - no published releases,
 - code-of-conduct escalation text is not suitable if you expect outside contributors or enterprise consumers. [CODE_OF_CONDUCT.md 21-25](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/CODE_OF_CONDUCT.md#L21-L25)
 
@@ -478,11 +475,9 @@ The weaker points are **project-governance compliance**, not OSS licensing:
 
 | Priority | Action | Why | Effort | Risk |
 |---|---|---|---|---|
-| Immediate | Fix repo description and README | Removes the biggest source of confusion | Low | Low |
 | Immediate | Add artifact build/wheel install checks in CI | Prevents packaging surprises | Low | Low |
 | Immediate | Align CI coverage env with tox | Makes coverage behavior predictable | Low | Low |
 | Near term | Add tests for remaining branch-heavy validation/data-io paths | Pushes weakest modules toward 90%+ | Low | Low |
 | Near term | Relax override path character filtering | Improves usability without losing the real safety checks | Low | Medium |
-| Near term | Add `CONTRIBUTING.md` and `CODEOWNERS` | Improves maintainability/governance | Low | Low |
 | Optional | Rename/document `generate_story_brief.py` as facade/API | Improves conceptual clarity for new maintainers | Medium | Medium |
 | Optional | Reassess `setuptools>=82.0.1` minimum | Reduces isolated-build fragility if unnecessarily strict | Low | Low |

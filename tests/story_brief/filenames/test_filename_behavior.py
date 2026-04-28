@@ -41,6 +41,12 @@ def test_sanitize_filename_trims_suffix_when_needed() -> None:
     assert len(sanitized.encode("utf-8")) <= 255
 
 
+def test_sanitize_filename_retruncates_fallback_stem_after_post_truncation_recovery() -> None:
+    sanitized = sanitize_filename(f" a.{'b' * 253}")
+    assert len(sanitized.encode("utf-8")) <= 255
+    assert sanitized.startswith("s.")
+
+
 def test_build_auto_filename_uses_fallback_slug_for_empty_slugified_title() -> None:
     assert (
         build_auto_filename("!!!", today=datetime(2026, 4, 21))

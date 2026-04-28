@@ -148,14 +148,11 @@ def _require_dict(value: object, *, field: str) -> dict[str, object]:
 
 
 def _parse_partners(era_section: str, partners_raw: object) -> tuple[PartnerWeight, ...]:
-    _reject_when(
-        not isinstance(partners_raw, list),
-        f"{era_section}.partners must be a list",
-    )
+    partners_input = _require_non_empty_list(partners_raw, field=f"{era_section}.partners")
 
     partners: list[PartnerWeight] = []
     seen_partners: dict[str, int] = {}
-    for partner_idx, partner_item_raw in enumerate(cast(list[object], partners_raw)):
+    for partner_idx, partner_item_raw in enumerate(partners_input):
         partner_section = f"{era_section}.partners[{partner_idx}]"
         partner_item = _require_dict(partner_item_raw, field=partner_section)
         require_keys(partner_section, partner_item, {"partner", "weight"})

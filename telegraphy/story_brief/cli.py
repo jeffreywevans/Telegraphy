@@ -23,7 +23,7 @@ from .filenames import (
 from .linting import emit_lint_report, lint_story_data
 from .validation import validate_story_data_strict
 
-StoryData = Mapping[str, Any]
+StoryData = story_brief_cli.StoryData
 StoryFields = Mapping[str, Any]
 StoryRng = Union[random.Random, secrets.SystemRandom]
 

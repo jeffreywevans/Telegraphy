@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import math
 import re
-from calendar import monthrange
 from dataclasses import dataclass
 from datetime import date
 from typing import AbstractSet, TypeAlias, TypedDict, cast
@@ -118,18 +117,10 @@ def _parse_iso_date(raw: object, *, field: str) -> date:
     raw_text = str(raw)
     _reject_when(not _has_iso_date_shape(raw_text), f"{field} {_ISO_DATE_ERROR}")
 
-    year = int(raw_text[0:4])
-    month = int(raw_text[5:7])
-    day = int(raw_text[8:10])
-
-    _reject_when(
-        not date.min.year <= year <= date.max.year,
-        f"{field} {_ISO_DATE_ERROR}",
-    )
-    _reject_when(not 1 <= month <= 12, f"{field} {_ISO_DATE_ERROR}")
-    _reject_when(not 1 <= day <= monthrange(year, month)[1], f"{field} {_ISO_DATE_ERROR}")
-
-    return date(year, month, day)
+    try:
+        return date.fromisoformat(raw_text)
+    except ValueError as error:
+        raise ValueError(f"{field} {_ISO_DATE_ERROR}") from error
 
 
 def _parse_name(value: object, *, field: str) -> str:

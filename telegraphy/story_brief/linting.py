@@ -55,7 +55,7 @@ def _format_date_range(date_range: DateRange) -> str:
     start, end = date_range
     start_text = start.isoformat()
     end_text = end.isoformat()
-    return (f"{start_text}..{end_text}", start_text)[start == end]
+    return start_text if start == end else f"{start_text}..{end_text}"
 
 
 def _format_date_ranges(ranges: list[DateRange]) -> str:

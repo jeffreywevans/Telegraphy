@@ -118,10 +118,10 @@ def sanitize_filename(filename: str, *, suffix: str = "") -> str:
     name = PurePath(raw_name).name
     safe_stem, safe_suffix = _sanitize_stem_and_suffix(name)
     safe_stem = _fallback_stem(safe_stem)
-    safe_stem, safe_suffix = _apply_windows_reserved_name_guard(safe_stem, safe_suffix)
     safe_stem, safe_suffix = _truncate_sanitized_filename(safe_stem, safe_suffix)
-    safe_stem = _fallback_stem(safe_stem)
-    safe_stem, safe_suffix = _truncate_sanitized_filename(safe_stem, safe_suffix)
+    if not safe_stem:
+        safe_stem = _fallback_stem(safe_stem)
+        safe_stem, safe_suffix = _truncate_sanitized_filename(safe_stem, safe_suffix)
     safe_stem, safe_suffix = _apply_windows_reserved_name_guard(safe_stem, safe_suffix)
     return f"{safe_stem}{safe_suffix}"
 

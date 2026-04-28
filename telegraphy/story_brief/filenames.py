@@ -9,6 +9,8 @@ DEFAULT_OUTPUT_DIR = Path("output") / "story-seeds"
 MAX_FILENAME_STEM_LENGTH = 120
 MAX_FILENAME_BYTES = 255
 SAFE_FILENAME_INPUT_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 ._-]{0,254}$")
+UNSAFE_FILENAME_CHARS = re.compile(r'[\x00-\x1f<>:"/\\|?*]+')
+PATH_SPLIT_PATTERN = re.compile(r"[\\/]+")
 WINDOWS_RESERVED_NAMES = {
     "con",
     "prn",
@@ -73,12 +75,17 @@ def _truncate_utf8_filename(stem: str, suffix: str, max_bytes: int = MAX_FILENAM
     return f"{stem}{suffix}"
 
 
+def _fallback_stem(stem: str) -> str:
+    """Return a usable stem after sanitization or truncation removes all text."""
+    return stem or "story-brief"
+
+
 def _sanitize_stem_and_suffix(name: str) -> tuple[str, str]:
     """Sanitize stem and suffix while preserving extension shape."""
     stem, ext = os.path.splitext(name)
-    safe_stem = re.sub(r'[\x00-\x1f<>:"/\\|?*]+', "-", stem).rstrip(" .-")
+    safe_stem = UNSAFE_FILENAME_CHARS.sub("-", stem).rstrip(" .-")
     safe_stem = safe_stem[:MAX_FILENAME_STEM_LENGTH].rstrip(" .-")
-    safe_suffix = re.sub(r'[\x00-\x1f<>:"/\\|?*]+', "", ext).rstrip(" .")
+    safe_suffix = UNSAFE_FILENAME_CHARS.sub("", ext).rstrip(" .")
     safe_suffix = _truncate_utf8_filename("", safe_suffix, MAX_FILENAME_BYTES - 1).rstrip(" .")
     return safe_stem, safe_suffix
 
@@ -94,21 +101,15 @@ def _apply_windows_reserved_name_guard(stem: str, suffix: str) -> tuple[str, str
     if reserved_stem.casefold() in WINDOWS_RESERVED_NAMES:
         candidate = _truncate_utf8_filename("file", suffix, MAX_FILENAME_BYTES)
         reserved_stem, reserved_suffix = os.path.splitext(candidate)
-        reserved_stem = reserved_stem or "f"
+        reserved_stem = _fallback_stem(reserved_stem.rstrip(" .-"))
     return reserved_stem, reserved_suffix
 
 
 def _truncate_sanitized_filename(stem: str, suffix: str) -> tuple[str, str]:
-    """Apply UTF-8 length limits and fallback stems after truncation."""
+    """Apply UTF-8 length limits after sanitization."""
     sanitized = _truncate_utf8_filename(stem, suffix, MAX_FILENAME_BYTES)
     truncated_stem, truncated_suffix = os.path.splitext(sanitized)
-    truncated_stem = truncated_stem.rstrip(" .-")
-
-    if not truncated_stem:
-        fallback = _truncate_utf8_filename("story-brief", truncated_suffix, MAX_FILENAME_BYTES)
-        truncated_stem, truncated_suffix = os.path.splitext(fallback)
-        truncated_stem = truncated_stem.rstrip(" .-") or "s"
-    return truncated_stem, truncated_suffix
+    return truncated_stem.rstrip(" .-"), truncated_suffix
 
 
 def sanitize_filename(filename: str, *, suffix: str = "") -> str:
@@ -116,14 +117,18 @@ def sanitize_filename(filename: str, *, suffix: str = "") -> str:
     raw_name = f"{filename}{suffix}" if suffix else filename
     name = PurePath(raw_name).name
     safe_stem, safe_suffix = _sanitize_stem_and_suffix(name)
-
-    if not safe_stem:
-        safe_stem = "story-brief"
-
+    safe_stem = _fallback_stem(safe_stem)
     safe_stem, safe_suffix = _apply_windows_reserved_name_guard(safe_stem, safe_suffix)
     safe_stem, safe_suffix = _truncate_sanitized_filename(safe_stem, safe_suffix)
+    safe_stem = _fallback_stem(safe_stem)
     safe_stem, safe_suffix = _apply_windows_reserved_name_guard(safe_stem, safe_suffix)
     return f"{safe_stem}{safe_suffix}"
+
+
+def _ensure_within_base(path: Path, trusted_base_dir: Path, message: str) -> None:
+    """Raise OutputPathError when a resolved path escapes trusted_base_dir."""
+    if not path.is_relative_to(trusted_base_dir):
+        raise OutputPathError(message)
 
 
 def _build_safe_relative_path(path_raw: str, *, trusted_base_dir: Path) -> Path:
@@ -138,19 +143,14 @@ def _build_safe_relative_path(path_raw: str, *, trusted_base_dir: Path) -> Path:
     if os.path.isabs(trimmed):
         normalized_base = os.path.normcase(os.path.realpath(str(trusted_base_dir)))
         normalized_candidate = os.path.normcase(os.path.realpath(trimmed))
-        try:
-            common_root = os.path.commonpath([normalized_base, normalized_candidate])
-        except ValueError as exc:
-            raise ValueError(
-                f"absolute paths must remain inside the base directory: {normalized_base!r}"
-            ) from exc
+        common_root = os.path.commonpath([normalized_base, normalized_candidate])
         if common_root != normalized_base:
             raise ValueError(
                 f"absolute paths must remain inside the base directory: {normalized_base!r}"
             )
         candidate = os.path.relpath(normalized_candidate, normalized_base)
 
-    raw_parts = [part for part in re.split(r"[\\/]+", candidate) if part and part != "."]
+    raw_parts = [part for part in PATH_SPLIT_PATTERN.split(candidate) if part and part != "."]
     if any(part == ".." for part in raw_parts):
         raise ValueError("path must not include parent-directory traversal ('..')")
     return Path(*raw_parts) if raw_parts else Path(".")
@@ -170,11 +170,13 @@ def resolve_output_path(
         )
     except ValueError as exc:
         raise OutputPathError(f"Invalid --output-dir: {exc}") from exc
+
     resolved_output_dir = (trusted_base_dir / requested_output_dir).resolve(strict=False)
-    if not resolved_output_dir.is_relative_to(trusted_base_dir):
-        raise OutputPathError(
-            f"--output-dir must be within {trusted_base_dir}: {resolved_output_dir}"
-        )
+    _ensure_within_base(
+        resolved_output_dir,
+        trusted_base_dir,
+        f"--output-dir must be within {trusted_base_dir}: {resolved_output_dir}",
+    )
 
     if filename is not None:
         try:
@@ -192,13 +194,15 @@ def resolve_output_path(
         )
     except ValueError as exc:
         raise OutputPathError(f"Invalid output filename/path combination: {exc}") from exc
+
     output_path = trusted_base_dir / safe_relative_output
     resolved_output_parent = output_path.parent.resolve(strict=False)
     candidate_output_path = resolved_output_parent / output_path.name
-    if not candidate_output_path.is_relative_to(trusted_base_dir):
-        raise OutputPathError(
-            "Resolved output path must be within the trusted base directory."
-        )
+    _ensure_within_base(
+        candidate_output_path,
+        trusted_base_dir,
+        "Resolved output path must be within the trusted base directory.",
+    )
     return candidate_output_path
 
 
@@ -214,8 +218,11 @@ def write_output_markdown(
     raw_output_path = trusted_base_dir / output_path
     resolved_parent = raw_output_path.parent.resolve(strict=False)
     candidate_output_path = resolved_parent / raw_output_path.name
-    if not candidate_output_path.is_relative_to(trusted_base_dir):
-        raise OutputPathError("Resolved output path must be within the trusted base directory.")
+    _ensure_within_base(
+        candidate_output_path,
+        trusted_base_dir,
+        "Resolved output path must be within the trusted base directory.",
+    )
 
     flags = os.O_WRONLY | os.O_CREAT
     flags |= os.O_TRUNC if force else os.O_EXCL

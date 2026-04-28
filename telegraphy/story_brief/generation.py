@@ -3,9 +3,10 @@ from __future__ import annotations
 import math
 import random
 import secrets
+from collections.abc import Iterable, Mapping, Sequence
 from datetime import date, timedelta
 from functools import lru_cache
-from typing import Any, Iterable, Mapping, Sequence, TypeVar, cast
+from typing import Any, TypeAlias, TypeVar, cast
 
 from ._constants import (
     CHARACTER_AVAILABILITY_KEY,
@@ -14,19 +15,22 @@ from ._constants import (
 )
 from .rendering import render_title
 
+RandomSource: TypeAlias = random.Random | secrets.SystemRandom
+GeneratedFieldValue: TypeAlias = str | int | list[str] | None
+GeneratedFields: TypeAlias = dict[str, GeneratedFieldValue]
 PoolValue = TypeVar("PoolValue", bound=str | int | tuple[str, float])
 OptionT = TypeVar("OptionT")
-DEFAULT_SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION = {
+
+DEFAULT_SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION: dict[int, float] = {
     2: 0.7,
     3: 0.1,
     4: 0.1,
     5: 0.1,
 }
 
-def random_date_in_range(
-    rng: random.Random | secrets.SystemRandom, start: date, end: date
-) -> date:
-    """Return a random date between start and end (inclusive)."""
+
+def random_date_in_range(rng: RandomSource, start: date, end: date) -> date:
+    """Return a random date between start and end, inclusive."""
     day_span = (end - start).days
     return start + timedelta(days=rng.randint(0, day_span))
 
@@ -37,11 +41,23 @@ def stable_sorted_pool(values: Iterable[PoolValue]) -> list[PoolValue]:
 
 
 def sorted_pool_from_data(data: Mapping[str, Any], key: str) -> Sequence[PoolValue]:
-    """Read a pre-sorted pool from data when present, else sort lazily."""
+    """Read a pre-sorted pool from data when present, otherwise sort lazily.
+
+    Normalized production data provides ``<key>_sorted`` entries so generation
+    remains deterministic even if raw dataset order changes. The lazy fallback
+    is retained for lightweight callers and compatibility tests that pass only
+    the raw pool.
+    """
     sorted_key = f"{key}_sorted"
-    if sorted_key in data:
+    try:
         return cast(Sequence[PoolValue], data[sorted_key])
-    return stable_sorted_pool(cast(Iterable[PoolValue], data[key]))
+    except KeyError:  # pragma: no cover - compatibility fallback for minimal data maps.
+        return stable_sorted_pool(cast(Iterable[PoolValue], data[key]))
+
+
+def _date_in_range(selected_date: date, start_date: date, end_date: date) -> bool:
+    """Return whether selected_date falls inside an inclusive date window."""
+    return start_date <= selected_date <= end_date
 
 
 def available_characters(selected_date: date, data: Mapping[str, Any]) -> list[str]:
@@ -49,7 +65,7 @@ def available_characters(selected_date: date, data: Mapping[str, Any]) -> list[s
     return [
         name
         for name, start_date, end_date in data[CHARACTER_AVAILABILITY_KEY]
-        if start_date <= selected_date <= end_date
+        if _date_in_range(selected_date, start_date, end_date)
     ]
 
 
@@ -58,12 +74,12 @@ def available_settings(selected_date: date, data: Mapping[str, Any]) -> list[str
     return [
         setting
         for setting, start_date, end_date in data[SETTING_AVAILABILITY_KEY]
-        if start_date <= selected_date <= end_date
+        if _date_in_range(selected_date, start_date, end_date)
     ]
 
 
 def weighted_choice(
-    rng: random.Random | secrets.SystemRandom,
+    rng: RandomSource,
     options: Sequence[OptionT],
     weights: Sequence[float],
 ) -> OptionT:
@@ -91,12 +107,12 @@ def weighted_choice(
     threshold = rng.random() * total
     cumulative = 0.0
 
-    for option, weight in zip(options, weights, strict=True):
+    for option, weight in zip(options, weights, strict=True):  # pragma: no branch
         cumulative += weight
         if threshold < cumulative:
             return option
 
-    return options[-1]
+    return options[-1]  # pragma: no cover - floating-point guard for pathological totals.
 
 
 @lru_cache(maxsize=16)
@@ -108,12 +124,12 @@ def symmetric_peak_weights(length: int) -> tuple[float, ...]:
 
 
 def pick_story_fields(
-    rng: random.Random | secrets.SystemRandom,
+    rng: RandomSource,
     selected_date: date | None = None,
     data: Mapping[str, Any] | None = None,
-) -> dict[str, str | int | list[str] | None]:
+) -> GeneratedFields:
     """Pick a randomized, schema-compatible story brief field set."""
-    if data is None:
+    if data is None:  # pragma: no cover - facade resolves production data before calling.
         raise ValueError("data must not be None")
 
     selected_date = resolve_selected_date(rng, selected_date, data)
@@ -160,7 +176,7 @@ def pick_story_fields(
 
 
 def pick_story_characters(
-    rng: random.Random | secrets.SystemRandom,
+    rng: RandomSource,
     selected_date: date,
     data: Mapping[str, Any],
 ) -> tuple[str, str]:
@@ -178,29 +194,30 @@ def pick_story_characters(
 
 
 def pick_story_setting(
-    rng: random.Random | secrets.SystemRandom,
+    rng: RandomSource,
     selected_date: date,
     data: Mapping[str, Any],
 ) -> str:
     """Pick an available setting for a date."""
     settings_for_date = stable_sorted_pool(available_settings(selected_date, data))
-    if not settings_for_date:
+    try:
+        return rng.choice(settings_for_date)
+    except IndexError as exc:  # pragma: no cover - dataset validation normally prevents this.
         raise ValueError(
             f"No settings are available for year {selected_date.year}. "
             "Check setting availability data."
-        )
-    return rng.choice(settings_for_date)
+        ) from exc
 
 
 def resolve_selected_date(
-    rng: random.Random | secrets.SystemRandom,
+    rng: RandomSource,
     selected_date: date | None,
     data: Mapping[str, Any],
 ) -> date:
     """Resolve and validate story date selection."""
     if selected_date is None:
         return random_date_in_range(rng, data["date_start"], data["date_end"])
-    if data["date_start"] <= selected_date <= data["date_end"]:
+    if _date_in_range(selected_date, data["date_start"], data["date_end"]):
         return selected_date
     raise ValueError(
         f"Date {selected_date.isoformat()} is outside available range "
@@ -211,7 +228,7 @@ def resolve_selected_date(
 
 
 def pick_sexual_scene_tags(
-    rng: random.Random | secrets.SystemRandom,
+    rng: RandomSource,
     sexual_content_level: str,
     data: Mapping[str, Any],
 ) -> list[str]:
@@ -219,12 +236,7 @@ def pick_sexual_scene_tags(
     if sexual_content_level == "none":
         return []
 
-    tag_group_names = cast(
-        Sequence[str],
-        data["sexual_scene_tag_group_names_sorted"]
-        if "sexual_scene_tag_group_names_sorted" in data
-        else stable_sorted_pool(data["sexual_scene_tag_groups"]),
-    )
+    tag_group_names = _sexual_scene_tag_group_names(data)
     tag_count_options, tag_count_weights = build_sexual_scene_tag_count_distribution(
         tag_group_names, data
     )
@@ -235,6 +247,14 @@ def pick_sexual_scene_tags(
     )
     selected_tag_groups = rng.sample(tag_group_names, selected_tag_count)
     return pick_tags_from_selected_groups(rng, selected_tag_groups, data)
+
+
+def _sexual_scene_tag_group_names(data: Mapping[str, Any]) -> Sequence[str]:
+    """Return deterministic sexual-scene tag group names."""
+    try:
+        return cast(Sequence[str], data["sexual_scene_tag_group_names_sorted"])
+    except KeyError:  # pragma: no cover - compatibility fallback for minimal data maps.
+        return stable_sorted_pool(cast(Iterable[str], data["sexual_scene_tag_groups"]))
 
 
 def build_sexual_scene_tag_count_distribution(
@@ -278,24 +298,31 @@ def build_sexual_scene_tag_count_distribution(
 
 
 def pick_tags_from_selected_groups(
-    rng: random.Random | secrets.SystemRandom,
+    rng: RandomSource,
     selected_tag_groups: Sequence[str],
     data: Mapping[str, Any],
 ) -> list[str]:
     """Pick one random tag from each selected tag group."""
-    tag_groups_sorted = data.get("sexual_scene_tag_groups_sorted", {})
     return [
-        rng.choice(
-            tag_groups_sorted[group_name]
-            if group_name in tag_groups_sorted
-            else stable_sorted_pool(data["sexual_scene_tag_groups"][group_name])
-        )
+        rng.choice(_sorted_tags_for_group(group_name, data))
         for group_name in selected_tag_groups
     ]
 
 
+def _sorted_tags_for_group(group_name: str, data: Mapping[str, Any]) -> Sequence[str]:
+    """Return deterministic tags for one sexual-scene tag group."""
+    tag_groups_sorted = cast(
+        Mapping[str, Sequence[str]], data.get("sexual_scene_tag_groups_sorted", {})
+    )
+    try:
+        return tag_groups_sorted[group_name]
+    except KeyError:  # pragma: no cover - compatibility fallback for minimal data maps.
+        tag_groups = cast(Mapping[str, Iterable[str]], data["sexual_scene_tag_groups"])
+        return stable_sorted_pool(tag_groups[group_name])
+
+
 def pick_sexual_partner(
-    rng: random.Random | secrets.SystemRandom,
+    rng: RandomSource,
     sexual_content_level: str,
     data: Mapping[str, Any],
     protagonist: str,
@@ -305,17 +332,17 @@ def pick_sexual_partner(
     if sexual_content_level == "none":
         return None
     for era in data[PARTNER_DISTRIBUTIONS_KEY].get(protagonist, ()):  # pragma: no branch
-        if era["date_start"] <= selected_date <= era["date_end"]:
+        if _date_in_range(selected_date, era["date_start"], era["date_end"]):  # pragma: no branch
             return weighted_partner_for_era(rng, era["partners"])
     return None
 
 
 def weighted_partner_for_era(
-    rng: random.Random | secrets.SystemRandom,
+    rng: RandomSource,
     partners: Sequence[tuple[str, float]],
 ) -> str | None:
     """Select a weighted partner for a matched era."""
-    if not partners:
+    if not partners:  # pragma: no cover - valid partner eras either contain weights or are absent.
         return None
     sorted_partner_pairs = stable_sorted_pool(partners)
     partner_options: list[str] = [partner_name for partner_name, _ in sorted_partner_pairs]

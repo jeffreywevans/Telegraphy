@@ -68,18 +68,13 @@ def _format_date_ranges(ranges: list[DateRange]) -> str:
 def _merge_or_append_range(merged: list[DateRange], current: DateRange) -> None:
     """Merge an adjacent/overlapping range into ``merged`` or append it.
 
-    The slice target is ``len(merged) - 1`` for a merge and ``len(merged)`` for
-    an append, which keeps the state mutation compact without duplicating the
-    replacement assignment.
     """
     current_start, current_end = current
     last_start, last_end = merged[-1]
-    should_merge = current_start <= last_end + _ONE_DAY
-    replacement = (
-        current,
-        (last_start, max(last_end, current_end)),
-    )[should_merge]
-    merged[len(merged) - int(should_merge) :] = [replacement]
+    if current_start <= last_end + _ONE_DAY:
+        merged[-1] = (last_start, max(last_end, current_end))
+    else:
+        merged.append(current)
 
 
 def _coalesce_ranges(ranges: list[DateRange]) -> list[DateRange]:

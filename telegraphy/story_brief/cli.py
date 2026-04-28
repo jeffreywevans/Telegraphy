@@ -9,7 +9,7 @@ import sys
 from collections.abc import Mapping, Sequence
 from datetime import date
 from pathlib import Path
-from typing import Any
+from typing import Any, Union
 
 from . import generate_story_brief as story_brief_cli
 from .data_io import DataDirError
@@ -25,7 +25,7 @@ from .validation import validate_story_data_strict
 
 StoryData = Mapping[str, Any]
 StoryFields = Mapping[str, Any]
-StoryRng = random.Random | secrets.SystemRandom
+StoryRng = Union[random.Random, secrets.SystemRandom]
 
 
 def _parse_story_date(raw_date: str) -> date:  # pragma: no cover
@@ -115,8 +115,8 @@ def _write_story_markdown(
 def _build_generated_filename(fields: StoryFields) -> str:
     """Build the automatic output filename from generated story fields."""
     return story_brief_cli.build_auto_filename(
-        str(fields["title"]),
-        today=str(fields.get("time_period", date.today().isoformat())),
+        str(fields.get("title") or ""),
+        today=fields.get("time_period"),
     )
 
 

@@ -17,6 +17,7 @@ _CONFIGURED_DATA_DIR_LABEL: Final = (
     "(TELEGRAPHY_DATA_DIR or COMMUTED_STORY_BRIEF_DATA_DIR)"
 )
 _PACKAGE_DATA_RESOURCE: Final = "telegraphy.story_brief.data"
+_APPROVED_OVERRIDE_ROOT: Final[Path] = Path(__file__).resolve().parent / "data"
 
 
 class DataDirError(ValueError):
@@ -113,6 +114,13 @@ def _resolve_override_data_dir(raw_value: str) -> Path:
         raise DataDirError(
             "Configured data directory must be an existing directory: "
             f"{candidate}"
+        )
+
+    approved_root = _APPROVED_OVERRIDE_ROOT.resolve()
+    if not candidate.is_relative_to(approved_root):
+        raise DataDirError(
+            "Configured data directory must stay within the application data root: "
+            f"{approved_root}"
         )
 
     return candidate

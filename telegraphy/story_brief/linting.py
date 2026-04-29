@@ -60,8 +60,9 @@ def _format_date_range(date_range: DateRange) -> str:
 
 def _format_date_ranges(ranges: list[DateRange]) -> str:
     """Render closed date ranges compactly for human-facing diagnostics."""
-    formatted_ranges = ", ".join(_format_date_range(date_range) for date_range in ranges)
-    return "none" if not ranges else formatted_ranges
+    if not ranges:
+        return "none"
+    return ", ".join(_format_date_range(date_range) for date_range in ranges)
 
 
 def _merge_or_append_range(merged: list[DateRange], current: DateRange) -> None:
@@ -76,8 +77,10 @@ def _merge_or_append_range(merged: list[DateRange], current: DateRange) -> None:
 
 def _coalesce_ranges(ranges: list[DateRange]) -> list[DateRange]:
     """Return sorted closed ranges with overlaps and adjacent spans coalesced."""
+    if not ranges:
+        return []
     sorted_ranges = sorted(ranges, key=lambda item: item[0])
-    return _coalesce_sorted_ranges(sorted_ranges) if sorted_ranges else []
+    return _coalesce_sorted_ranges(sorted_ranges)
 
 
 def _coalesce_sorted_ranges(sorted_ranges: Sequence[DateRange]) -> list[DateRange]:

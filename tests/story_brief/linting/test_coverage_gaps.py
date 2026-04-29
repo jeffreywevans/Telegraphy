@@ -191,6 +191,10 @@ def test_format_and_coalesce_helpers_handle_empty_inputs() -> None:
     assert _coalesce_ranges([]) == []
 
 
+def test_coalesce_ranges_handles_empty_generator() -> None:
+    assert _coalesce_ranges((date_range for date_range in ())) == []
+
+
 def test_resolve_interval_end_returns_none_for_invalid_interval() -> None:
     day = date(2025, 1, 10)
     checkpoints = [day, day]

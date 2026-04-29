@@ -109,7 +109,7 @@ def test_non_none_sexual_content_with_positive_partner_weight_requires_partner_s
 ) -> None:
     from telegraphy.story_brief import generate_story_brief as story_brief
 
-    data = deepcopy(story_brief.get_data())
+    data = story_brief.get_data()
     selected_date = date(2000, 1, 1)
     protagonist = "Alex"
 
@@ -148,7 +148,7 @@ def test_seed_output_is_stable_when_option_pool_order_changes(
 ) -> None:
     from telegraphy.story_brief import generate_story_brief as story_brief
 
-    baseline_data = deepcopy(story_brief.get_data())
+    baseline_data = story_brief.get_data()
     shuffled_data = deepcopy(baseline_data)
 
     shuffled_data["setting_availability"] = list(reversed(shuffled_data["setting_availability"]))
@@ -186,7 +186,7 @@ def test_pick_story_fields_reads_data_once_per_invocation(
     from telegraphy.story_brief import generate_story_brief as story_brief
 
     calls = {"count": 0}
-    data = deepcopy(story_brief.get_data())
+    data = story_brief.get_data()
 
     def counting_get_data() -> dict[str, object]:
         calls["count"] += 1
@@ -240,7 +240,7 @@ def test_pick_story_fields_handles_missing_partner_distribution_for_protagonist(
     from telegraphy.story_brief import generate_story_brief as story_brief
 
     selected_date = date(2000, 1, 1)
-    data = deepcopy(story_brief.get_data())
+    data = story_brief.get_data()
     data["character_availability"] = [
         ("Alex", selected_date, selected_date),
         ("Jordan", selected_date, selected_date),

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "telegraphy"
-version = "0.1.0"
+version = "0.2.0"
 description = "Telegraphy story brief generator"
 license = { file = "LICENSE" }
 readme = "README.md"

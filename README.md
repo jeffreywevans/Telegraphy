@@ -489,7 +489,7 @@ For generation changes, preserve deterministic seeded behavior unless the PR exp
 
 Current status: `0.2.1`.
 
-This release focuses on documentation refreshes and maintainer-facing clarity while preserving the package architecture introduced in 0.2.0.
+This release focuses on documentation refreshes and maintainer-focused clarity while preserving the package architecture introduced in 0.2.0.
 
 Highlights:
 

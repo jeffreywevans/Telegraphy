@@ -152,26 +152,20 @@ def _validate_data_filename(filename: str) -> None:
         )
 
 
-def _approved_data_dir_path(data_dir: Path) -> Path:
-    """Return canonical approved directory path for filesystem access."""
+def _contained_child_path(data_dir: Path, filename: str) -> Path:
+    """Return filename under data_dir, rejecting resolved escapes and symlinks."""
     approved_root = _APPROVED_OVERRIDE_ROOT.resolve()
-    candidate = data_dir.resolve(strict=True)
-    if not candidate.is_dir():
+    base_resolved = data_dir.resolve(strict=True)
+    if not base_resolved.is_dir():
         raise DataDirError(
             "Configured data directory must be an existing directory: "
-            f"{candidate}"
+            f"{base_resolved}"
         )
-    if not candidate.is_relative_to(approved_root):
+    if not base_resolved.is_relative_to(approved_root):
         raise DataDirError(
             "Configured data directory must stay within the application data root: "
             f"{approved_root}"
         )
-    return candidate
-
-
-def _contained_child_path(data_dir: Path, filename: str) -> Path:
-    """Return filename under data_dir, rejecting resolved escapes and symlinks."""
-    base_resolved = _approved_data_dir_path(data_dir)
     target_resolved = (base_resolved / filename).resolve(strict=False)
     if not target_resolved.is_relative_to(base_resolved):
         raise DataDirError(

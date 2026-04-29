@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import sys
-from datetime import date, timedelta
 from collections.abc import Iterable, Mapping, Sequence
+from datetime import date, timedelta
 from typing import Any, NamedTuple, TextIO, cast
 
 from ._constants import (

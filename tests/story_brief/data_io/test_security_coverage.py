@@ -116,7 +116,11 @@ def test_load_json_uses_o_nofollow_for_paths_from_fallback_data_dir(
         return real_open(path, flags, mode)
 
     monkeypatch.setattr(data_io, "_fallback_data_dir", lambda: data_dir)
-    monkeypatch.setattr(data_io, "files", lambda _resource: (_ for _ in ()).throw(TypeError("boom")))
+    monkeypatch.setattr(
+        data_io,
+        "files",
+        lambda _resource: (_ for _ in ()).throw(TypeError("boom")),
+    )
     monkeypatch.setattr(data_io.os, "open", recording_open)
 
     data_io.load_data(data_io.resolve_data_dir())

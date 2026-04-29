@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import sys
 from datetime import date, timedelta
-from typing import Any, Iterable, Mapping, NamedTuple, Sequence, TextIO, cast
+from collections.abc import Iterable, Mapping, Sequence
+from typing import Any, NamedTuple, TextIO, cast
 
 from ._constants import (
     CHARACTER_AVAILABILITY_KEY,

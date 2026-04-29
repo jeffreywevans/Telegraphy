@@ -103,6 +103,8 @@ def _write_story_markdown(
     force: bool,
 ) -> None:
     """Resolve, create, and write the story brief markdown file."""
+    # Keep resolve+write adjacent: write_output_markdown intentionally re-resolves
+    # and re-validates containment to reduce TOCTOU exposure.
     candidate_output_path = resolve_output_path(
         Path(output_dir),
         provided_filename,

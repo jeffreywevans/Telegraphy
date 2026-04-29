@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import math
 import re
-from collections.abc import Mapping
 from datetime import date
 from typing import Any, NamedTuple
 
@@ -328,4 +327,3 @@ def validate_story_data(
         date_end=end,
         partner_distributions=partner_distribution_index,
     )
-

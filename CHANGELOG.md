@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [0.2.1] - 2026-04-29
 
 ### Added
-- Added `GREETINGS.MD` as a lightweight project-facing documentation artifact.
+- Added `GREETINGS.md` as a lightweight project-facing documentation artifact.
 
 ### Changed
 - Rewrote and streamlined the README to improve project onboarding clarity and reduce duplicated content.

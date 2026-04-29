@@ -178,15 +178,16 @@ def _data_file(filename: str) -> Path | Traversable:
 
 def _load_json(path: Any) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
-
-
-def _load_required_dataset_files(data_dir: Path | Traversable) -> dict[str, Any]:
-    payloads: dict[str, Any] = {}
-    for key, filename in DATA_FILENAMES.items():
-        payloads[key] = _load_json(_data_file_from_dir(data_dir, filename))
-    return payloads
-
-
+    location = "provided data directory" if data_dir is not None else _load_failure_location()
+    selected_data_dir = data_dir if data_dir is not None else resolve_data_dir()
+    try:
+        return _load_required_dataset_files(selected_data_dir)
+    except FileNotFoundError as exc:
+        raise ValueError(
+            f"Failed to load story brief dataset file "
+            f"'{_missing_file_name(exc)}' from {location}. "
+            "Verify the directory exists and contains the required JSON files."
+        ) from exc
 def _missing_file_name(exc: FileNotFoundError) -> str:
     if exc.filename:
         return os.path.basename(os.fsdecode(exc.filename))

@@ -329,8 +329,3 @@ def validate_story_data(
         partner_distributions=partner_distribution_index,
     )
 
-
-def validate_story_data_strict(data: Mapping[str, Any]) -> None:
-    from .generation_invariants import validate_story_data_strict as _strict
-
-    _strict(data)

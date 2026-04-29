@@ -27,7 +27,7 @@ def validate_availability_rows(
         if not isinstance(row, list) or len(row) != 3:
             raise ValueError(f"{section_name}.{key}[{idx}] must be [name, start, end]")
         name, start_boundary, end_boundary = row
-        if not isinstance(name, str) or not name.strip():
+        if not isinstance(name, str) or not (stripped_name := name.strip()):
             raise ValueError(f"{section_name}.{key}[{idx}][0] must be a non-empty string")
         try:
             start = parse_availability_boundary(start_boundary)
@@ -36,7 +36,7 @@ def validate_availability_rows(
             raise ValueError(f"{section_name}.{key}[{idx}] {exc}") from exc
         if start > end:
             raise ValueError(f"{section_name}.{key}[{idx}] start must be <= end")
-        parsed_rows.append((name.strip(), start, end))
+        parsed_rows.append((stripped_name, start, end))
 
     validate_availability_name_windows(section_name, key, parsed_rows)
     return parsed_rows

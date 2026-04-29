@@ -211,14 +211,16 @@ def _validate_sexual_scene_tag_count_weights(config: dict[str, Any]) -> None:
 
 
 def _parse_positive_weight_count(raw_count: Any) -> int:
+    error_message = (
+        "config.sexual_scene_tag_count_weights keys must be positive integers, "
+        f"got {raw_count!r}"
+    )
     try:
         count = int(raw_count)
     except (TypeError, ValueError) as exc:
-        raise ValueError(
-            "config.sexual_scene_tag_count_weights keys must be positive integers"
-        ) from exc
+        raise ValueError(error_message) from exc
     if str(count) != str(raw_count) or count <= 0:
-        raise ValueError("config.sexual_scene_tag_count_weights keys must be positive integers")
+        raise ValueError(error_message)
     return count
 
 
@@ -328,4 +330,3 @@ def validate_story_data(
         date_end=end,
         partner_distributions=partner_distribution_index,
     )
-

@@ -17,7 +17,6 @@ _CONFIGURED_DATA_DIR_LABEL: Final = (
     "(TELEGRAPHY_DATA_DIR or COMMUTED_STORY_BRIEF_DATA_DIR)"
 )
 _PACKAGE_DATA_RESOURCE: Final = "telegraphy.story_brief.data"
-_APPROVED_OVERRIDE_ROOT: Final[Path] = Path(__file__).resolve().parent / "data"
 
 
 class DataDirError(ValueError):
@@ -33,9 +32,6 @@ DATA_FILENAMES: Final[dict[str, str]] = {
 }
 
 _ALLOWED_FILENAMES: Final[frozenset[str]] = frozenset(DATA_FILENAMES.values())
-_ALLOWED_OVERRIDE_NAME_CHARS: Final[frozenset[str]] = frozenset(
-    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-"
-)
 _HOME_MARKERS: Final[tuple[str, str]] = ("~/", "~\\")
 
 
@@ -85,69 +81,39 @@ def _has_parent_traversal(path_text: str) -> bool:
     return ".." in normalized.split("/")
 
 
-@lru_cache(maxsize=1)
-def _allowed_override_dir_names() -> frozenset[str]:
-    """Return immediate subdirectory names under the approved override root."""
-    root = _APPROVED_OVERRIDE_ROOT.resolve(strict=True)
-    return frozenset(
-        child.name
-        for child in root.iterdir()
-        if child.is_dir() and child.name and not child.name.startswith(".")
-    )
-
-
-def _validated_override_dir_name(raw_value: str) -> str:
-    """Return a safe, allowlisted directory name derived from a configured override."""
+def _validated_override_path_text(raw_value: str) -> str:
+    """Return normalized and validated override text."""
     candidate = _validate_override_text(raw_value)
-    if any(sep in candidate for sep in ("/", "\\")):
-        raise DataDirError(
-            "Configured data directory must be a directory name, not a path"
-        )
-    if candidate in (".", ".."):
-        raise DataDirError("Configured data directory name is invalid")
-    if not all(ch in _ALLOWED_OVERRIDE_NAME_CHARS for ch in candidate):
-        raise DataDirError(
-            "Configured data directory name contains unsupported characters"
-        )
-    if candidate not in _allowed_override_dir_names():
-        raise DataDirError(
-            "Configured data directory must match an approved directory "
-            "under the application data root"
-        )
+    candidate = _expand_home_marker(candidate)
+    if _has_parent_traversal(candidate):
+        raise DataDirError("Configured data directory must not include parent-directory traversal")
     return candidate
 
 
 def _resolve_override_data_dir(raw_value: str) -> Path:
     """Resolve and validate TELEGRAPHY_DATA_DIR style overrides."""
-    safe_dir_name = _validated_override_dir_name(raw_value)
-    approved_root = _APPROVED_OVERRIDE_ROOT.resolve(strict=True)
-
+    candidate_text = _validated_override_path_text(raw_value)
+    candidate = Path(candidate_text)
+    if not candidate.is_absolute():
+        raise DataDirError("Configured data directory must be an absolute path")
     try:
-        candidate = next(
-            child.resolve(strict=True)
-            for child in approved_root.iterdir()
-            if child.is_dir() and child.name == safe_dir_name
-        )
-    except (OSError, StopIteration) as exc:
+        resolved = candidate.resolve(strict=False)
+        if not resolved.exists() or not resolved.is_dir():
+            raise DataDirError(
+                "Configured data directory must be an existing directory: "
+                f"{candidate}"
+            )
+        if not _is_within_allowed_root(str(resolved)):
+            raise DataDirError(
+                "Configured data directory must be within the current user's home directory: "
+                f"{resolved}"
+            )
+    except OSError as exc:
         raise DataDirError(
-            "Configured data directory must be an existing directory "
-            "under the application data root: "
-            f"{safe_dir_name}"
-        ) from exc
-
-    if not candidate.is_relative_to(approved_root):
-        raise DataDirError(
-            "Configured data directory must stay within the application data root: "
-            f"{approved_root}"
-        )
-
-    if not candidate.is_dir():
-        raise DataDirError(
-            "Configured data directory must be an existing directory: "
+            "Configured data directory is unreachable or invalid: "
             f"{candidate}"
-        )
-
-    return candidate
+        ) from exc
+    return resolved
 
 
 def _fallback_data_dir() -> Path:
@@ -178,17 +144,11 @@ def _validate_data_filename(filename: str) -> None:
 
 def _contained_child_path(data_dir: Path, filename: str) -> Path:
     """Return filename under data_dir, rejecting resolved escapes and symlinks."""
-    approved_root = _APPROVED_OVERRIDE_ROOT.resolve(strict=True)
-    base_resolved = approved_root
+    base_resolved = data_dir.resolve(strict=True)
     if not base_resolved.is_dir():
         raise DataDirError(
             "Configured data directory must be an existing directory: "
             f"{base_resolved}"
-        )
-    if not base_resolved.is_relative_to(approved_root):
-        raise DataDirError(
-            "Configured data directory must stay within the application data root: "
-            f"{approved_root}"
         )
     target_resolved = (base_resolved / filename).resolve(strict=False)
     if not target_resolved.is_relative_to(base_resolved):

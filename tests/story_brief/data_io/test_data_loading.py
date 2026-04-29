@@ -247,7 +247,9 @@ def test_resolve_override_data_dir_accepts_spaces_and_unicode(tmp_path: Path) ->
     assert resolved == custom_data_dir.resolve()
 
 
-def test_resolve_override_data_dir_wraps_oserror() -> None:
+def test_resolve_override_data_dir_wraps_oserror(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     class _BrokenPath:
         def __init__(self, raw: str) -> None:
             self.raw = raw
@@ -255,16 +257,15 @@ def test_resolve_override_data_dir_wraps_oserror() -> None:
         def is_absolute(self) -> bool:
             return True
 
-        def resolve(self, *, strict: bool = False) -> Path:
+        def resolve(self, strict: bool = False) -> Path:
             raise OSError("permission denied")
 
         def __str__(self) -> str:
             return self.raw
 
-    with pytest.MonkeyPatch.context() as monkeypatch:
-        monkeypatch.setattr(data_io, "Path", _BrokenPath)
-        with pytest.raises(data_io.DataDirError, match="is unreachable or invalid"):
-            data_io._resolve_override_data_dir("/restricted/path")
+    monkeypatch.setattr(data_io, "Path", _BrokenPath)
+    with pytest.raises(data_io.DataDirError, match="is unreachable or invalid"):
+        data_io._resolve_override_data_dir("/restricted/path")
 
 
 def test_load_data_missing_filename_without_exc_filename(

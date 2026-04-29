@@ -155,6 +155,12 @@ def _validate_data_filename(filename: str) -> None:
 def _contained_child_path(data_dir: Path, filename: str) -> Path:
     """Return filename under data_dir, rejecting resolved escapes and symlinks."""
     base_resolved = data_dir.resolve(strict=True)
+    approved_root = _APPROVED_OVERRIDE_ROOT.resolve()
+    if not base_resolved.is_relative_to(approved_root):
+        raise DataDirError(
+            "Configured data directory must stay within the application data root: "
+            f"{approved_root}"
+        )
     target_resolved = (base_resolved / filename).resolve(strict=False)
     if not target_resolved.is_relative_to(base_resolved):
         raise DataDirError(

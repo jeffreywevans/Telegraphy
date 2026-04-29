@@ -79,8 +79,6 @@ def _mutate_overlapping_eras(payload: dict[str, object]) -> None:
         },
     ]
 
-
-
 def _mutate_invalid_calendar_date(payload: dict[str, object]) -> None:
     entries = payload["partner_distributions"]
     entries[0]["date_start"] = "2000-02-30"

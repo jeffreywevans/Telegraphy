@@ -189,6 +189,62 @@ def test_partner_payload_validation_error_cases_are_parameterized(
 
 
 
+
+
+@pytest.mark.parametrize(
+    ("characters", "settings", "expected"),
+    [
+        (
+            [("Alex", date(2025, 4, 4), date(2025, 4, 4))],
+            [],
+            {
+                "missing_character_ranges": [(date(2025, 4, 4), date(2025, 4, 4))],
+                "thin_character_ranges": [],
+                "missing_setting_ranges": [(date(2025, 4, 4), date(2025, 4, 4))],
+                "thin_setting_ranges": [],
+            },
+        ),
+        (
+            [
+                ("Alex", date(2025, 4, 4), date(2025, 4, 4)),
+                ("Jordan", date(2025, 4, 4), date(2025, 4, 4)),
+                ("Sam", date(2025, 4, 4), date(2025, 4, 4)),
+            ],
+            [
+                ("City", date(2025, 4, 4), date(2025, 4, 4)),
+                ("Beach", date(2025, 4, 4), date(2025, 4, 4)),
+            ],
+            {
+                "missing_character_ranges": [],
+                "thin_character_ranges": [],
+                "missing_setting_ranges": [],
+                "thin_setting_ranges": [],
+            },
+        ),
+    ],
+)
+def test_collect_interval_lint_ranges_covers_missing_and_stable_counts(
+    characters: list[tuple[str, date, date]],
+    settings: list[tuple[str, date, date]],
+    expected: dict[str, list[tuple[date, date]]],
+) -> None:
+    selected_day = date(2025, 4, 4)
+    data = {
+        story_brief.CHARACTER_AVAILABILITY_KEY: characters,
+        story_brief.SETTING_AVAILABILITY_KEY: settings,
+        story_brief.PARTNER_DISTRIBUTIONS_KEY: {},
+    }
+
+    ranges = _collect_interval_lint_ranges(
+        data, sorted_checkpoints=[selected_day], range_end=selected_day
+    )
+
+    assert ranges.missing_character_ranges == expected["missing_character_ranges"]
+    assert ranges.thin_character_ranges == expected["thin_character_ranges"]
+    assert ranges.missing_setting_ranges == expected["missing_setting_ranges"]
+    assert ranges.thin_setting_ranges == expected["thin_setting_ranges"]
+
+
 def test_collect_interval_lint_ranges_tracks_thin_character_and_setting_ranges() -> None:
     selected_day = date(2025, 4, 4)
     data = {

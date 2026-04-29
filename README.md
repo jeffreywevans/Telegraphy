@@ -489,20 +489,14 @@ For generation changes, preserve deterministic seeded behavior unless the PR exp
 
 Current status: `0.2.1`.
 
-This release represents the transition from a single-purpose generator script into a structured Python package.
+This release focuses on documentation refreshes and maintainership clarity while preserving the package architecture introduced in 0.2.0.
 
 Highlights:
 
-- CLI entry point: `story-brief`;
-- modular story-brief implementation;
-- packaged JSON dataset;
-- data override support;
-- strict validation mode;
-- dataset linting diagnostics;
-- seeded deterministic generation;
-- safer output path and filename handling;
-- expanded tests;
-- Ruff, mypy, pytest, tox, GitHub Actions, and SonarQube integration.
+- streamlined README onboarding and project status narrative;
+- improved maintainer-document index and documentation cross-linking;
+- added a lightweight project-facing greetings document;
+- tightened top-level documentation consistency.
 
 See [CHANGELOG.md](CHANGELOG.md) for release notes.
 
@@ -518,7 +512,7 @@ Start here:
 
 - [CONTRIBUTING.md](CONTRIBUTING.md): development setup, local checks, pull-request expectations.
 - [CHANGELOG.md](CHANGELOG.md): release notes.
-- [GREETINGS.MD](GREETINGS.MD): lightweight project-facing documentation artifact.
+- [GREETINGS.md](GREETINGS.md): lightweight project-facing documentation artifact.
 - [SECURITY.md](SECURITY.md): vulnerability reporting.
 - [docs/STORY-BRIEF-MAINTAINER.md](docs/STORY-BRIEF-MAINTAINER.md): data strategy, regression coverage, dataset versioning, and maintenance rules.
 - [docs/Story Brief Generator Evaluation.md](docs/Story%20Brief%20Generator%20Evaluation.md): current evaluation and constructive criticism.

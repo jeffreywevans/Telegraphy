@@ -1,6 +1,5 @@
 import random
 from collections import defaultdict
-from copy import deepcopy
 from datetime import date
 
 import pytest
@@ -149,7 +148,7 @@ def test_seed_output_is_stable_when_option_pool_order_changes(
     from telegraphy.story_brief import generate_story_brief as story_brief
 
     baseline_data = story_brief.get_data()
-    shuffled_data = deepcopy(baseline_data)
+    shuffled_data = story_brief.get_data()
 
     shuffled_data["setting_availability"] = list(reversed(shuffled_data["setting_availability"]))
     shuffled_data["titles"] = list(reversed(shuffled_data["titles"]))

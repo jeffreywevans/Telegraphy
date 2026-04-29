@@ -12,6 +12,7 @@ from typing import Any
 DATA_DIR_ENV_VAR = "TELEGRAPHY_DATA_DIR"
 LEGACY_DATA_DIR_ENV_VAR = "COMMUTED_STORY_BRIEF_DATA_DIR"
 
+
 class DataDirError(ValueError):
     """Raised when the configured data directory is invalid or unreachable."""
 
@@ -24,6 +25,10 @@ DATA_FILENAMES = {
     "partner_distributions": "partner_distributions.json",
 }
 
+# Frozenset of the exact filenames this module is permitted to open.
+_ALLOWED_FILENAMES: frozenset[str] = frozenset(DATA_FILENAMES.values())
+
+
 def _resolve_override_data_dir(raw_value: str) -> Path:
     """Resolve and validate TELEGRAPHY_DATA_DIR style overrides."""
     trimmed = raw_value.strip()
@@ -32,17 +37,20 @@ def _resolve_override_data_dir(raw_value: str) -> Path:
     if "\x00" in trimmed:
         raise DataDirError("Configured data directory must not contain NUL bytes")
 
-    # Defend against path-injection style traversal before constructing a Path.
-    normalized_for_validation = trimmed.replace("\\", "/")
-    segments = [part for part in normalized_for_validation.split("/") if part]
-    if any(part == ".." for part in segments):
+    # Expand ~/ *before* traversal validation so the check runs on the real
+    # path segments rather than the unexpanded string.  A value like
+    # "~/../../etc" would otherwise pass the ".." check and then expand to
+    # an absolute path outside any intended root.
+    raw_path = Path(trimmed).expanduser()
+
+    if not raw_path.is_absolute():
+        raise DataDirError("Configured data directory must be an absolute path")
+
+    # Validate that no parent-directory components survive after expansion.
+    if ".." in raw_path.parts:
         raise DataDirError(
             "Configured data directory must not include parent-directory traversal"
         )
-
-    raw_path = Path(trimmed).expanduser()
-    if not raw_path.is_absolute():
-        raise DataDirError("Configured data directory must be an absolute path")
 
     try:
         candidate = raw_path.resolve(strict=True)
@@ -51,6 +59,7 @@ def _resolve_override_data_dir(raw_value: str) -> Path:
             "Configured data directory must be an existing directory: "
             f"{raw_path}"
         ) from exc
+
     if not candidate.is_dir():
         raise DataDirError(
             "Configured data directory must be an existing directory: "
@@ -68,17 +77,44 @@ def resolve_data_dir() -> Path | Traversable:
     if override_raw:
         return _resolve_override_data_dir(override_raw)
 
-    repo_relative = Path(__file__).resolve().parent / "data"
-
     try:
         package_data = files("telegraphy.story_brief.data")
         return package_data
     except (ModuleNotFoundError, FileNotFoundError, TypeError):
-        return repo_relative
+        return Path(__file__).resolve().parent / "data"
 
 
 def _data_file(filename: str) -> Path | Traversable:
-    return resolve_data_dir().joinpath(filename)
+    """Return a validated path to *filename* inside the resolved data directory.
+
+    Two invariants are enforced here — independently of how *filename* was
+    produced — so that this function is safe to call from any context:
+
+    1. *filename* must be one of the statically known data-file names.
+    2. When the data directory is a concrete ``Path``, the resulting file path
+       must resolve to a location *inside* that directory (guards against any
+       future caller passing an untrusted filename).
+    """
+    if filename not in _ALLOWED_FILENAMES:
+        raise ValueError(
+            f"Refusing to open unknown data file {filename!r}. "
+            f"Allowed files: {sorted(_ALLOWED_FILENAMES)}"
+        )
+
+    base = resolve_data_dir()
+    target = base.joinpath(filename)
+
+    # Containment check: only meaningful (and only possible) when *base* is a
+    # real filesystem Path rather than a package Traversable.
+    if isinstance(base, Path):
+        base_resolved = base.resolve()
+        target_resolved = (base / filename).resolve()
+        if not target_resolved.is_relative_to(base_resolved):
+            raise DataDirError(
+                f"Resolved data file path escapes the data directory: {target_resolved}"
+            )
+
+    return target
 
 
 def _load_json(path: Any) -> Any:
@@ -109,7 +145,6 @@ def load_data(data_dir: Path | Traversable | None = None) -> dict[str, Any]:
             f"Failed to load story brief dataset file '{missing_name}' from {location}. "
             "Verify the directory exists and contains the required JSON files."
         ) from exc
-
     return payloads
 
 

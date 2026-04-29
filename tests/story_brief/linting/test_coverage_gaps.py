@@ -14,6 +14,7 @@ from telegraphy.story_brief.linting import (
     DatasetLintReport,
     _append_prompt_depth_warnings,
     _coalesce_ranges,
+    _collect_interval_lint_ranges,
     _format_date_ranges,
     _merge_or_append_range,
     _record_partner_gaps,
@@ -185,6 +186,31 @@ def test_partner_payload_validation_error_cases_are_parameterized(
 
     with pytest.raises(ValueError, match=message):
         _parse_payload(payload, partner_character_rows)
+
+
+
+def test_collect_interval_lint_ranges_tracks_thin_character_and_setting_ranges() -> None:
+    selected_day = date(2025, 4, 4)
+    data = {
+        story_brief.CHARACTER_AVAILABILITY_KEY: [
+            ("Alex", selected_day, selected_day),
+            ("Jordan", selected_day, selected_day),
+        ],
+        story_brief.SETTING_AVAILABILITY_KEY: [("City", selected_day, selected_day)],
+        story_brief.PARTNER_DISTRIBUTIONS_KEY: {
+            "Alex": [{"date_start": selected_day, "date_end": selected_day, "partners": []}],
+            "Jordan": [{"date_start": selected_day, "date_end": selected_day, "partners": []}],
+        },
+    }
+
+    ranges = _collect_interval_lint_ranges(
+        data, sorted_checkpoints=[selected_day], range_end=selected_day
+    )
+
+    assert ranges.missing_character_ranges == []
+    assert ranges.thin_character_ranges == [(selected_day, selected_day)]
+    assert ranges.missing_setting_ranges == []
+    assert ranges.thin_setting_ranges == [(selected_day, selected_day)]
 
 
 def test_format_and_coalesce_helpers_handle_empty_inputs() -> None:

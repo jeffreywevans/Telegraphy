@@ -33,6 +33,9 @@ DATA_FILENAMES: Final[dict[str, str]] = {
 }
 
 _ALLOWED_FILENAMES: Final[frozenset[str]] = frozenset(DATA_FILENAMES.values())
+_ALLOWED_OVERRIDE_NAME_CHARS: Final[frozenset[str]] = frozenset(
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-"
+)
 _HOME_MARKERS: Final[tuple[str, str]] = ("~/", "~\\")
 
 
@@ -82,31 +85,48 @@ def _has_parent_traversal(path_text: str) -> bool:
     return ".." in normalized.split("/")
 
 
-def _validated_override_path_text(raw_value: str) -> str:
-    """Return safe relative path text derived from a configured override."""
-    expanded = _expand_home_marker(_validate_override_text(raw_value))
-    if _has_parent_traversal(expanded):
+@lru_cache(maxsize=1)
+def _allowed_override_dir_names() -> frozenset[str]:
+    """Return immediate subdirectory names under the approved override root."""
+    root = _APPROVED_OVERRIDE_ROOT.resolve(strict=True)
+    return frozenset(
+        child.name
+        for child in root.iterdir()
+        if child.is_dir() and child.name and not child.name.startswith(".")
+    )
+
+
+def _validated_override_dir_name(raw_value: str) -> str:
+    """Return a safe, allowlisted directory name derived from a configured override."""
+    candidate = _validate_override_text(raw_value)
+    if any(sep in candidate for sep in ("/", "\\")):
         raise DataDirError(
-            "Configured data directory must not include parent-directory traversal"
+            "Configured data directory must be a directory name, not a path"
         )
-    if os.path.isabs(expanded):
+    if candidate in (".", ".."):
+        raise DataDirError("Configured data directory name is invalid")
+    if not all(ch in _ALLOWED_OVERRIDE_NAME_CHARS for ch in candidate):
         raise DataDirError(
-            "Configured data directory must be a relative path under the application data root"
+            "Configured data directory name contains unsupported characters"
         )
-    return expanded
+    if candidate not in _allowed_override_dir_names():
+        raise DataDirError(
+            "Configured data directory must match an approved directory under the application data root"
+        )
+    return candidate
 
 
 def _resolve_override_data_dir(raw_value: str) -> Path:
     """Resolve and validate TELEGRAPHY_DATA_DIR style overrides."""
-    safe_path_text = _validated_override_path_text(raw_value)
+    safe_dir_name = _validated_override_dir_name(raw_value)
     approved_root = _APPROVED_OVERRIDE_ROOT.resolve(strict=True)
 
     try:
-        candidate = (approved_root / safe_path_text).resolve(strict=True)
+        candidate = (approved_root / safe_dir_name).resolve(strict=True)
     except OSError as exc:
         raise DataDirError(
             "Configured data directory must be an existing directory under the application data root: "
-            f"{safe_path_text}"
+            f"{safe_dir_name}"
         ) from exc
 
     if not candidate.is_relative_to(approved_root):

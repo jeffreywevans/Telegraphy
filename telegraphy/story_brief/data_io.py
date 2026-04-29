@@ -35,6 +35,17 @@ _ALLOWED_FILENAMES: Final[frozenset[str]] = frozenset(DATA_FILENAMES.values())
 _HOME_MARKERS: Final[tuple[str, str]] = ("~/", "~\\")
 
 
+def _is_within_allowed_root(path_text: str) -> bool:
+    """Return True when path_text is within the current user's home directory."""
+    allowed_root = os.path.realpath(str(Path.home()))
+    candidate = os.path.realpath(path_text)
+    try:
+        common = os.path.commonpath([allowed_root, candidate])
+    except ValueError:
+        return False
+    return common == allowed_root
+
+
 def _selected_override_value() -> str | None:
     """Return the active override value without collapsing blank values."""
     primary_value = os.environ.get(DATA_DIR_ENV_VAR)
@@ -79,6 +90,10 @@ def _validated_override_path_text(raw_value: str) -> str:
         )
     if not os.path.isabs(expanded):
         raise DataDirError("Configured data directory must be an absolute path")
+    if not _is_within_allowed_root(expanded):
+        raise DataDirError(
+            "Configured data directory must be within the current user's home directory"
+        )
     return expanded
 
 

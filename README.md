@@ -489,13 +489,13 @@ For generation changes, preserve deterministic seeded behavior unless the PR exp
 
 Current status: `0.2.1`.
 
-This release focuses on documentation refreshes and maintainership clarity while preserving the package architecture introduced in 0.2.0.
+This release focuses on documentation refreshes and maintainer-focused clarity while preserving the package architecture introduced in 0.2.0.
 
 Highlights:
 
 - streamlined README onboarding and project status narrative;
 - improved maintainer-document index and documentation cross-linking;
-- added a lightweight project-facing greetings document;
+- added a lightweight project-facing `GREETINGS.md` document;
 - tightened top-level documentation consistency.
 
 See [CHANGELOG.md](CHANGELOG.md) for release notes.

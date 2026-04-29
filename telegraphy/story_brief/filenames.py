@@ -162,7 +162,16 @@ def resolve_output_path(
     filename: str | None,
     generated_filename: str,
 ) -> Path:
-    """Resolve output path and ensure it remains inside the trusted cwd."""
+    """Resolve output path and ensure it remains inside the trusted cwd.
+
+    Security contract:
+        This function and ``write_output_markdown`` must be called in sequence.
+        ``resolve_output_path`` validates the caller's requested location, while
+        ``write_output_markdown`` performs a second parent-directory resolution
+        immediately before opening the file descriptor. That second check is
+        load-bearing because it narrows the time-of-check/time-of-use window if a
+        directory entry is swapped for a symlink between calls.
+    """
     trusted_base_dir = Path.cwd().resolve(strict=True)
     try:
         requested_output_dir = _build_safe_relative_path(
@@ -214,7 +223,13 @@ def write_output_markdown(
     force: bool = False,
     trusted_base_dir: Path | None = None,
 ) -> None:
-    """Write markdown to output_path while guarding against symlink redirection."""
+    """Write markdown to output_path while guarding against symlink redirection.
+
+    The caller should pass a path returned by ``resolve_output_path`` and invoke
+    this function immediately afterwards. This function intentionally re-resolves
+    the parent directory and re-checks trusted-base containment so the final open
+    operation is anchored to the latest filesystem state.
+    """
     trusted_base_dir = (trusted_base_dir or Path.cwd()).resolve(strict=True)
     raw_output_path = trusted_base_dir / output_path
     resolved_parent = raw_output_path.parent.resolve(strict=False)

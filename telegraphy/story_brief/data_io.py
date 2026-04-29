@@ -178,8 +178,13 @@ def _load_json(path: Any) -> Any:
         if hasattr(os, "O_NOFOLLOW"):
             flags |= os.O_NOFOLLOW
         fd = os.open(path, flags)
-        with os.fdopen(fd, "r", encoding="utf-8") as handle:
-            return json.loads(handle.read())
+        try:
+            handle = os.fdopen(fd, "r", encoding="utf-8")
+        except Exception:
+            os.close(fd)
+            raise
+        with handle:
+            return json.load(handle)
     return json.loads(path.read_text(encoding="utf-8"))
 
 

@@ -110,18 +110,6 @@ def test_env_override_loads_dataset_from_custom_directory(
     assert loaded["titles"] == ("A Night in @setting",)
 
 
-def test_legacy_env_override_loads_dataset_from_custom_directory(
-    override_data_dir: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    monkeypatch.delenv("TELEGRAPHY_DATA_DIR", raising=False)
-    monkeypatch.setenv("COMMUTED_STORY_BRIEF_DATA_DIR", str(override_data_dir))
-    story_brief.clear_get_data_cache()
-    loaded = story_brief.load_story_data()
-
-    assert loaded["dataset_version"] == "test"
-    assert loaded["titles"] == ("A Night in @setting",)
-
-
 def test_load_story_data_normalizes_sexual_scene_tag_count_weights(
     override_data_dir: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -276,7 +264,6 @@ def test_load_data_missing_filename_without_exc_filename(
 
     monkeypatch.setattr(data_io, "_load_json", raise_missing)
     monkeypatch.delenv("TELEGRAPHY_DATA_DIR", raising=False)
-    monkeypatch.delenv("COMMUTED_STORY_BRIEF_DATA_DIR", raising=False)
 
     with pytest.raises(ValueError, match="file 'unknown file' from data directory"):
         data_io.load_data(tmp_path)

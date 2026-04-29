@@ -279,7 +279,7 @@ TELEGRAPHY_DATA_DIR=/absolute/path/to/story-data story-brief --print-only
 A legacy environment variable is also supported for compatibility:
 
 ```bash
-COMMUTED_STORY_BRIEF_DATA_DIR=/absolute/path/to/story-data story-brief --print-only
+TELEGRAPHY_DATA_DIR=/absolute/path/to/story-data story-brief --print-only
 ```
 
 `TELEGRAPHY_DATA_DIR` takes precedence when both are set.

@@ -87,7 +87,6 @@ def run_cli(
 ) -> subprocess.CompletedProcess[str]:
     env = os.environ.copy()
     env.pop("TELEGRAPHY_DATA_DIR", None)
-    env.pop("COMMUTED_STORY_BRIEF_DATA_DIR", None)
     if data_dir is not None:
         env["TELEGRAPHY_DATA_DIR"] = str(data_dir)
     env["PYTHONPATH"] = os.pathsep.join(

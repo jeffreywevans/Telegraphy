@@ -80,7 +80,7 @@ def _coalesce_ranges(ranges: list[DateRange]) -> list[DateRange]:
     if not ranges:
         return []
     sorted_ranges = sorted(ranges, key=lambda item: item[0])
-    return _coalesce_sorted_ranges(sorted_ranges)
+    return _coalesce_sorted_ranges(sorted_ranges) if sorted_ranges else []
 
 
 def _coalesce_sorted_ranges(sorted_ranges: Sequence[DateRange]) -> list[DateRange]:

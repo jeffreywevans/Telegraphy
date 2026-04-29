@@ -87,7 +87,13 @@ def _resolve_override_data_dir(raw_value: str) -> Path:
     if not candidate.is_absolute():
         raise DataDirError("Configured data directory must be an absolute path")
     try:
+        safe_root = _fallback_data_dir().resolve(strict=True).parent
         resolved = candidate.resolve(strict=False)
+        if not resolved.is_relative_to(safe_root):
+            raise DataDirError(
+                "Configured data directory must be within the trusted data root: "
+                f"{safe_root}"
+            )
         if not resolved.exists() or not resolved.is_dir():
             raise DataDirError(
                 "Configured data directory must be an existing directory: "

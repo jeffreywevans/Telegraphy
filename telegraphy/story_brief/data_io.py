@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import json
 import os
+import unicodedata
 from functools import lru_cache
 from importlib.resources import files
 from importlib.resources.abc import Traversable
@@ -86,7 +87,13 @@ def _resolve_override_data_dir(raw_value: str) -> Path:
     if not candidate.is_absolute():
         raise DataDirError("Configured data directory must be an absolute path")
     try:
+        safe_root = _fallback_data_dir().resolve(strict=True).parent
         resolved = candidate.resolve(strict=False)
+        if not resolved.is_relative_to(safe_root):
+            raise DataDirError(
+                "Configured data directory must be within the trusted data root: "
+                f"{safe_root}"
+            )
         if not resolved.exists() or not resolved.is_dir():
             raise DataDirError(
                 "Configured data directory must be an existing directory: "
@@ -119,6 +126,22 @@ def resolve_data_dir() -> Path | Traversable:
 
 def _validate_data_filename(filename: str) -> None:
     """Reject every filename except the statically known dataset files."""
+    normalized_filename = unicodedata.normalize("NFC", filename)
+    normalized_allowed_filenames = {
+        unicodedata.normalize("NFC", allowed_filename) for allowed_filename in _ALLOWED_FILENAMES
+    }
+    if normalized_filename != filename:
+        raise ValueError(
+            f"Refusing to open non-canonical data file {filename!r}. "
+            "Use canonical NFC filename forms only."
+        )
+    if normalized_filename.casefold() not in {
+        allowed.casefold() for allowed in normalized_allowed_filenames
+    }:
+        raise ValueError(
+            f"Refusing to open unknown data file {filename!r}. "
+            f"Allowed files: {sorted(_ALLOWED_FILENAMES)}"
+        )
     if filename not in _ALLOWED_FILENAMES:
         raise ValueError(
             f"Refusing to open unknown data file {filename!r}. "
@@ -156,6 +179,18 @@ def _data_file(filename: str) -> Path | Traversable:
 
 
 def _load_json(path: Any) -> Any:
+    if isinstance(path, Path):
+        flags = os.O_RDONLY
+        if hasattr(os, "O_NOFOLLOW"):
+            flags |= os.O_NOFOLLOW
+        fd = os.open(path, flags)
+        try:
+            handle = os.fdopen(fd, "r", encoding="utf-8")
+        except Exception:
+            os.close(fd)
+            raise
+        with handle:
+            return json.load(handle)
     return json.loads(path.read_text(encoding="utf-8"))
 
 

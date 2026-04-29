@@ -6,7 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
-## [0.2.0] - YYYY-MM-DD
+## [0.2.1] - 2026-04-29
+
+### Added
+- Added `GREETINGS.MD` as a lightweight project-facing documentation artifact.
+
+### Changed
+- Rewrote and streamlined the README to improve project onboarding clarity and reduce duplicated content.
+- Removed duplicate SonarQube badge and tightened top-level project documentation consistency.
+- Standardized changelog structure to align with Keep a Changelog conventions and explicit release-date formatting.
+
+## [0.2.0] - 2026-04-27
 
 This release marks the transition from a single-purpose generator script into a structured Python package.
 

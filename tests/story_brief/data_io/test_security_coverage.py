@@ -56,6 +56,14 @@ def test_contained_child_path_rejects_resolved_escape(
         data_io._contained_child_path(tmp_path, "titles.json")
 
 
+def test_contained_child_path_rejects_non_directory_base(tmp_path: Path) -> None:
+    base_file = tmp_path / "not-a-directory"
+    base_file.write_text("x", encoding="utf-8")
+
+    with pytest.raises(data_io.DataDirError, match="must be an existing directory"):
+        data_io._contained_child_path(base_file, "titles.json")
+
+
 def test_load_data_reports_configured_missing_filename(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

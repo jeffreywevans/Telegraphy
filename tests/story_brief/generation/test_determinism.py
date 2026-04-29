@@ -198,15 +198,13 @@ def test_pick_story_fields_reads_data_once_per_invocation(
     assert calls["count"] == 1
 
 
-
-
 def test_pick_story_fields_handles_partner_distribution_gap_year(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     from telegraphy.story_brief import generate_story_brief as story_brief
 
     selected_date = date(2000, 1, 1)
-    data = deepcopy(story_brief.get_data())
+    data = story_brief.get_data()
     data["character_availability"] = [
         ("Alex", selected_date, selected_date),
         ("Jordan", selected_date, selected_date),

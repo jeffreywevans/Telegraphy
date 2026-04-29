@@ -80,6 +80,12 @@ def _mutate_overlapping_eras(payload: dict[str, object]) -> None:
     ]
 
 
+
+def _mutate_invalid_calendar_date(payload: dict[str, object]) -> None:
+    entries = payload["partner_distributions"]
+    entries[0]["date_start"] = "2000-02-30"
+
+
 def test_parse_partner_distribution_payload_returns_typed_dataset(
     partner_payload_factory,
     partner_character_rows,
@@ -158,6 +164,7 @@ def test_parse_character_distribution_uses_partner_distribution_key_in_path() ->
         (_mutate_duplicate_partners, "contains duplicate partner"),
         (_mutate_non_object_entry, "must be an object"),
         (_mutate_overlapping_eras, "overlapping or unsorted ranges"),
+        (_mutate_invalid_calendar_date, "must be an ISO date"),
     ],
 )
 def test_parse_partner_distribution_payload_rejects_invalid_shapes(

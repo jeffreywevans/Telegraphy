@@ -187,48 +187,22 @@ def test_partner_payload_validation_error_cases_are_parameterized(
     with pytest.raises(ValueError, match=message):
         _parse_payload(payload, partner_character_rows)
 
-
-
-
-
 @pytest.mark.parametrize(
-    ("characters", "settings", "expected"),
+    ("num_chars", "num_settings", "expect_missing_chars", "expect_missing_settings"),
     [
-        (
-            [("Alex", date(2025, 4, 4), date(2025, 4, 4))],
-            [],
-            {
-                "missing_character_ranges": [(date(2025, 4, 4), date(2025, 4, 4))],
-                "thin_character_ranges": [],
-                "missing_setting_ranges": [(date(2025, 4, 4), date(2025, 4, 4))],
-                "thin_setting_ranges": [],
-            },
-        ),
-        (
-            [
-                ("Alex", date(2025, 4, 4), date(2025, 4, 4)),
-                ("Jordan", date(2025, 4, 4), date(2025, 4, 4)),
-                ("Sam", date(2025, 4, 4), date(2025, 4, 4)),
-            ],
-            [
-                ("City", date(2025, 4, 4), date(2025, 4, 4)),
-                ("Beach", date(2025, 4, 4), date(2025, 4, 4)),
-            ],
-            {
-                "missing_character_ranges": [],
-                "thin_character_ranges": [],
-                "missing_setting_ranges": [],
-                "thin_setting_ranges": [],
-            },
-        ),
+        (1, 0, True, True),
+        (3, 2, False, False),
     ],
 )
 def test_collect_interval_lint_ranges_covers_missing_and_stable_counts(
-    characters: list[tuple[str, date, date]],
-    settings: list[tuple[str, date, date]],
-    expected: dict[str, list[tuple[date, date]]],
+    num_chars: int,
+    num_settings: int,
+    expect_missing_chars: bool,
+    expect_missing_settings: bool,
 ) -> None:
     selected_day = date(2025, 4, 4)
+    characters = [(f"Char{i}", selected_day, selected_day) for i in range(num_chars)]
+    settings = [(f"Set{i}", selected_day, selected_day) for i in range(num_settings)]
     data = {
         story_brief.CHARACTER_AVAILABILITY_KEY: characters,
         story_brief.SETTING_AVAILABILITY_KEY: settings,
@@ -239,10 +213,15 @@ def test_collect_interval_lint_ranges_covers_missing_and_stable_counts(
         data, sorted_checkpoints=[selected_day], range_end=selected_day
     )
 
-    assert ranges.missing_character_ranges == expected["missing_character_ranges"]
-    assert ranges.thin_character_ranges == expected["thin_character_ranges"]
-    assert ranges.missing_setting_ranges == expected["missing_setting_ranges"]
-    assert ranges.thin_setting_ranges == expected["thin_setting_ranges"]
+    expected_interval = [(selected_day, selected_day)]
+    assert ranges.missing_character_ranges == (
+        expected_interval if expect_missing_chars else []
+    )
+    assert ranges.thin_character_ranges == []
+    assert ranges.missing_setting_ranges == (
+        expected_interval if expect_missing_settings else []
+    )
+    assert ranges.thin_setting_ranges == []
 
 
 def test_collect_interval_lint_ranges_tracks_thin_character_and_setting_ranges() -> None:

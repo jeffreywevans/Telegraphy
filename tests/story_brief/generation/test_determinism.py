@@ -134,7 +134,6 @@ def test_non_none_sexual_content_with_positive_partner_weight_requires_partner_s
             "partners": [(protagonist, 1.0)],
         }
     ]
-
     monkeypatch.setattr(story_brief, "get_data", lambda: data)
     fields = story_brief.pick_story_fields(random.Random(123), selected_date=selected_date)
 
@@ -197,6 +196,44 @@ def test_pick_story_fields_reads_data_once_per_invocation(
     story_brief.pick_story_fields(random.Random(321), selected_date=date(2000, 1, 1))
 
     assert calls["count"] == 1
+
+
+
+
+def test_pick_story_fields_handles_partner_distribution_gap_year(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from telegraphy.story_brief import generate_story_brief as story_brief
+
+    selected_date = date(2000, 1, 1)
+    data = deepcopy(story_brief.get_data())
+    data["character_availability"] = [
+        ("Alex", selected_date, selected_date),
+        ("Jordan", selected_date, selected_date),
+    ]
+    data["setting_availability"] = [("Seattle", selected_date, selected_date)]
+    data["sexual_content_options"] = ["suggestive"]
+    data["sexual_content_weights"] = [1.0]
+    gap_eras = [
+        {
+            "date_start": date(1999, 1, 1),
+            "date_end": date(1999, 12, 31),
+            "partners": [("Jordan", 1.0)],
+        },
+        {
+            "date_start": date(2001, 1, 1),
+            "date_end": date(2001, 12, 31),
+            "partners": [("Jordan", 1.0)],
+        },
+    ]
+    data[story_brief.PARTNER_DISTRIBUTIONS_KEY]["Alex"] = gap_eras
+    data[story_brief.PARTNER_DISTRIBUTIONS_KEY]["Jordan"] = gap_eras
+
+    monkeypatch.setattr(story_brief, "get_data", lambda: data)
+    fields = story_brief.pick_story_fields(random.Random(9), selected_date=selected_date)
+
+    assert fields["sexual_content_level"] == "suggestive"
+    assert fields["sexual_partner"] is None
 
 
 def test_pick_story_fields_handles_missing_partner_distribution_for_protagonist(

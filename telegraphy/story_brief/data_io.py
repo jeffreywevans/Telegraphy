@@ -101,9 +101,10 @@ def _validated_override_path_text(raw_value: str) -> str:
 def _resolve_override_data_dir(raw_value: str) -> Path:
     """Resolve and validate TELEGRAPHY_DATA_DIR style overrides."""
     safe_path_text = _validated_override_path_text(raw_value)
+    canonical_path_text = os.path.realpath(safe_path_text)
 
     try:
-        candidate = Path(safe_path_text).resolve(strict=True)
+        candidate = Path(canonical_path_text).resolve(strict=True)
     except OSError as exc:
         raise DataDirError(
             "Configured data directory must be an existing directory: "
@@ -155,7 +156,7 @@ def _validate_data_filename(filename: str) -> None:
 def _contained_child_path(data_dir: Path, filename: str) -> Path:
     """Return filename under data_dir, rejecting resolved escapes and symlinks."""
     approved_root = _APPROVED_OVERRIDE_ROOT.resolve(strict=True)
-    base_resolved = data_dir.resolve(strict=True)
+    base_resolved = approved_root
     if not base_resolved.is_dir():
         raise DataDirError(
             "Configured data directory must be an existing directory: "

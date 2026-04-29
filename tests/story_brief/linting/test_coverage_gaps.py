@@ -15,6 +15,7 @@ from telegraphy.story_brief.linting import (
     _append_prompt_depth_warnings,
     _coalesce_ranges,
     _format_date_ranges,
+    _merge_or_append_range,
     _record_partner_gaps,
     _resolve_interval_end,
 )
@@ -204,6 +205,26 @@ def test_resolve_interval_end_returns_none_for_invalid_interval() -> None:
     )
 
     assert interval_end is None
+
+
+def test_merge_or_append_range_merges_overlapping_and_adjacent_ranges() -> None:
+    merged = [(date(2025, 4, 1), date(2025, 4, 3))]
+
+    _merge_or_append_range(merged, (date(2025, 4, 3), date(2025, 4, 4)))
+    _merge_or_append_range(merged, (date(2025, 4, 5), date(2025, 4, 5)))
+
+    assert merged == [(date(2025, 4, 1), date(2025, 4, 5))]
+
+
+def test_merge_or_append_range_appends_when_ranges_are_not_adjacent() -> None:
+    merged = [(date(2025, 4, 1), date(2025, 4, 3))]
+
+    _merge_or_append_range(merged, (date(2025, 4, 6), date(2025, 4, 6)))
+
+    assert merged == [
+        (date(2025, 4, 1), date(2025, 4, 3)),
+        (date(2025, 4, 6), date(2025, 4, 6)),
+    ]
 
 
 @pytest.mark.parametrize(

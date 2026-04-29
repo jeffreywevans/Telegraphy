@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import sys
 from datetime import date, timedelta
-from typing import Any, Mapping, NamedTuple, Sequence, TextIO, cast
+from typing import Any, Iterable, Mapping, NamedTuple, Sequence, TextIO, cast
 
 from ._constants import (
     CHARACTER_AVAILABILITY_KEY,
@@ -75,12 +75,12 @@ def _merge_or_append_range(merged: list[DateRange], current: DateRange) -> None:
         merged.append(current)
 
 
-def _coalesce_ranges(ranges: list[DateRange]) -> list[DateRange]:
+def _coalesce_ranges(ranges: Iterable[DateRange]) -> list[DateRange]:
     """Return sorted closed ranges with overlaps and adjacent spans coalesced."""
-    if not ranges:
-        return []
     sorted_ranges = sorted(ranges, key=lambda item: item[0])
-    return _coalesce_sorted_ranges(sorted_ranges) if sorted_ranges else []
+    if not sorted_ranges:
+        return []
+    return _coalesce_sorted_ranges(sorted_ranges)
 
 
 def _coalesce_sorted_ranges(sorted_ranges: Sequence[DateRange]) -> list[DateRange]:

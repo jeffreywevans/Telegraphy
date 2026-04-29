@@ -132,7 +132,10 @@ def _contained_child_path(data_dir: Path, filename: str) -> Path:
     """Return filename under data_dir, rejecting resolved escapes and symlinks."""
     base_resolved = data_dir.resolve(strict=True)
     if not base_resolved.is_dir():
-        raise DataDirError(f"Configured data directory must be an existing directory: {base_resolved}")
+        raise DataDirError(
+            "Configured data directory must be an existing directory: "
+            f"{base_resolved}"
+        )
     target_resolved = (base_resolved / filename).resolve(strict=False)
     if not target_resolved.is_relative_to(base_resolved):
         raise DataDirError(

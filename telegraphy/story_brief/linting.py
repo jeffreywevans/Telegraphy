@@ -70,6 +70,7 @@ def _merge_or_append_range(merged: list[DateRange], current: DateRange) -> None:
     """Merge an adjacent/overlapping range into ``merged`` or append it."""
     current_start, current_end = current
     last_start, last_end = merged[-1]
+
     if current_start <= last_end + _ONE_DAY:
         merged[-1] = (last_start, max(last_end, current_end))
     else:
@@ -119,16 +120,33 @@ def build_coverage_checkpoints(
 
 
 def _next_day_or_final_day(day: date) -> date:
-    """Return the next day, clamping at ``date.max`` to avoid overflow."""
-    return day if day == date.max else day + _ONE_DAY
+    """Return the next day, clamping at ``date.max`` without a branch."""
+    next_ordinal = min(day.toordinal() + 1, date.max.toordinal())
+    return date.fromordinal(next_ordinal)
 
 
-def _available_entities(availability_rows: AvailabilityRows, *, selected_date: date) -> list[str]:
+def _date_range_contains(
+    *, start_date: date, selected_date: date, end_date: date
+) -> bool:
+    """Return whether ``selected_date`` is inside the closed date range."""
+    selected_ordinal = selected_date.toordinal()
+    start_ordinal = start_date.toordinal()
+    end_exclusive_ordinal = end_date.toordinal() + 1
+    return selected_ordinal in range(start_ordinal, end_exclusive_ordinal)
+
+
+def _available_entities(
+    availability_rows: AvailabilityRows, *, selected_date: date
+) -> list[str]:
     """Return names whose closed availability window contains ``selected_date``."""
     return [
         name
         for name, start_date, end_date in availability_rows
-        if start_date <= selected_date <= end_date
+        if _date_range_contains(
+            start_date=start_date,
+            selected_date=selected_date,
+            end_date=end_date,
+        )
     ]
 
 
@@ -158,6 +176,7 @@ def _availability_gap_flags(
     """Classify blocking and fragile availability counts for one interval."""
     character_count = len(characters)
     setting_count = len(settings)
+
     return _AvailabilityGapFlags(
         missing_characters=character_count < _MINIMUM_CHARACTER_CHOICES,
         thin_characters=character_count == _MINIMUM_CHARACTER_CHOICES,
@@ -167,9 +186,15 @@ def _availability_gap_flags(
 
 
 def _era_covers_date(era: Mapping[str, Any], *, selected_date: date) -> bool:
+    """Return whether a partner-distribution era covers ``selected_date``."""
     date_start = cast(date, era["date_start"])
     date_end = cast(date, era["date_end"])
-    return date_start <= selected_date <= date_end
+
+    return _date_range_contains(
+        start_date=date_start,
+        selected_date=selected_date,
+        end_date=date_end,
+    )
 
 
 def _has_partner_data(eras: PartnerEras, *, selected_date: date) -> bool:
@@ -185,11 +210,14 @@ def _record_partner_gaps(
 ) -> None:
     """Record intervals where available protagonists have no partner era data."""
     current_start, _ = interval
+
     for protagonist in protagonists:
         eras = partner_distributions.get(protagonist, ())
         if _has_partner_data(eras, selected_date=current_start):
             continue
-        partner_data_gap_ranges_by_protagonist.setdefault(protagonist, []).append(interval)
+        partner_data_gap_ranges_by_protagonist.setdefault(protagonist, []).append(
+            interval
+        )
 
 
 def _collect_interval_lint_ranges(
@@ -216,7 +244,9 @@ def _collect_interval_lint_ranges(
         characters = _available_entities(
             data[CHARACTER_AVAILABILITY_KEY], selected_date=current_start
         )
-        settings = _available_entities(data[SETTING_AVAILABILITY_KEY], selected_date=current_start)
+        settings = _available_entities(
+            data[SETTING_AVAILABILITY_KEY], selected_date=current_start
+        )
         gap_flags = _availability_gap_flags(characters=characters, settings=settings)
 
         if gap_flags.missing_characters:
@@ -261,16 +291,19 @@ def _append_coverage_messages(
             "Coverage gap: fewer than two distinct characters on "
             f"{_coalesced_date_ranges(interval_results.missing_character_ranges)}."
         )
+
     if interval_results.missing_setting_ranges:
         errors.append(
             "Coverage gap: no available settings on "
             f"{_coalesced_date_ranges(interval_results.missing_setting_ranges)}."
         )
+
     if interval_results.thin_character_ranges:
         warnings.append(
             "Fragile coverage: exactly two characters available on "
             f"{_coalesced_date_ranges(interval_results.thin_character_ranges)}."
         )
+
     if interval_results.thin_setting_ranges:
         warnings.append(
             "Fragile coverage: exactly one setting available on "
@@ -278,7 +311,9 @@ def _append_coverage_messages(
         )
 
     for protagonist in sorted(interval_results.partner_data_gap_ranges_by_protagonist):
-        gap_ranges = interval_results.partner_data_gap_ranges_by_protagonist[protagonist]
+        gap_ranges = interval_results.partner_data_gap_ranges_by_protagonist[
+            protagonist
+        ]
         warnings.append(
             "Partner data coverage gap: protagonist "
             f"'{protagonist}' has no partner era data available on "
@@ -292,6 +327,7 @@ def _append_prompt_depth_warnings(data: Mapping[str, Any], *, warnings: list[str
         option_count = len(data[key])
         if option_count >= _MINIMUM_PROMPT_OPTIONS:
             continue
+
         warnings.append(
             f"Prompt depth warning: {key} has only {option_count} option(s); "
             f"consider adding at least {_MINIMUM_PROMPT_OPTIONS} for variety."
@@ -307,6 +343,7 @@ def _append_prompt_depth_warnings(data: Mapping[str, Any], *, warnings: list[str
 
 def _append_title_token_warnings(data: Mapping[str, Any], *, warnings: list[str]) -> None:
     tokens_seen: set[str] = set()
+
     for template in data["titles"]:
         tokens_seen.update(TITLE_TOKEN_PATTERN.findall(template))
 
@@ -331,6 +368,7 @@ def lint_story_data(data: Mapping[str, Any]) -> DatasetLintReport:
 
     errors: list[str] = []
     warnings: list[str] = []
+
     _append_coverage_messages(
         errors=errors,
         warnings=warnings,
@@ -361,6 +399,7 @@ def _emit_lint_section(
 def emit_lint_report(report: DatasetLintReport, *, file: TextIO | None = None) -> None:
     """Print a deterministic, human-readable lint report."""
     destination = sys.stdout if file is None else file
+
     _emit_lint_section(
         heading="Dataset lint: errors",
         empty_message="Dataset lint: no blocking coverage gaps found.",

@@ -122,8 +122,12 @@ def _resolve_override_data_dir(raw_value: str) -> Path:
     approved_root = _APPROVED_OVERRIDE_ROOT.resolve(strict=True)
 
     try:
-        candidate = (approved_root / safe_dir_name).resolve(strict=True)
-    except OSError as exc:
+        candidate = next(
+            child.resolve(strict=True)
+            for child in approved_root.iterdir()
+            if child.is_dir() and child.name == safe_dir_name
+        )
+    except (OSError, StopIteration) as exc:
         raise DataDirError(
             "Configured data directory must be an existing directory under the application data root: "
             f"{safe_dir_name}"

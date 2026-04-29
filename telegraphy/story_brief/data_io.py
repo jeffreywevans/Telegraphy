@@ -96,9 +96,18 @@ def _resolve_override_data_dir(raw_value: str) -> Path:
     candidate = Path(candidate_text)
     if not candidate.is_absolute():
         raise DataDirError("Configured data directory must be an absolute path")
-    resolved = candidate.resolve(strict=False)
-    if not resolved.exists() or not resolved.is_dir():
-        raise DataDirError("Configured data directory must be an existing directory")
+    try:
+        resolved = candidate.resolve(strict=False)
+        if not resolved.exists() or not resolved.is_dir():
+            raise DataDirError(
+                "Configured data directory must be an existing directory: "
+                f"{candidate}"
+            )
+    except OSError as exc:
+        raise DataDirError(
+            "Configured data directory is unreachable or invalid: "
+            f"{candidate}"
+        ) from exc
     return resolved
 
 

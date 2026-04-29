@@ -331,8 +331,8 @@ def pick_sexual_partner(
     """Pick partner for sexual content, if available for selected era."""
     if sexual_content_level == "none":
         return None
-    for era in data[PARTNER_DISTRIBUTIONS_KEY].get(protagonist, ()):  # pragma: no branch
-        if _date_in_range(selected_date, era["date_start"], era["date_end"]):  # pragma: no branch
+    for era in data[PARTNER_DISTRIBUTIONS_KEY].get(protagonist, ()):
+        if _date_in_range(selected_date, era["date_start"], era["date_end"]):
             return weighted_partner_for_era(rng, era["partners"])
     return None
 

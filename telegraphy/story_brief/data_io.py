@@ -109,9 +109,7 @@ def _data_file(filename: str) -> Path | Traversable:
     if isinstance(base, Path):
         base_resolved = base.resolve()
         target_resolved = (base / filename).resolve()
-        # Use os.path.commonpath for a prefix check that is immune to the
-        # "/foo/bar".startswith("/foo/b") false-positive.
-        if os.path.commonpath([base_resolved, target_resolved]) != str(base_resolved):
+        if not target_resolved.is_relative_to(base_resolved):
             raise DataDirError(
                 f"Resolved data file path escapes the data directory: {target_resolved}"
             )

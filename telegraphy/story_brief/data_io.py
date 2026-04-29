@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import json
 import os
+import unicodedata
 from functools import lru_cache
 from importlib.resources import files
 from importlib.resources.abc import Traversable
@@ -119,6 +120,22 @@ def resolve_data_dir() -> Path | Traversable:
 
 def _validate_data_filename(filename: str) -> None:
     """Reject every filename except the statically known dataset files."""
+    normalized_filename = unicodedata.normalize("NFC", filename)
+    normalized_allowed_filenames = {
+        unicodedata.normalize("NFC", allowed_filename) for allowed_filename in _ALLOWED_FILENAMES
+    }
+    if normalized_filename != filename:
+        raise ValueError(
+            f"Refusing to open non-canonical data file {filename!r}. "
+            "Use canonical NFC filename forms only."
+        )
+    if normalized_filename.casefold() not in {
+        allowed.casefold() for allowed in normalized_allowed_filenames
+    }:
+        raise ValueError(
+            f"Refusing to open unknown data file {filename!r}. "
+            f"Allowed files: {sorted(_ALLOWED_FILENAMES)}"
+        )
     if filename not in _ALLOWED_FILENAMES:
         raise ValueError(
             f"Refusing to open unknown data file {filename!r}. "
@@ -156,6 +173,13 @@ def _data_file(filename: str) -> Path | Traversable:
 
 
 def _load_json(path: Any) -> Any:
+    if isinstance(path, Path):
+        flags = os.O_RDONLY
+        if hasattr(os, "O_NOFOLLOW"):
+            flags |= os.O_NOFOLLOW
+        fd = os.open(path, flags)
+        with os.fdopen(fd, "r", encoding="utf-8") as handle:
+            return json.loads(handle.read())
     return json.loads(path.read_text(encoding="utf-8"))
 
 

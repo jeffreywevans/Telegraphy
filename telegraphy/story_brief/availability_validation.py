@@ -61,5 +61,7 @@ def validate_availability_name_windows(
                 )
 
 
-def has_date_overlap(rows: list[tuple[str, date, date]], range_start: date, range_end: date) -> bool:
+def has_date_overlap(
+    rows: list[tuple[str, date, date]], range_start: date, range_end: date
+) -> bool:
     return any(start <= range_end and end >= range_start for _, start, end in rows)

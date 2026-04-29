@@ -29,6 +29,28 @@ DATA_FILENAMES = {
 _ALLOWED_FILENAMES: frozenset[str] = frozenset(DATA_FILENAMES.values())
 
 
+def _trusted_data_roots() -> tuple[Path, ...]:
+    """Return absolute roots that TELEGRAPHY_DATA_DIR is allowed to target."""
+    roots: list[Path] = []
+
+    try:
+        package_data = files("telegraphy.story_brief.data")
+    except (ModuleNotFoundError, FileNotFoundError, TypeError):
+        package_data = None
+
+    if isinstance(package_data, Path):
+        roots.append(package_data.resolve())
+
+    roots.append((Path(__file__).resolve().parent / "data").resolve())
+
+    unique_roots: list[Path] = []
+    for root in roots:
+        if root not in unique_roots:
+            unique_roots.append(root)
+
+    return tuple(unique_roots)
+
+
 def _resolve_override_data_dir(raw_value: str) -> Path:
     """Resolve and validate TELEGRAPHY_DATA_DIR style overrides."""
     trimmed = raw_value.strip()
@@ -64,6 +86,14 @@ def _resolve_override_data_dir(raw_value: str) -> Path:
         raise DataDirError(
             "Configured data directory must be an existing directory: "
             f"{candidate}"
+        )
+
+    trusted_roots = _trusted_data_roots()
+    if trusted_roots and not any(candidate.is_relative_to(root) for root in trusted_roots):
+        roots_display = ", ".join(str(root) for root in trusted_roots)
+        raise DataDirError(
+            "Configured data directory is outside trusted roots. "
+            f"Allowed roots: {roots_display}"
         )
 
     return candidate

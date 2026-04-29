@@ -214,7 +214,9 @@ def _parse_positive_weight_count(raw_count: Any) -> int:
     try:
         count = int(raw_count)
     except (TypeError, ValueError) as exc:
-        raise ValueError("config.sexual_scene_tag_count_weights keys must be positive integers") from exc
+        raise ValueError(
+            "config.sexual_scene_tag_count_weights keys must be positive integers"
+        ) from exc
     if str(count) != str(raw_count) or count <= 0:
         raise ValueError("config.sexual_scene_tag_count_weights keys must be positive integers")
     return count

@@ -11,11 +11,8 @@ from pathlib import Path
 from typing import Any, Final
 
 DATA_DIR_ENV_VAR: Final = "TELEGRAPHY_DATA_DIR"
-LEGACY_DATA_DIR_ENV_VAR: Final = "COMMUTED_STORY_BRIEF_DATA_DIR"
-
 _CONFIGURED_DATA_DIR_LABEL: Final = (
-    "configured data directory "
-    "(TELEGRAPHY_DATA_DIR or COMMUTED_STORY_BRIEF_DATA_DIR)"
+    "configured data directory (TELEGRAPHY_DATA_DIR)"
 )
 _PACKAGE_DATA_RESOURCE: Final = "telegraphy.story_brief.data"
 
@@ -38,10 +35,7 @@ _HOME_MARKERS: Final[tuple[str, str]] = ("~/", "~\\")
 
 def _selected_override_value() -> str | None:
     """Return the active override value without collapsing blank values."""
-    primary_value = os.environ.get(DATA_DIR_ENV_VAR)
-    if primary_value is not None:
-        return primary_value
-    return os.environ.get(LEGACY_DATA_DIR_ENV_VAR)
+    return os.environ.get(DATA_DIR_ENV_VAR)
 
 
 def _validate_override_text(raw_value: str) -> str:

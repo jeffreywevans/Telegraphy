@@ -187,6 +187,7 @@ def test_partner_payload_validation_error_cases_are_parameterized(
     with pytest.raises(ValueError, match=message):
         _parse_payload(payload, partner_character_rows)
 
+
 @pytest.mark.parametrize(
     ("num_chars", "num_settings", "expect_missing_chars", "expect_missing_settings"),
     [

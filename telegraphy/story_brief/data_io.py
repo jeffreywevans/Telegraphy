@@ -154,8 +154,7 @@ def _validate_data_filename(filename: str) -> None:
 
 def _contained_child_path(data_dir: Path, filename: str) -> Path:
     """Return filename under data_dir, rejecting resolved escapes and symlinks."""
-    base_dir_text = os.fspath(data_dir.resolve(strict=True))
-    base_resolved = Path(base_dir_text)
+    base_resolved = data_dir.resolve(strict=True)
     target_resolved = (base_resolved / filename).resolve(strict=False)
     if not target_resolved.is_relative_to(base_resolved):
         raise DataDirError(

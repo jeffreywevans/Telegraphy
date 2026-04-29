@@ -1,434 +1,604 @@
 [![SonarQube Cloud](https://sonarcloud.io/images/project_badges/sonarcloud-light.svg)](https://sonarcloud.io/summary/new_code?id=jeffreywevans_Telegraphy)
 
----
+# Telegraphy
 
-## Usage
+[![Build](https://github.com/jeffreywevans/Telegraphy/actions/workflows/build.yml/badge.svg)](https://github.com/jeffreywevans/Telegraphy/actions/workflows/build.yml)
+[![SonarQube Cloud](https://sonarcloud.io/images/project_badges/sonarcloud-light.svg)](https://sonarcloud.io/summary/new_code?id=jeffreywevans_Telegraphy)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+Telegraphy is a Python package and command-line tool for generating structured story briefs from a versioned, data-driven canon dataset.
+
+It currently exposes one console command: `story-brief`.
+
+Telegraphy does not write prose. It generates the feedstock: YAML front matter, scenario constraints, style guidance, date-aware character and setting selections, optional sexual-content metadata, and a Markdown drafting scaffold. The result is a repeatable prompt artifact that can be copied into a writing workflow or saved as a Markdown seed file.
+
+## Contents
+
+- [What is this?](#what-is-this)
+- [Install](#install)
+- [Quickstart](#quickstart)
+- [CLI examples](#cli-examples)
+- [Data override](#data-override)
+- [Validation and linting](#validation-and-linting)
+- [How the generator works](#how-the-generator-works)
+- [Output files and safety](#output-files-and-safety)
+- [Development](#development)
+- [Release notes and status](#release-notes-and-status)
+- [Maintainer docs](#maintainer-docs)
+- [Troubleshooting](#troubleshooting)
+- [License](#license)
+
+## What is this?
+
+Telegraphy is the focused story-brief generator for the Commuted fiction universe.
+
+At a practical level, it is:
+
+- a Python package named `telegraphy`;
+- a CLI named `story-brief`;
+- a packaged JSON dataset under `telegraphy/story_brief/data/`;
+- validation and linting tools for keeping that dataset usable;
+- tests and CI for preserving deterministic generation behavior.
+
+A generated brief includes:
+
+- title;
+- protagonist and secondary character;
+- date;
+- setting;
+- weather;
+- central conflict;
+- inciting pressure;
+- ending type;
+- style guidance;
+- sexual content level;
+- sexual partner metadata when applicable;
+- sexual scene tags when applicable;
+- word-count target;
+- a Markdown story-draft heading.
+
+The generator is date-aware. Character availability, setting availability, and partner distributions are constrained by configured date ranges. That is the point of the tool: it lets the fiction machine throw sparks without setting the continuity barn on fire.
+
+## Install
+
+Telegraphy requires Python 3.12 or newer.
+
+For normal local use from a clone:
 
 ```bash
-# Install the package with development dependencies
-pip install -e ".[dev]"
+git clone https://github.com/jeffreywevans/Telegraphy.git
+cd Telegraphy
+python -m pip install -e .
+```
 
-# Generate a story brief and print to the terminal
+For development:
+
+```bash
+python -m pip install -e ".[dev]"
+```
+
+The development extra installs the tools used by the repository:
+
+- `pytest`
+- `pytest-cov`
+- `ruff`
+- `mypy`
+- `types-PyYAML`
+
+You can verify that the CLI is available with:
+
+```bash
+story-brief --help
+```
+
+You can also run it as a module:
+
+```bash
+python -m telegraphy.story_brief --help
+```
+
+## Quickstart
+
+Print a generated brief to the terminal:
+
+```bash
 story-brief --print-only
-
-# Generate a reproducible brief with a specific seed and date
-story-brief --seed 42 --date 2000-01-01 --print-only
-
-# Run dataset linting diagnostics
-story-brief --lint-dataset
-
-# Run the test suite
-pytest
 ```
 
----
-
-# Telegraphy Repository Report
-
-## Executive summary
-
-This repository is, in its current form, a Python package and CLI centered on a **story-brief generator** named `story-brief`, not a GUI application. The public repository page still describes it as “A GUI for the random generator to create the feedstock for valid Commuted universe fiction,” while the codebase itself is organized around a CLI, a data-driven generator, validation and linting layers, dataset JSON files, and a fairly deep pytest suite. The public repo is active, public, and has no published releases at the time of inspection; the related `jeffreywevans/Commuted` repository appears to be the broader upstream/worldbuilding repo from which Telegraphy’s story-brief tooling is conceptually adjacent or derived. 
-
-The code quality is generally strong. The architecture is modular, the generator is deterministic when seeded, output-path handling is unusually defensive for a small CLI, validation and linting logic are substantial, and CI already enforces linting and typing while pinning action SHAs. The repo also includes a thoughtful maintainer guide and internal evaluation docs that show active self-critique and iteration.
-
-The most important issues are not “the core logic is broken.” They are mostly **productization and maintainability gaps**:
-
-- the public positioning and README are out of sync with what the code actually is,
-- packaging is under-tested as a distributable artifact,
-- CI coverage handling is split between tox and GitHub Actions in a way that is easy to drift,
-- one security-minded path validator is likely too strict for normal developer machines,
-- governance/community docs are thinner than the engineering quality deserves. 
-
-For audience assumptions: the repository does **not** explicitly specify a target audience for its docs, so this report assumes the intended readers are maintainers and developers who need to understand, extend, and safely ship the package.
-
-In a local execution against the provided ZIP, `pytest -q` passed **240/240 tests**, and `pytest --cov=telegraphy --cov-branch` reported **89% total coverage**. The biggest practical wins now are: **rewrite the README**, **add artifact build/install verification to CI**, **align subprocess coverage setup between tox and GitHub Actions**, **relax the data-dir path allowlist**, and **clean up governance metadata**.
-
-## What the repository is
-
-At a high level, Telegraphy is a small but well-structured codebase that turns structured JSON data into randomized story briefs. The repository root exposes the main directories as `.github`, `docs`, `telegraphy`, and `tests`, along with `pyproject.toml`, `tox.ini`, `pytest.ini`, and policy files. The repository page shows 384 commits and no releases; the related `Commuted` repo is larger, with `.github`, `docs`, `scripts`, and `tests`, plus similarly named story-brief materials. That is a strong sign that Telegraphy is a focused tool repo inside a larger fictional-universe ecosystem. 
-
-The package metadata declares the distribution name `telegraphy`, Python `>=3.12`, a single runtime dependency on `PyYAML`, and one console entry point: `story-brief = telegraphy.story_brief.cli:main`.
-
-The architectural spine looks like this:
-
-```mermaid
-flowchart TD
-    CLI["telegraphy.story_brief.cli"] --> FACADE["generate_story_brief facade"]
-    CLI --> FN["filenames"]
-    CLI --> LINT["linting"]
-    CLI --> VALID["validation"]
-
-    FACADE --> DATAIO["data_io"]
-    FACADE --> VALID
-    FACADE --> GEN["generation"]
-    FACADE --> RENDER["rendering"]
-
-    VALID --> PM["partner_models"]
-    VALID --> RANGE["_range_utils"]
-    LINT --> RANGE
-
-    DATAIO --> JSON["data/*.json"]
-    GEN --> RENDER
-```
-
-The design is sensible: loading and cache isolation live in `data_io` and `generate_story_brief`; schema and invariant enforcement live in `validation` and `partner_models`; selection logic lives in `generation`; output formatting lives in `rendering`; filesystem safety lives in `filenames`; and CLI orchestration stays in `cli.py`.
-
-## File and module documentation
-
-### Repository-level file map
-
-| Area               | Files                                                                                                                               | Purpose                                                                  | Notes and links                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Package metadata   | `pyproject.toml`                                                                                                                    | PEP 621 metadata, dependency declarations, entry point, Ruff/Mypy config | Minimal and clean, but sparse on metadata and not artifact-tested in CI. [pyproject.toml 1-44](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/pyproject.toml#L1-L44)                                                                                                                                                                                                                                                                                         |
-| Test runner config | `pytest.ini`, `tox.ini`                                                                                                             | Defines markers, test paths, tox environments, and coverage settings     | Good separation of fast/slow/integration; tox currently skips package build. [pytest.ini 1-6](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/pytest.ini#L1-L6), [tox.ini 1-37](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/tox.ini#L1-L37)                                                                                                                                                                     |
-| CI automation      | `.github/workflows/build.yml`, `.github/workflows/claude-code.yml`, `.github/workflows/ensure-labels.yml`, `.github/dependabot.yml` | Build/test, review automation, label bootstrap, dependency updates       | Action SHAs are pinned, which is excellent. [build.yml 1-99](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/.github/workflows/build.yml#L1-L99)                                                                                                                                                                                                                                                                                                              |
-| Policies           | `LICENSE`, `SECURITY.md`, `CODE_OF_CONDUCT.md`                                                                                      | License, vuln reporting, conduct                                         | MIT exists; security policy exists; conduct file is memorable but not especially actionable. [LICENSE 1-21](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/LICENSE#L1-L21), [SECURITY.md 1-61](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/SECURITY.md#L1-L61), [CODE_OF_CONDUCT.md 1-25](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/CODE_OF_CONDUCT.md#L1-L25) |
-| Narrative docs     | `README.md`, `docs/*`                                                                                                               | User-facing intro, maintainer notes, architecture/testing rationale      | Plenty of useful internal material, but public docs are still more vibe than operator manual. [README.md 1-69](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/README.md#L1-L69)                                                                                                                                                                                                                                                                              |
-| Package code       | `telegraphy/`, `telegraphy/story_brief/`, `telegraphy/scripts/`                                                                     | The actual implementation                                                | See module-level detail below.                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| Tests              | `tests/`, `tests/story_brief/`                                                                                                      | Unit, integration, and regression coverage                               | The suite is broad and thoughtfully split by behavior area.                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-
-### Module-level documentation
-
-#### `telegraphy/story_brief/cli.py`
-
-This is the main front door. It builds an `argparse` parser, resolves data, optionally runs lint or strict validation, generates a field set, renders Markdown, and either prints or writes output. It is intentionally thin and orchestration-oriented. Default output is `output/story-seeds`, and most failure paths return exit code `1` after writing a user-readable message to stderr. [cli.py 25-68](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/telegraphy/story_brief/cli.py#L25-L68), [cli.py 104-168](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/telegraphy/story_brief/cli.py#L104-L168) 
-
-#### `telegraphy/story_brief/generate_story_brief.py`
-
-Despite the filename, this is really a **public facade** and normalization layer. It loads JSON payloads through `data_io`, validates them, converts them into normalized immutable-ish tuples/dicts, caches the processed dataset, exposes compatibility aliases for legacy callers, and forwards core operations into `generation` and `rendering`. This is a useful convenience API, but the filename now understates how much it does. [generate_story_brief.py 50-70](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/telegraphy/story_brief/generate_story_brief.py#L50-L70), [generate_story_brief.py 105-205](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/telegraphy/story_brief/generate_story_brief.py#L105-L205), [generate_story_brief.py 208-282](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/telegraphy/story_brief/generate_story_brief.py#L208-L282) 
-
-#### `telegraphy/story_brief/generation.py`
-
-This is the core randomization engine. It implements:
-
-- inclusive random-date selection,
-- stable sorting for seed reproducibility,
-- weighted choice without `random.choices` to keep RNG consumption deterministic,
-- protagonist/secondary/setting selection,
-- sexual-content tag selection,
-- date validation,
-- partner selection from date-bounded eras. [generation.py 25-107](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/telegraphy/story_brief/generation.py#L25-L107), [generation.py 109-158](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/telegraphy/story_brief/generation.py#L109-L158), [generation.py 161-313](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/telegraphy/story_brief/generation.py#L161-L313) 
-
-#### `telegraphy/story_brief/data_io.py`
-
-This module resolves where the dataset comes from, either from packaged resources or from an override directory via `TELEGRAPHY_DATA_DIR` or the legacy `COMMUTED_STORY_BRIEF_DATA_DIR`. It validates the override path, loads the five required JSON payloads, and deep-copies cached data on return to prevent caller mutation from poisoning the cache. [data_io.py 13-79](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/telegraphy/story_brief/data_io.py#L13-L79), [data_io.py 86-124](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/telegraphy/story_brief/data_io.py#L86-L124) 
-
-#### `telegraphy/story_brief/filenames.py`
-
-This is one of the better small utility modules in the repo. It slugifies titles, sanitizes file names, guards against Windows reserved names, enforces UTF-8 length limits, rejects traversal, constrains output within the current working directory, and uses `os.open` with `O_NOFOLLOW` when available to avoid symlink redirection on overwrite. [filenames.py 8-130](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/telegraphy/story_brief/filenames.py#L8-L130), [filenames.py 133-241](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/telegraphy/story_brief/filenames.py#L133-L241) 
-
-#### `telegraphy/story_brief/linting.py`
-
-This is a dataset-health analyzer, distinct from schema validation. It computes date checkpoints, coalesces coverage ranges, detects intervals with fewer than two characters or zero settings, flags “thin” intervals, identifies partner-era gaps, checks title-token usage, and emits a human-readable lint report. That is a real strength: many generators validate shape; fewer validate **narrative availability coverage over time**. [linting.py 17-90](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/telegraphy/story_brief/linting.py#L17-L90), [linting.py 149-307](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/telegraphy/story_brief/linting.py#L149-L307) 
-
-#### `telegraphy/story_brief/validation.py`
-
-This is the schema/invariant gatekeeper. It validates title tokens, prompt lists, availability windows, config date overlap, sexual-content weights, tag groups, ordered keys, partner distributions, and strict per-date generation preconditions. It is large but coherent. The strongest path here is that it validates **both shape and generation invariants**, not just JSON structure. [validation.py 22-171](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/telegraphy/story_brief/validation.py#L22-L171), [validation.py 186-421](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/telegraphy/story_brief/validation.py#L186-L421), [validation.py 424-455](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/telegraphy/story_brief/validation.py#L424-L455) |
-
-#### `telegraphy/story_brief/partner_models.py`
-
-This module parses and normalizes partner-distribution payloads into typed dataclasses, with dedicated validation around ISO dates, weight sanity, duplicate partner names, era ordering, and full character coverage. It keeps partner logic out of the broader validation blob, which is the right call. [partner_models.py 47-99](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/telegraphy/story_brief/partner_models.py#L47-L99), [partner_models.py 101-307](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/telegraphy/story_brief/partner_models.py#L101-L307) |
-
-#### `telegraphy/story_brief/rendering.py`
-
-This module is deliberately tiny. It substitutes title tokens, escapes Markdown-heading punctuation, marshals ordered YAML front matter via `yaml.safe_dump`, and appends a writing preamble plus a story-draft section. This is simple and appropriately isolated. [rendering.py 12-73](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/telegraphy/story_brief/rendering.py#L12-L73) |
-
-#### `telegraphy/story_brief/_constants.py` and `_range_utils.py`
-
-These are small support modules. `_constants.py` centralizes dataset keys and the title-token regex; `_range_utils.py` provides a clipped-range-checkpoint helper reused by validation and linting. That reuse is good architectural hygiene. [constants.py 1-15](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/telegraphy/story_brief/_constants.py#L1-L15), [range_utils.py 1-21](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/telegraphy/story_brief/_range_utils.py#L1-L21) |
-
-#### `telegraphy/story_brief/data/*.json`
-
-These JSON files are the actual story universe inputs:
-
-- `titles.json`
-- `entities.json`
-- `prompts.json`
-- `config.json`
-- `partner_distributions.json`
-
-The split is sensible: domain-based rather than one-monolith or one-file-per-key. That decision is also explicitly justified in the maintainer guide. [docs/STORY-BRIEF-MAINTAINER.md 5-35](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/docs/STORY-BRIEF-MAINTAINER.md#L5-L35) 
-
-#### `telegraphy/scripts/run_coverage_workflow.py` and `telegraphy/scripts/cov_init/sitecustomize.py`
-
-These are development/CI-only helpers. `run_coverage_workflow.py` runs pytest with coverage, optionally combines subprocess coverage files, emits `coverage.xml`, and returns the first failing step’s return code. `sitecustomize.py` exists solely to call `coverage.process_startup()` when subprocess coverage env vars are present. [run_coverage_workflow.py 15-93](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/telegraphy/scripts/run_coverage_workflow.py#L15-L93), [sitecustomize.py 1-6](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/telegraphy/scripts/cov_init/sitecustomize.py#L1-L6) 
-
-## CLI guide
-
-### Main entry points
-
-The package exposes the same functionality through:
-
-- `story-brief`
-- `python -m telegraphy.story_brief`
-
-### Effective usage synopsis
+Generate a reproducible brief for a specific date:
 
 ```bash
-story-brief \
-  [-o OUTPUT_DIR] \
-  [--filename FILENAME] \
-  [--seed SEED] \
-  [--date YYYY-MM-DD] \
-  [--force] \
-  [--print-only] \
-  [--validate-strict] \
-  [--lint-dataset]
+story-brief --seed 42 --date 2000-01-01 --print-only
 ```
 
-### Flags and behavior
-
-| Flag | Purpose | Default / behavior |
-|---|---|---|
-| `-o`, `--output-dir` | Where generated Markdown will be written | Defaults to `output/story-seeds` |
-| `--filename` | Explicit filename override | Otherwise auto-generates from `time_period` + slugified title |
-| `--seed` | Deterministic RNG seed | If omitted, uses `secrets.SystemRandom()` |
-| `--date` | Force a specific scenario date | Must be ISO `YYYY-MM-DD` and inside configured range |
-| `--force` | Overwrite an existing file | Otherwise writes fail if the target exists |
-| `--print-only` | Print Markdown to stdout and write nothing | Best for scripting and inspection |
-| `--validate-strict` | Sweep configured date checkpoints for generation preconditions | Runs before generation unless `--lint-dataset` is also present |
-| `--lint-dataset` | Run dataset-health diagnostics and exit | Takes precedence over generation; returns nonzero if lint errors exist |
-
-This interface is compact and good for a repository of this size. The important nuance is that `--lint-dataset` is an **inspection mode**, while `--validate-strict` is a stricter pre-generation gate. The CLI also deliberately converts most runtime failures into plain-language messages rather than tracebacks. [cli.py 25-68](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/telegraphy/story_brief/cli.py#L25-L68), [cli.py 104-168](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/telegraphy/story_brief/cli.py#L104-L168), [tests/story_brief/cli/test_main_behavior.py 43-71](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/tests/story_brief/cli/test_main_behavior.py#L43-L71), [tests/story_brief/cli/test_subprocess_behavior.py 206-248](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/tests/story_brief/cli/test_subprocess_behavior.py#L206-L248) 
-
-### Exit semantics
-
-- `0`: success, clean lint, or `--help`
-- `1`: user-facing data or runtime error, strict-validation failure, write failure, or lint errors
-- `2`: argparse usage error such as an unknown option
-
-That behavior is tested directly. [tests/story_brief/cli/test_main_behavior.py 239-248](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/tests/story_brief/cli/test_main_behavior.py#L239-L248)
-
-### Typical examples
+Write a brief to the default output directory:
 
 ```bash
-# Print one brief without writing a file
-story-brief --print-only
+story-brief
+```
 
-# Reproduce exactly the same brief later
-story-brief --seed 42 --date 2000-01-01 --print-only
+By default, Telegraphy writes Markdown files under:
 
-# Write to a controlled folder with a fixed filename
-story-brief -o output/story-seeds --filename brief.md
+```text
+output/story-seeds/
+```
 
-# Overwrite if the file already exists
+Use an explicit filename:
+
+```bash
+story-brief --filename brief.md
+```
+
+Overwrite an existing file only when you mean it:
+
+```bash
 story-brief --filename brief.md --force
-
-# Validate the entire configured timeline
-story-brief --validate-strict --print-only
-
-# Show dataset-health diagnostics
-story-brief --lint-dataset
-
-# Run against a temporary or alternate dataset directory
-TELEGRAPHY_DATA_DIR=/absolute/path/to/dataset story-brief --print-only
 ```
 
-### CLI flow
-
-```mermaid
-flowchart TD
-    A[Parse args] --> B[Load dataset]
-    B --> C{--lint-dataset?}
-    C -- yes --> D[Run lint_story_data]
-    D --> E[Emit lint report and exit]
-
-    C -- no --> F{--validate-strict?}
-    F -- yes --> G[Run validate_story_data_strict]
-    F -- no --> H[Parse optional date]
-
-    G --> H
-    H --> I[Pick story fields]
-    I --> J[Render markdown]
-    J --> K{--print-only?}
-    K -- yes --> L[Print to stdout]
-    K -- no --> M[Resolve safe output path]
-    M --> N[Write markdown]
-```
-
-### Annotated README assessment
-
-| README area | Current state | Recommendation |
-|---|---|---|
-| Project description | The repo page and README foreground atmosphere and fiction-world context; the repo page still says “GUI” | Change repo description to “Python CLI and data-driven story-brief generator for the Commuted universe” |
-| Installation | Shows editable install, but not standard install, Python version floor, or runtime dependency posture | Add quick install, supported Python versions, and packaged-data note |
-| CLI docs | Gives only a few examples | Add full flag reference, exit-code behavior, env var overrides, file-writing semantics |
-| Maintainer docs | Real maintainer material exists, but it is split across `docs/` | Merge the best of `docs/STORY-BRIEF-MAINTAINER.md` into README and a dedicated `CONTRIBUTING.md` |
-
-The README is not “bad”; it is just not serving the likely maintainer/developer audience nearly as well as the code deserves. 
-
-## Tests and coverage
-
-### How to run the suite
-
-The repository supports several paths:
+Run dataset linting without generating a brief:
 
 ```bash
-# Default suite
+story-brief --lint-dataset
+```
+
+Example clean report:
+
+```text
+Dataset lint: no blocking coverage gaps found.
+Dataset lint: no warnings.
+```
+
+Run strict validation before generation:
+
+```bash
+story-brief --validate-strict --print-only
+```
+
+## CLI examples
+
+### CLI reference
+
+| Option | Purpose |
+| --- | --- |
+| `--print-only` | Print Markdown to the terminal and skip file writing. |
+| `--seed <int>` | Use deterministic randomness for reproducible briefs. |
+| `--date YYYY-MM-DD` | Force the story date for scenario testing. |
+| `-o, --output-dir <path>` | Choose the output directory. Defaults to `output/story-seeds`. |
+| `--filename <name.md>` | Choose the output filename. |
+| `--force` | Allow overwriting an existing output file. |
+| `--validate-strict` | Validate date-range generation preconditions before generating. |
+| `--lint-dataset` | Run dataset lint diagnostics and exit. |
+| `-h, --help` | Show command help. |
+
+### Print only
+
+Use this when you want to copy the generated prompt directly from the terminal.
+
+```bash
+story-brief --print-only
+```
+
+### Reproducible generation
+
+Seeded output is intended for debugging, tests, reviews, and repeatable creative workflows.
+
+```bash
+story-brief --seed 8675309 --print-only
+```
+
+Lock both the random seed and the story date:
+
+```bash
+story-brief --seed 42 --date 2000-01-01 --print-only
+```
+
+That command produces Markdown shaped like this:
+
+```markdown
+---
+title: It's Only Profound if You're Not Stoned
+protagonist: Cremeans
+secondary_character: Bill Davenport
+time_period: '2000-01-01'
+setting: Lenovo Center - Raleigh, NC, USA
+weather: lousy
+sexual_content_level: none
+sexual_partner: null
+sexual_scene_tags: []
+word_count_target: 6000
+---
+
+# It's Only Profound if You're Not Stoned
+
+## Story Draft
+
+*Write a story of approximately 6000 words using the YAML brief above.*
+```
+
+### Write to a specific directory
+
+```bash
+story-brief --output-dir output/story-seeds
+```
+
+The output directory is resolved under the current working directory. Telegraphy intentionally refuses output paths that escape that tree.
+
+### Pick the filename
+
+```bash
+story-brief --filename "first-pass.md"
+```
+
+Filenames are sanitized and checked for cross-platform safety. Telegraphy rejects path separators, dot-segments, leading or trailing spaces, Windows device names, and other file-system traps.
+
+### Validate before generating
+
+```bash
+story-brief --validate-strict --seed 42 --date 2000-01-01 --print-only
+```
+
+Strict validation checks generation preconditions across the configured date range before creating output.
+
+### Lint the dataset
+
+```bash
+story-brief --lint-dataset
+```
+
+Linting emits a concise report and exits without generating a brief.
+
+A clean dataset reports:
+
+```text
+Dataset lint: no blocking coverage gaps found.
+Dataset lint: no warnings.
+```
+
+## Data override
+
+Telegraphy ships with its canonical dataset inside the package:
+
+```text
+telegraphy/story_brief/data/
+```
+
+The packaged dataset contains five required JSON files:
+
+```text
+config.json
+entities.json
+partner_distributions.json
+prompts.json
+titles.json
+```
+
+For experiments, alternate timelines, review fixtures, or private datasets, point Telegraphy at another directory:
+
+```bash
+TELEGRAPHY_DATA_DIR=/absolute/path/to/story-data story-brief --print-only
+```
+
+A legacy environment variable is also supported for compatibility:
+
+```bash
+COMMUTED_STORY_BRIEF_DATA_DIR=/absolute/path/to/story-data story-brief --print-only
+```
+
+`TELEGRAPHY_DATA_DIR` takes precedence when both are set.
+
+Override directories must:
+
+- be absolute paths after optional current-user `~` expansion;
+- already exist;
+- contain all five required JSON files;
+- avoid parent-directory traversal;
+- avoid `~user` expansion;
+- avoid NUL bytes.
+
+Only the known dataset filenames are loaded. Telegraphy refuses unknown data-file requests and checks that resolved files remain inside the configured data directory.
+
+### Data-file responsibilities
+
+`titles.json` contains title templates. Supported title tokens are:
+
+```text
+@protagonist
+@setting
+@time_period
+```
+
+`entities.json` contains date-bounded character and setting availability.
+
+`prompts.json` contains narrative prompt pools such as conflicts, pressures, endings, style guidance, and weather.
+
+`config.json` contains schema metadata, dataset version, date range, output key order, word-count targets, sexual-content options and weights, tag groups, and the writing preamble.
+
+`partner_distributions.json` contains date-aware weighted partner pools by protagonist. An empty partner list means intentional celibacy for that era. A missing era means absent data and should be treated as a dataset problem.
+
+## Validation and linting
+
+Telegraphy has two related safety nets: validation and linting.
+
+Validation checks whether the dataset can be loaded and normalized. It rejects malformed schema, missing keys, unsupported title tokens, overlapping availability windows for the same entity, invalid dates, broken weight tables, bad ordered keys, invalid partner distributions, and other hard failures.
+
+Strict validation goes farther:
+
+```bash
+story-brief --validate-strict --print-only
+```
+
+It checks date-range generation preconditions at availability checkpoints, including:
+
+- at least two distinct available characters for each checked date;
+- at least one available setting for each checked date.
+
+Linting looks for dataset coverage gaps and fragile areas:
+
+```bash
+story-brief --lint-dataset
+```
+
+Lint exits with code `0` when no blocking issues are found and code `1` when the report contains errors. Strict validation also exits nonzero on hard failures.
+
+Use linting before committing dataset edits. Use strict validation before trusting a new or heavily edited dataset.
+
+A good minimum review loop for data changes is:
+
+```bash
+story-brief --lint-dataset
+story-brief --validate-strict --seed 42 --date 2000-01-01 --print-only
+pytest -q tests/story_brief
+```
+
+## How the generator works
+
+Telegraphy follows a small, deliberate pipeline:
+
+```text
+JSON dataset
+    -> data_io.load_data()
+    -> validation.validate_story_data()
+    -> normalized StoryData
+    -> generation.pick_story_fields()
+    -> rendering.to_markdown()
+    -> terminal output or safe Markdown write
+```
+
+The main modules are:
+
+| Module | Responsibility |
+| --- | --- |
+| `telegraphy.story_brief.cli` | Argument parsing and CLI orchestration. |
+| `telegraphy.story_brief.data_io` | Dataset discovery, package resources, environment overrides, JSON loading, cache management. |
+| `telegraphy.story_brief.validation` | Schema validation, semantic validation, strict date-range preconditions. |
+| `telegraphy.story_brief.linting` | Dataset coverage diagnostics and human-facing lint reports. |
+| `telegraphy.story_brief.generation` | Date selection, availability filtering, weighted choices, field selection. |
+| `telegraphy.story_brief.partner_models` | Partner-distribution parsing and date-aware weighted partner pools. |
+| `telegraphy.story_brief.rendering` | YAML front matter and Markdown output. |
+| `telegraphy.story_brief.filenames` | Slugging, filename sanitization, output-path safety, write protection. |
+| `telegraphy.story_brief.generate_story_brief` | Compatibility facade over the refactored implementation. |
+
+Seeded generation is designed to be stable. When you supply `--seed`, Telegraphy uses a deterministic random source and sorted selection pools so that the same inputs produce the same brief.
+
+When no seed is supplied, Telegraphy uses `secrets.SystemRandom`.
+
+## Output files and safety
+
+Telegraphy is conservative about writes.
+
+By default it writes into:
+
+```text
+output/story-seeds/
+```
+
+It refuses to overwrite existing files unless `--force` is provided.
+
+It confines output to the current working directory tree. This is intentional: generated files should not be able to wander out of the project and bite the furniture.
+
+It also performs filename checks and sanitization, including:
+
+- cross-platform unsafe characters;
+- path separators;
+- dot-segments;
+- leading or trailing spaces;
+- Windows reserved device names;
+- UTF-8 byte-length limits;
+- optional `O_NOFOLLOW` protection on platforms that provide it.
+
+## Development
+
+Create and activate a virtual environment, then install the development extra:
+
+```bash
+python -m pip install -e ".[dev]"
+```
+
+Run the local quality checks:
+
+```bash
+ruff check .
+ruff format .
+mypy telegraphy
 pytest
-
-# Quiet full run
-pytest -q
-
-# Fast-only
-pytest -m "not slow and not integration" tests
-
-# Slow/integration-only
-pytest -m "slow or integration" tests
-
-# tox matrix
-tox
-
-# Coverage workflow helper
-python -m telegraphy.scripts.run_coverage_workflow
 ```
 
-The marker definitions live in `pytest.ini`, and tox defines `py312`, `py312-fast`, and `py312-slow` environments. GitHub Actions separately runs Ruff, Mypy, plain `pytest`, and a SonarQube job that invokes the coverage helper.
-### Local execution results
+Install tox if it is not already available:
 
-In a local run against the provided ZIP:
-
-- `pytest -q` collected and passed **240 tests**
-- `pytest --cov=telegraphy --cov-branch` reported **89% total coverage**
-
-### Coverage snapshot
-
-| Module | Local coverage | Notes |
-|---|---:|---|
-| `telegraphy/story_brief/generate_story_brief.py` | 96% | Very strong; only thin wrapper paths uncovered |
-| `telegraphy/story_brief/generation.py` | 94% | Core generation logic is well tested |
-| `telegraphy/story_brief/linting.py` | 96% | Excellent for a diagnostics module |
-| `telegraphy/story_brief/filenames.py` | 86% | Good, especially on security-sensitive paths |
-| `telegraphy/story_brief/data_io.py` | 85% | Good, but some invalid-path branches remain untested |
-| `telegraphy/story_brief/validation.py` | 85% | Broad, but still the main branch-heavy test opportunity |
-| `telegraphy/story_brief/partner_models.py` | 89% | Solid negative-path coverage |
-| `telegraphy/scripts/run_coverage_workflow.py` | 76% | Adequate, but still the weakest meaningful module |
-| `telegraphy/story_brief/__main__.py` | 0% in local branch report | Integration tests execute the CLI via subprocess, but subprocess coverage depends on separate env setup |
-
-### Full test-suite purpose map
-
-| Test file | Purpose | Notes / links |
-|---|---|---|
-| `tests/conftest.py` | Shared fixtures for dataset payloads, partner payload factories, dataset cloning, and JSON patching | Good fixture centralization. [conftest.py 22-138](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/tests/conftest.py#L22-L138) |
-| `tests/story_brief/cli/test_main_behavior.py` | Direct unit tests for `cli.main` with monkeypatching | Fast and targeted. [test_main_behavior.py 12-248](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/tests/story_brief/cli/test_main_behavior.py#L12-L248) |
-| `tests/story_brief/cli/test_subprocess_behavior.py` | True integration tests for subprocess CLI behavior, env overrides, and user-facing errors | Especially valuable for no-traceback error guarantees. [test_subprocess_behavior.py 12-258](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/tests/story_brief/cli/test_subprocess_behavior.py#L12-L258) |
-| `tests/story_brief/compat/test_legacy_facade_exports.py` | Backward-compatibility checks for the facade module | Protects old import patterns |
-| `tests/story_brief/data_io/test_data_loading.py` | Data loading, package data, override dir, and cache semantics | Important because data is the product |
-| `tests/story_brief/filenames/test_filename_behavior.py` | Path safety, sanitization, traversal rejection, overwrite and symlink edge cases | High value |
-| `tests/story_brief/generation/test_availability_filters.py` | Boundary behavior for date-filtered character and setting selection | Small but sharp |
-| `tests/story_brief/generation/test_determinism.py` | Seed stability and deterministic output behavior | Critical for debugging and reproducibility |
-| `tests/story_brief/generation/test_weighted_choice.py` | Input validation and weighted random selection | Strong functional coverage |
-| `tests/story_brief/linting/test_coverage_gaps.py` | Coverage-gap and fragile-range diagnostics | Validates the best “maintainer feature” in the repo |
-| `tests/story_brief/partner_models/test_partner_models.py` | Partner schema parsing, duplicates, date/weight validation | Negative-path heavy |
-| `tests/story_brief/rendering/test_markdown_output.py` | YAML front matter, title rendering, markdown escaping | Great isolation |
-| `tests/story_brief/validation/test_schema_validation.py` | Broad schema and strict-validation checks | Largest single validation file |
-| `tests/test_run_coverage_workflow.py` | Return-code ordering and command-shape tests for coverage helper | Small but useful |
-
-### Coverage gaps that are worth fixing
-
-The current gaps are not alarming, but they are knowable:
-
-| Gap | Why it matters | Suggested test |
-|---|---|---|
-| `__main__.py` not covered in local branch report | End-user entry mode should be measured the same way it is used | Add subprocess coverage env setup to CI/local helper runs |
-| `run_coverage_workflow.py` relative-root fallback branches | This script is CI glue; glue code fails at the worst possible time | Add tests around absolute vs relative `TOX_PROJECT_ROOT` |
-| `data_io.py` invalid override branches | The override-path validator is security-sensitive and usability-sensitive | Parametrize empty/NUL/relative/traversal/space-containing paths |
-| `filenames.py` rare truncation and path-combination branches | Filesystem correctness code benefits from exhaustive edge testing | Add table-driven truncation and cross-platform edge cases |
-| `validation.py` many negative branches | Biggest branch-heavy module in repo | Expand parametrize tables for type/finite/duplicate errors |
-
-## Best-practices assessment
-
-### Where the repository is strong
-
-| Area             | Assessment                          | Evidence                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| ---------------- | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Architecture     | Strong separation of concerns       | CLI, data loading, validation, generation, rendering, and filesystem safety are split into dedicated modules. [cli.py 104-168](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/telegraphy/story_brief/cli.py#L104-L168), [generate_story_brief.py 105-205](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/telegraphy/story_brief/generate_story_brief.py#L105-L205) |
-| Determinism      | Very good                           | Stable sorting plus custom weighted choice intentionally avoids `random.choices` RNG drift. [generation.py 33-43](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/telegraphy/story_brief/generation.py#L33-L43), [generation.py 64-99](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/telegraphy/story_brief/generation.py#L64-L99)                                 |
-| Security         | Better than average for a small CLI | Output writes are constrained to cwd and guarded against symlink redirection with `O_NOFOLLOW` when available. [filenames.py 163-241](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/telegraphy/story_brief/filenames.py#L163-L241)                                                                                                                                                                           |
-| Testing          | Strong                              | The suite is behavior-sliced and includes both direct function tests and subprocess integration tests. [pytest.ini 1-6](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/pytest.ini#L1-L6), [conftest.py 22-138](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/tests/conftest.py#L22-L138)                                                                          |
-| Tooling          | Good                                | Mypy strict mode, Ruff, Dependabot, pinned action SHAs, and Sonar integration are all in place.                                                                                                                                                                                                                                                                                                                                                          |
-| Data stewardship | Excellent for scope                 | The linter and strict validation go beyond mere schema checking and inspect temporal coverage. [linting.py 258-307](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/telegraphy/story_brief/linting.py#L258-L307), [validation.py 424-455](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/telegraphy/story_brief/validation.py#L424-L455)                            |
-
-### Where the repository needs work
-
-| Issue                                                 | Impact                                                                          | Evidence                                                                                                                                                                                                                                                                                                                                                                                                       | Recommendation                                                              |
-| ----------------------------------------------------- | ------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| Public messaging says “GUI,” code is a CLI            | Confusing to users, contributors, and anyone packaging or reviewing the project | Repo page description and README examples diverge from real implementation.                                                                                                                                                                                                                                                                                                                                    | Rewrite repo description and README around the actual CLI                   |
-| Package artifact path is under-tested                 | Wheels/sdists can fail even while editable installs pass                        | `tox` uses `skipsdist = True`, and GitHub Actions installs editable mode only.                                                                                                                                                                                                                                                                                                                                 | Add `python -m build`, `twine check`, and wheel-install smoke tests         |
-| Build-system dependency floor looks over-constrained  | Higher chance of isolated-build failures in offline or controlled environments  | `build-system.requires = ["setuptools>=82.0.1"]` is strong for a small pure-Python package.                                                                                                                                                                                                                                                                                                                    | Verify actual minimum and lower it if 82.x is not required                  |
-| Coverage setup differs between tox and GitHub Actions | Easy to drift; subprocess coverage can silently be incomplete in CI             | tox exports `COVERAGE_PROCESS_START` and adds `cov_init` to `PYTHONPATH`; the Actions Sonar step does not.                                                                                                                                                                                                                                                                                                     | Unify on one coverage invocation path and env contract                      |
-| Governance/compliance docs are thin                   | Friction for outside contributors and some enterprise review processes          | MIT and security policy exist, but there is no `CONTRIBUTING.md` or `CODEOWNERS`, and the conduct contact is not serious. [CODE_OF_CONDUCT.md 21-25](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/CODE_OF_CONDUCT.md#L21-L25), [SECURITY.md 16-49](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/SECURITY.md#L16-L49) | Update `CONTRIBUTING.md`, `CODEOWNERS`, and make conduct escalation actionable |
-| No published releases                                 | Harder dependency pinning and change communication                              | Repo page shows no releases.                                                                                                                                                                                                                                                                                                                                                                 | Start lightweight releases once docs and artifact checks are in place       |
-
-## Recommended patches and refactorings
-
-### Priority overview
-
-| Priority | Change                                                                     | Impact | Effort |   Risk |
-| -------- | -------------------------------------------------------------------------- | -----: | -----: | -----: |
-| Highest  | Rewrite README + repo description to match the actual CLI product          |   High |    Low |    Low |
-| Highest  | Add artifact build/install verification to CI                              |   High |    Low |    Low |
-| Highest  | Align subprocess coverage setup between tox and GitHub Actions             |   High |    Low |    Low |
-| High     | Relax `TELEGRAPHY_DATA_DIR` path validation while keeping traversal checks | Medium |    Low | Medium |
-| Medium   | Improve packaging metadata and verify the real minimum `setuptools` floor  | Medium |    Low |    Low |
-| Medium   | Rename or better document `generate_story_brief.py` as a facade/API module | Medium | Medium | Medium |
-
-
-### Proposed patch for build-and-install artifact verification
-
-Right now CI proves editable-install success, not distribution success. This adds actual package smoke tests.
-
-```diff
-diff --git a/.github/workflows/build.yml b/.github/workflows/build.yml
-@@
-       - name: Install dependencies
-         run: pip install -e .[dev]
-+      - name: Install packaging validators
-+        run: pip install build twine
-       - name: Run Ruff
-         run: ruff check .
-       - name: Run mypy (strict)
-         run: mypy telegraphy
-       - name: Run tests
-         run: pytest
-+      - name: Build sdist and wheel
-+        run: python -m build
-+      - name: Check package metadata
-+        run: python -m twine check dist/*
-+      - name: Install built wheel
-+        run: python -m pip install --force-reinstall dist/*.whl
+```bash
+python -m pip install tox
 ```
 
-This is the fastest way to catch “works editable, breaks as a package” problems. It also gives you real confidence before ever publishing a release. 
+Run the full tox workflow:
 
-## CI, packaging, compliance, and action plan
+```bash
+tox -e py312
+```
 
-### Current state versus recommended state
+Run fast tests only:
 
-| Topic | Current state | Recommended state |
-|---|---|---|
-| Package install path | Editable install tested | Editable + sdist + wheel tested |
-| Coverage | Good locally, but CI/subprocess setup is split | One canonical coverage path across tox and Actions |
-| Public docs | Vivid, thematic, but under-documented for developers | Accurate product description + full CLI/dev docs |
-| Release management | No releases published | Lightweight tagged releases once artifact checks pass |
-| Metadata | Minimal PEP 621 fields | Add URLs, classifiers, authors/maintainers if desired |
-| Governance | License and security policy present | Update `CONTRIBUTING.md`, `CODEOWNERS`, improve conduct doc |
-| Compliance posture | Acceptable for a small internal/open project | Stronger for reuse, enterprise review, and onboarding |
+```bash
+tox -e py312-fast
+```
 
-### License and compliance findings
+Run slow or integration tests:
 
-There is **not** a missing software license problem. The repo includes an MIT license, and `pyproject.toml` points to the license file. A security policy also exists. On the pure software side, that is acceptable. [LICENSE 1-21](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/LICENSE#L1-L21) 
+```bash
+tox -e py312-slow
+```
 
-The weaker points are **project-governance compliance**, not OSS licensing:
+The repository uses:
 
-- no published releases,
-- code-of-conduct escalation text is not suitable if you expect outside contributors or enterprise consumers. [CODE_OF_CONDUCT.md 21-25](https://github.com/jeffreywevans/Telegraphy/blob/468ee6de2d9aad8978529c5d8cfc9c204b13cd81/CODE_OF_CONDUCT.md#L21-L25)
+- Ruff for linting and formatting;
+- mypy in strict mode for the package;
+- pytest for the test suite;
+- pytest-cov and coverage settings for branch coverage;
+- tox for repeatable local test environments;
+- GitHub Actions for CI;
+- SonarQube Cloud for quality reporting.
 
-### Prioritized action plan
+### Project metadata
 
-| Priority | Action | Why | Effort | Risk |
-|---|---|---|---|---|
-| Immediate | Add artifact build/wheel install checks in CI | Prevents packaging surprises | Low | Low |
-| Immediate | Align CI coverage env with tox | Makes coverage behavior predictable | Low | Low |
-| Near term | Relax override path character filtering | Improves usability without losing the real safety checks | Low | Medium |
-| Optional | Rename/document `generate_story_brief.py` as facade/API | Improves conceptual clarity for new maintainers | Medium | Medium |
+The package metadata lives in `pyproject.toml`.
+
+Current package facts:
+
+| Field | Value |
+| --- | --- |
+| Package | `telegraphy` |
+| Current version | `0.2.0` |
+| Python | `>=3.12` |
+| Runtime dependency | `PyYAML>=6.0.3` |
+| Console script | `story-brief = telegraphy.story_brief.cli:main` |
+| License | MIT |
+
+### Contribution expectations
+
+Before opening a pull request, run the relevant checks and include the commands you ran in the PR notes.
+
+For code changes, include tests that cover success and failure behavior.
+
+For dataset changes, keep diffs focused and run:
+
+```bash
+story-brief --lint-dataset
+story-brief --validate-strict --print-only
+```
+
+For generation changes, preserve deterministic seeded behavior unless the PR explicitly and intentionally changes it.
+
+## Release notes and status
+
+Current status: `0.2.0`.
+
+This release represents the transition from a single-purpose generator script into a structured Python package.
+
+Highlights:
+
+- CLI entry point: `story-brief`;
+- modular story-brief implementation;
+- packaged JSON dataset;
+- data override support;
+- strict validation mode;
+- dataset linting diagnostics;
+- seeded deterministic generation;
+- safer output path and filename handling;
+- expanded tests;
+- Ruff, mypy, pytest, tox, GitHub Actions, and SonarQube integration.
+
+See [CHANGELOG.md](CHANGELOG.md) for release notes.
+
+### Stability note
+
+Telegraphy is usable as a local CLI and developer tool. The command-line interface and data schema are still young enough that maintainers should treat changes carefully and document migration impact in PRs.
+
+No published package distribution is assumed by this README. Install from the repository unless and until a release workflow says otherwise.
+
+## Maintainer docs
+
+Start here:
+
+- [CONTRIBUTING.md](CONTRIBUTING.md): development setup, local checks, pull-request expectations.
+- [CHANGELOG.md](CHANGELOG.md): release notes.
+- [SECURITY.md](SECURITY.md): vulnerability reporting.
+- [docs/STORY-BRIEF-MAINTAINER.md](docs/STORY-BRIEF-MAINTAINER.md): data strategy, regression coverage, dataset versioning, and maintenance rules.
+- [docs/Story Brief Generator Evaluation.md](docs/Story%20Brief%20Generator%20Evaluation.md): current evaluation and constructive criticism.
+- [docs/requirements.md](docs/requirements.md): runtime dependency policy.
+- [docs/requirements-dev.md](docs/requirements-dev.md): development dependency policy.
+- [docs/dependabot_setup.md](docs/dependabot_setup.md): dependency update automation.
+- [docs/review_2026-04-27.md](docs/review_2026-04-27.md): code review notes and known follow-up items.
+- [docs/test_refactor_proposal.md](docs/test_refactor_proposal.md): test-suite refactor proposal.
+
+## Troubleshooting
+
+### `story-brief` is not found
+
+Install the package in the current environment:
+
+```bash
+python -m pip install -e .
+```
+
+For development:
+
+```bash
+python -m pip install -e ".[dev]"
+```
+
+Then retry:
+
+```bash
+story-brief --help
+```
+
+### The selected date is rejected
+
+The date must be inside the configured dataset range. Use ISO format:
+
+```bash
+story-brief --date 2000-01-01 --print-only
+```
+
+### The data override is rejected
+
+Check that the override is absolute and contains the required JSON files:
+
+```bash
+ls /absolute/path/to/story-data
+```
+
+Expected files:
+
+```text
+config.json
+entities.json
+partner_distributions.json
+prompts.json
+titles.json
+```
+
+### An output file already exists
+
+Telegraphy will not overwrite files by accident. Use another filename or pass `--force`:
+
+```bash
+story-brief --filename brief.md --force
+```
+
+### Output path is rejected
+
+Keep `--output-dir` inside the current working directory tree. Absolute paths are allowed only when they resolve inside that tree.
+
+### Linting passes but generation still fails
+
+Run strict validation:
+
+```bash
+story-brief --validate-strict --print-only
+```
+
+Linting reports dataset health. Strict validation checks generation preconditions across key date boundaries.
+
+## License
+
+Telegraphy is released under the [MIT License](LICENSE).

@@ -149,6 +149,7 @@ def test_seed_output_is_stable_when_option_pool_order_changes(
     from telegraphy.story_brief import generate_story_brief as story_brief
 
     baseline_data = story_brief.get_data()
+    # Deep copy is intentional here so list/dict reordering does not mutate baseline_data.
     shuffled_data = deepcopy(baseline_data)
 
     shuffled_data["setting_availability"] = list(reversed(shuffled_data["setting_availability"]))

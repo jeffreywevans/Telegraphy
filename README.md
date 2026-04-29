@@ -477,7 +477,5 @@ The weaker points are **project-governance compliance**, not OSS licensing:
 |---|---|---|---|---|
 | Immediate | Add artifact build/wheel install checks in CI | Prevents packaging surprises | Low | Low |
 | Immediate | Align CI coverage env with tox | Makes coverage behavior predictable | Low | Low |
-| Near term | Add tests for remaining branch-heavy validation/data-io paths | Pushes weakest modules toward 90%+ | Low | Low |
 | Near term | Relax override path character filtering | Improves usability without losing the real safety checks | Low | Medium |
 | Optional | Rename/document `generate_story_brief.py` as facade/API | Improves conceptual clarity for new maintainers | Medium | Medium |
-| Optional | Reassess `setuptools>=82.0.1` minimum | Reduces isolated-build fragility if unnecessarily strict | Low | Low |

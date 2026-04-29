@@ -71,7 +71,7 @@ def _merge_or_append_range(merged: list[DateRange], current: DateRange) -> None:
     current_start, current_end = current
     last_start, last_end = merged[-1]
 
-    if current_start <= last_end + _ONE_DAY:
+    if current_start <= _next_day_or_final_day(last_end):
         merged[-1] = (last_start, max(last_end, current_end))
     else:
         merged.append(current)
@@ -120,19 +120,15 @@ def build_coverage_checkpoints(
 
 
 def _next_day_or_final_day(day: date) -> date:
-    """Return the next day, clamping at ``date.max`` without a branch."""
-    next_ordinal = min(day.toordinal() + 1, date.max.toordinal())
-    return date.fromordinal(next_ordinal)
+    """Return the next day, clamping at ``date.max`` to avoid overflow."""
+    return day if day == date.max else day + _ONE_DAY
 
 
 def _date_range_contains(
     *, start_date: date, selected_date: date, end_date: date
 ) -> bool:
     """Return whether ``selected_date`` is inside the closed date range."""
-    selected_ordinal = selected_date.toordinal()
-    start_ordinal = start_date.toordinal()
-    end_exclusive_ordinal = end_date.toordinal() + 1
-    return selected_ordinal in range(start_ordinal, end_exclusive_ordinal)
+    return start_date <= selected_date <= end_date
 
 
 def _available_entities(

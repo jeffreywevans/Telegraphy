@@ -103,6 +103,11 @@ def _resolve_override_data_dir(raw_value: str) -> Path:
                 "Configured data directory must be an existing directory: "
                 f"{candidate}"
             )
+        if not _is_within_allowed_root(str(resolved)):
+            raise DataDirError(
+                "Configured data directory must be within the current user's home directory: "
+                f"{resolved}"
+            )
     except OSError as exc:
         raise DataDirError(
             "Configured data directory is unreachable or invalid: "

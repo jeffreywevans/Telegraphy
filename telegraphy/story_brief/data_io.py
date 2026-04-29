@@ -83,17 +83,15 @@ def _has_parent_traversal(path_text: str) -> bool:
 
 
 def _validated_override_path_text(raw_value: str) -> str:
-    """Return safe absolute path text derived from a configured override."""
+    """Return safe relative path text derived from a configured override."""
     expanded = _expand_home_marker(_validate_override_text(raw_value))
     if _has_parent_traversal(expanded):
         raise DataDirError(
             "Configured data directory must not include parent-directory traversal"
         )
-    if not os.path.isabs(expanded):
-        raise DataDirError("Configured data directory must be an absolute path")
-    if not _is_within_allowed_root(expanded):
+    if os.path.isabs(expanded):
         raise DataDirError(
-            "Configured data directory must be within the current user's home directory"
+            "Configured data directory must be a relative path under the application data root"
         )
     return expanded
 
@@ -101,27 +99,26 @@ def _validated_override_path_text(raw_value: str) -> str:
 def _resolve_override_data_dir(raw_value: str) -> Path:
     """Resolve and validate TELEGRAPHY_DATA_DIR style overrides."""
     safe_path_text = _validated_override_path_text(raw_value)
-    canonical_path_text = os.path.realpath(safe_path_text)
+    approved_root = _APPROVED_OVERRIDE_ROOT.resolve(strict=True)
 
     try:
-        candidate = Path(canonical_path_text).resolve(strict=True)
+        candidate = (approved_root / safe_path_text).resolve(strict=True)
     except OSError as exc:
         raise DataDirError(
-            "Configured data directory must be an existing directory: "
+            "Configured data directory must be an existing directory under the application data root: "
             f"{safe_path_text}"
         ) from exc
+
+    if not candidate.is_relative_to(approved_root):
+        raise DataDirError(
+            "Configured data directory must stay within the application data root: "
+            f"{approved_root}"
+        )
 
     if not candidate.is_dir():
         raise DataDirError(
             "Configured data directory must be an existing directory: "
             f"{candidate}"
-        )
-
-    approved_root = _APPROVED_OVERRIDE_ROOT.resolve(strict=True)
-    if not candidate.is_relative_to(approved_root):
-        raise DataDirError(
-            "Configured data directory must stay within the application data root: "
-            f"{approved_root}"
         )
 
     return candidate

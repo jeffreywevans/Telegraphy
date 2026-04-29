@@ -464,7 +464,7 @@ Current package facts:
 | Field | Value |
 | --- | --- |
 | Package | `telegraphy` |
-| Current version | `0.2.0` |
+| Current version | `0.2.1` |
 | Python | `>=3.12` |
 | Runtime dependency | `PyYAML>=6.0.3` |
 | Console script | `story-brief = telegraphy.story_brief.cli:main` |
@@ -487,7 +487,7 @@ For generation changes, preserve deterministic seeded behavior unless the PR exp
 
 ## Release notes and status
 
-Current status: `0.2.0`.
+Current status: `0.2.1`.
 
 This release represents the transition from a single-purpose generator script into a structured Python package.
 
@@ -518,6 +518,7 @@ Start here:
 
 - [CONTRIBUTING.md](CONTRIBUTING.md): development setup, local checks, pull-request expectations.
 - [CHANGELOG.md](CHANGELOG.md): release notes.
+- [GREETINGS.MD](GREETINGS.MD): lightweight project-facing documentation artifact.
 - [SECURITY.md](SECURITY.md): vulnerability reporting.
 - [docs/STORY-BRIEF-MAINTAINER.md](docs/STORY-BRIEF-MAINTAINER.md): data strategy, regression coverage, dataset versioning, and maintenance rules.
 - [docs/Story Brief Generator Evaluation.md](docs/Story%20Brief%20Generator%20Evaluation.md): current evaluation and constructive criticism.

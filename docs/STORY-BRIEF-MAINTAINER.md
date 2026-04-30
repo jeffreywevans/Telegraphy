@@ -38,8 +38,8 @@ Compared with one-file-per-key, domain-based files avoid sprawl while keeping re
 
 ### Current status
 
-- Regression tests are implemented under `tests/story_brief/` with `pytest`, organized by subsystem (`generation`, `rendering`, `data_io`, `validation`, `cli`, `filenames`, `linting`, and `partner_models`).
-- Coverage includes schema and data-loading behavior, availability boundaries and filters, deterministic generation, markdown rendering, CLI behavior, filename safety, linting diagnostics, partner-model logic, and data-I/O security controls.
+- Regression tests are implemented under `tests/story_brief/` with `pytest`, organized by subsystem (`generation`, `rendering`, `validation`, `cli`, `data_io`, `filenames`, `linting`, and `partner_models`).
+- Coverage includes availability boundaries and filters, deterministic generation, markdown rendering, schema validation, CLI behavior, data-loading behavior, data-I/O security controls, filename safety, linting diagnostics, and partner-model logic.
 - Next maintainer focus should remain strict dataset-health behavior (date coverage and generation preconditions), not only schema shape.
 
 ### Required gate

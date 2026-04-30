@@ -15,7 +15,11 @@ from .availability_validation import (
     has_date_overlap,
     validate_availability_rows,
 )
-from .partner_models import PartnerDistributionDataset, parse_partner_distribution_payload, require_keys
+from .partner_models import (
+    PartnerDistributionDataset,
+    parse_partner_distribution_payload,
+    require_keys,
+)
 
 ANY_TITLE_TOKEN_PATTERN = re.compile(r"@(?P<key>[A-Za-z_]\w*)\b")
 EXPECTED_GENERATED_FIELD_KEYS = {

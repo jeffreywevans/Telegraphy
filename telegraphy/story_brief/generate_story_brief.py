@@ -11,10 +11,16 @@ from typing import TypedDict
 from . import data_io as _data_io_module
 from . import filenames as _filenames
 from ._constants import (
-    CHARACTER_AVAILABILITY_KEY,
-    PARTNER_DISTRIBUTIONS_KEY,
+    CHARACTER_AVAILABILITY_KEY as _CHARACTER_AVAILABILITY_KEY,
+)
+from ._constants import (
+    PARTNER_DISTRIBUTIONS_KEY as _PARTNER_DISTRIBUTIONS_KEY,
+)
+from ._constants import (
     PROMPT_LIST_KEYS,
-    SETTING_AVAILABILITY_KEY,
+)
+from ._constants import (
+    SETTING_AVAILABILITY_KEY as _SETTING_AVAILABILITY_KEY,
 )
 from .generation import pick_story_fields as _pick_story_fields
 from .generation import stable_sorted_pool
@@ -38,6 +44,9 @@ class NormalizedPartnerEra(TypedDict):
 # - The public re-export here is a `frozenset` to provide an immutable API.
 EXPECTED_GENERATED_FIELD_KEYS = frozenset(_EXPECTED_GENERATED_FIELD_KEYS)
 build_auto_filename = _filenames.build_auto_filename
+CHARACTER_AVAILABILITY_KEY = _CHARACTER_AVAILABILITY_KEY
+SETTING_AVAILABILITY_KEY = _SETTING_AVAILABILITY_KEY
+PARTNER_DISTRIBUTIONS_KEY = _PARTNER_DISTRIBUTIONS_KEY
 
 
 # Keep this underscored export for backward compatibility with callers that

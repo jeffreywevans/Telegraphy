@@ -4,7 +4,7 @@ import math
 import re
 from dataclasses import dataclass
 from datetime import date
-from typing import AbstractSet, TypeAlias, TypedDict, cast
+from typing import AbstractSet, TypedDict, cast
 
 
 class PartnerWeightInput(TypedDict):

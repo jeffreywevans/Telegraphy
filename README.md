@@ -456,7 +456,7 @@ Current package facts:
 | Field | Value |
 | --- | --- |
 | Package | `telegraphy` |
-| Current version | `0.2.1` |
+| Current version | `0.2.2` |
 | Python | `>=3.12` |
 | Runtime dependency | `PyYAML>=6.0.3` |
 | Console script | `story-brief = telegraphy.story_brief.cli:main` |
@@ -479,7 +479,7 @@ For generation changes, preserve deterministic seeded behavior unless the PR exp
 
 ## Release notes and status
 
-Current status: `0.2.1`.
+Current status: `0.2.2`.
 
 This release focuses on documentation refreshes and maintainer-focused clarity while preserving the package architecture introduced in 0.2.0.
 

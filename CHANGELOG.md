@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-04-30
+
+### Changed
+- Consolidated positive-weight validation messaging through a shared helper while keeping existing validation behavior and test expectations intact.
+- Refined generation internals with explicit RNG typing and cleaner partner normalization logic for more predictable maintenance.
+- Updated project documentation to reflect current behavior after legacy-path cleanup.
+
+### Removed
+- Support for the legacy `COMMUTED_STORY_BRIEF_DATA_DIR` environment variable override.
+- Legacy partner index fallback paths that were retained only for backward compatibility.
+
 ## [0.2.1] - 2026-04-29
 
 ### Added

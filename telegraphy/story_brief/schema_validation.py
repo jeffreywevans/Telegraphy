@@ -15,11 +15,7 @@ from .availability_validation import (
     has_date_overlap,
     validate_availability_rows,
 )
-from .partner_models import (
-    LegacyPartnerIndex,
-    parse_partner_distribution_payload,
-    require_keys,
-)
+from .partner_models import PartnerDistributionDataset, parse_partner_distribution_payload, require_keys
 
 ANY_TITLE_TOKEN_PATTERN = re.compile(r"@(?P<key>[A-Za-z_]\w*)\b")
 EXPECTED_GENERATED_FIELD_KEYS = {
@@ -48,7 +44,7 @@ class ValidatedStoryData(NamedTuple):
     setting_availability: list[tuple[str, date, date]]
     date_start: date
     date_end: date
-    partner_distributions: LegacyPartnerIndex
+    partner_distributions: PartnerDistributionDataset
 
 
 def _validate_string_list(section_name: str, key: str, values: Any) -> None:
@@ -267,7 +263,7 @@ def _validate_partner_distributions(
     config_start: date,
     config_end: date,
     character_rows: list[tuple[str, date, date]],
-) -> LegacyPartnerIndex:
+) -> PartnerDistributionDataset:
     dataset = parse_partner_distribution_payload(
         partner_payload,
         config_start=config_start,
@@ -275,7 +271,7 @@ def _validate_partner_distributions(
         character_rows=character_rows,
         partner_distributions_key=PARTNER_DISTRIBUTIONS_KEY,
     )
-    return dataset.to_legacy_index()
+    return dataset
 
 
 def validate_story_data(

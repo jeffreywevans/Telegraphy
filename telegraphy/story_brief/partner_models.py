@@ -33,17 +33,6 @@ class PartnerDistributionPayloadInput(TypedDict):
     partner_distributions: list[CharacterPartnerDistributionInput]
 
 
-LegacyPartnerWeight: TypeAlias = tuple[str, float]
-
-
-class LegacyPartnerEra(TypedDict):
-    date_start: date
-    date_end: date
-    partners: list[LegacyPartnerWeight]
-
-
-LegacyPartnerIndex: TypeAlias = dict[str, list[LegacyPartnerEra]]
-
 _ISO_DATE_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 _ISO_DATE_ERROR = "must be an ISO date (YYYY-MM-DD)"
 
@@ -78,13 +67,6 @@ class PartnerEra:
     def covers(self, candidate: date) -> bool:
         return self.date_start <= candidate <= self.date_end
 
-    def to_legacy_dict(self) -> LegacyPartnerEra:
-        return {
-            "date_start": self.date_start,
-            "date_end": self.date_end,
-            "partners": [(entry.partner, entry.weight) for entry in self.partners],
-        }
-
 
 @dataclass(frozen=True, slots=True)
 class CharacterPartnerDistribution:
@@ -101,12 +83,6 @@ class PartnerDistributionDataset:
     date_start: date
     date_end: date
     by_character: dict[str, CharacterPartnerDistribution]
-
-    def to_legacy_index(self) -> LegacyPartnerIndex:
-        return {
-            character: [era.to_legacy_dict() for era in distribution.eras]
-            for character, distribution in self.by_character.items()
-        }
 
 
 def _has_iso_date_shape(raw_text: str) -> bool:

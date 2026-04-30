@@ -3,12 +3,10 @@
 
 from __future__ import annotations
 
-import random
-import secrets
 from copy import deepcopy
 from datetime import date
 from functools import lru_cache
-from typing import Any, Mapping, TypedDict
+from typing import TypedDict
 
 from . import data_io as _data_io_module
 from . import filenames as _filenames
@@ -18,21 +16,8 @@ from ._constants import (
     PROMPT_LIST_KEYS,
     SETTING_AVAILABILITY_KEY,
 )
-from .generation import (
-    available_characters as _available_characters,
-)
-from .generation import (
-    available_settings as _available_settings,
-)
-from .generation import (
-    pick_story_fields as _pick_story_fields,
-)
-from .generation import (
-    random_date_in_range as _random_date_in_range,
-)
-from .generation import (
-    stable_sorted_pool,
-)
+from .generation import pick_story_fields as _pick_story_fields
+from .generation import stable_sorted_pool
 from .linting import emit_lint_report as _emit_lint_report
 from .rendering import to_markdown as _to_markdown
 from .validation import (
@@ -162,13 +147,14 @@ def _build_story_data() -> StoryData:
         "partner_distributions": {
             protagonist: tuple(
                 {
-                    "date_start": era["date_start"],
-                    "date_end": era["date_end"],
-                    "partners": tuple(era["partners"]),
+                    "date_start": era.date_start,
+                    "date_end": era.date_end,
+                    "partners": tuple((entry.partner, entry.weight) for entry in era.partners),
                 }
                 for era in eras
             )
-            for protagonist, eras in validated.partner_distributions.items()
+            for protagonist, distribution in validated.partner_distributions.by_character.items()
+            for eras in (distribution.eras,)
         },
     }
 
@@ -205,62 +191,10 @@ def get_data() -> StoryData:
     return load_story_data()
 
 
-_COMPAT_ALIASES: dict[str, str] = {
-    "TITLES": "titles",
-    "PROTAGONIST_AVAILABILITY": CHARACTER_AVAILABILITY_KEY,
-    "CHARACTER_AVAILABILITY": CHARACTER_AVAILABILITY_KEY,
-    "SETTING_AVAILABILITY": SETTING_AVAILABILITY_KEY,
-    "CENTRAL_CONFLICTS": "central_conflicts",
-    "INCITING_PRESSURES": "inciting_pressures",
-    "ENDING_TYPES": "ending_types",
-    "STYLE_GUIDANCE": "style_guidance",
-    "WEATHER": "weather",
-    "DATE_START": "date_start",
-    "DATE_END": "date_end",
-    "SEXUAL_CONTENT_OPTIONS": "sexual_content_options",
-    "SEXUAL_CONTENT_WEIGHTS": "sexual_content_weights",
-    "SEXUAL_SCENE_TAG_GROUPS": "sexual_scene_tag_groups",
-    "WORD_COUNT_TARGETS": "word_count_targets",
-    "ORDERED_KEYS": "ordered_keys",
-    "WRITING_PREAMBLE": "writing_preamble",
-    "DATASET_VERSION": "dataset_version",
-    "PARTNER_DISTRIBUTIONS": PARTNER_DISTRIBUTIONS_KEY,
-}
-
-
-def __getattr__(name: str) -> Any:
-    """Compatibility layer for legacy module-level constants."""
-    if name in _COMPAT_ALIASES:
-        data_mapping: Mapping[str, Any] = _load_story_data_cached()
-        return deepcopy(data_mapping[_COMPAT_ALIASES[name]])
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
-
-
-def random_date_in_range(  # pragma: no cover - legacy facade delegation
-    rng: random.Random | secrets.SystemRandom, start: date, end: date
-) -> date:
-    """Return a random date between start and end (inclusive)."""
-    return _random_date_in_range(rng, start, end)
-
-
-def available_characters(  # pragma: no cover - legacy facade delegation
-    selected_date: date, data: Mapping[str, Any] | None = None
-) -> list[str]:
-    """Return characters available for the selected date."""
-    resolved_data = get_data() if data is None else data
-    return _available_characters(selected_date, resolved_data)
-
-
-def available_settings(  # pragma: no cover - legacy facade delegation
-    selected_date: date, data: Mapping[str, Any] | None = None
-) -> list[str]:
-    """Return settings available for the selected date."""
-    resolved_data = get_data() if data is None else data
-    return _available_settings(selected_date, resolved_data)
 
 
 def pick_story_fields(
-    rng: random.Random | secrets.SystemRandom,
+    rng,
     selected_date: date | None = None,
     data: StoryData | None = None,
 ) -> dict[str, str | int | list[str] | None]:

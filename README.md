@@ -512,7 +512,6 @@ Start here:
 - [docs/requirements-dev.md](docs/requirements-dev.md): development dependency policy.
 - [docs/dependabot_setup.md](docs/dependabot_setup.md): dependency update automation.
 - [docs/review_2026-04-27.md](docs/review_2026-04-27.md): code review notes and known follow-up items.
-- [docs/test_refactor_proposal.md](docs/test_refactor_proposal.md): test-suite refactor proposal.
 
 ## Troubleshooting
 

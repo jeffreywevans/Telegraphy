@@ -198,7 +198,7 @@ def _validate_sexual_scene_tag_count_weights(config: dict[str, Any]) -> None:
     weight_sum = 0.0
     for raw_count, weight in raw_weights.items():
         count = _parse_positive_weight_count(
-            raw_count, field_name="config.sexual_scene_tag_count_weights key"
+            raw_count, field_name="config.sexual_scene_tag_count_weights keys"
         )
         if count > group_count:
             raise ValueError(
@@ -215,7 +215,7 @@ def _parse_positive_weight_count(
     raw_count: Any,
     field_name: str,
 ) -> int:
-    error_message = f"{field_name} must be a positive integer, got {raw_count!r}"
+    error_message = f"{field_name} must be positive integers, got {raw_count!r}"
     try:
         count = int(raw_count)
     except (TypeError, ValueError) as exc:

@@ -38,29 +38,32 @@ Compared with one-file-per-key, domain-based files avoid sprawl while keeping re
 
 ### Current status
 
-- Regression tests are implemented under `tests/story_brief/` with `pytest`.
-- Coverage includes schema/loader behavior, availability boundaries, markdown output, deterministic generation, and CLI behavior.
+- Regression tests are implemented under `tests/story_brief/` with `pytest`, organized by subsystem (`generation`, `rendering`, `data_io`, `validation`, `cli`, `filenames`, `linting`, and `partner_models`).
+- Coverage includes schema and data-loading behavior, availability boundaries and filters, deterministic generation, markdown rendering, CLI behavior, filename safety, linting diagnostics, partner-model logic, and data-I/O security controls.
 - Next maintainer focus should remain strict dataset-health behavior (date coverage and generation preconditions), not only schema shape.
 
 ### Required gate
 
 Treat `pytest -q tests/story_brief` as a required check for any change to:
 
-- `telegraphy/story_brief/generate_story_brief.py`
+- any module under `telegraphy/story_brief/`
 - `telegraphy/story_brief/data/*.json`
-- story-brief test modules
+- any story-brief test module under `tests/story_brief/`
 
 ### Test module boundaries
 
-Keep files separated by behavior area and consolidate only shared fixtures/helpers:
+Keep files separated by behavior area and consolidate only shared fixtures/helpers. Current structure:
 
-- `test_schema_validation.py`
-- `test_weighted_choice.py`
-- `test_generation_determinism.py`
-- `test_markdown_output.py`
-- `test_cli_subprocess_behavior.py`
+- `tests/story_brief/generation/` (`test_weighted_choice.py`, `test_determinism.py`, `test_availability_filters.py`)
+- `tests/story_brief/rendering/` (`test_markdown_output.py`)
+- `tests/story_brief/validation/` (`test_schema_validation.py`)
+- `tests/story_brief/cli/` (`test_main_behavior.py`, `test_subprocess_behavior.py`)
+- `tests/story_brief/data_io/` (`test_data_loading.py`, `test_security_coverage.py`)
+- `tests/story_brief/filenames/` (`test_filename_behavior.py`)
+- `tests/story_brief/linting/` (`test_coverage_gaps.py`)
+- `tests/story_brief/partner_models/` (`test_partner_models.py`)
 
-Use shared utilities in `tests/conftest.py` and/or a helper module as needed.
+Use shared utilities in `tests/conftest.py` and/or helper modules as needed.
 
 ### High-ROI minimum checks
 

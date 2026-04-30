@@ -160,10 +160,9 @@ def _build_story_data() -> StoryData:
                     "date_end": era.date_end,
                     "partners": tuple((entry.partner, entry.weight) for entry in era.partners),
                 }
-                for era in eras
+                for era in distribution.eras
             )
             for protagonist, distribution in validated.partner_distributions.by_character.items()
-            for eras in (distribution.eras,)
         },
     }
 
@@ -198,8 +197,6 @@ def get_data() -> StoryData:
     mutate nested structures.
     """
     return load_story_data()
-
-
 
 
 def pick_story_fields(

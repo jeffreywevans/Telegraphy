@@ -213,7 +213,7 @@ def _validate_sexual_scene_tag_count_weights(config: dict[str, Any]) -> None:
 
 def _parse_positive_weight_count(
     raw_count: Any,
-    field_name: str = "config.sexual_scene_tag_count_weights keys",
+    field_name: str,
 ) -> int:
     error_message = f"{field_name} must be positive integers, got {raw_count!r}"
     try:

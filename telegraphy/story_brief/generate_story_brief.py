@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+import random
+import secrets
 from copy import deepcopy
 from datetime import date
 from functools import lru_cache
@@ -200,7 +202,7 @@ def get_data() -> StoryData:
 
 
 def pick_story_fields(
-    rng,
+    rng: random.Random | secrets.SystemRandom,
     selected_date: date | None = None,
     data: StoryData | None = None,
 ) -> dict[str, str | int | list[str] | None]:

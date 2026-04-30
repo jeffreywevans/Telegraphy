@@ -104,7 +104,7 @@ def test_parse_partner_distribution_payload_returns_typed_dataset(
     assert not alex.eras[0].covers(date(2000, 7, 1))
 
 
-def test_parse_partner_distribution_payload_round_trips_to_legacy_index(
+def test_parse_partner_distribution_payload_parses_partner_eras(
     partner_payload_factory,
     partner_character_rows,
 ) -> None:
@@ -112,11 +112,11 @@ def test_parse_partner_distribution_payload_round_trips_to_legacy_index(
         _build_partner_payload(partner_payload_factory), partner_character_rows
     )
 
-    legacy_index = dataset.to_legacy_index()
-
-    assert legacy_index["Alex"][0]["date_start"] == date(2000, 1, 1)
-    assert legacy_index["Alex"][0]["partners"] == [("Jordan", 1.0)]
-    assert legacy_index["Alex"][1]["partners"] == []
+    alex_eras = dataset.by_character["Alex"].eras
+    assert alex_eras[0].date_start == date(2000, 1, 1)
+    assert alex_eras[0].partners[0].partner == "Jordan"
+    assert alex_eras[0].partners[0].weight == 1.0
+    assert alex_eras[1].partners == ()
 
 
 def test_parse_partners_rejects_case_insensitive_duplicates() -> None:
@@ -417,14 +417,14 @@ def test_parse_partner_distribution_payload_randomized_reciprocal_partner_weight
         character_rows=[("Alex", start, end), ("Jordan", start, end)],
         partner_distributions_key="partner_distributions",
     )
-    legacy = dataset.to_legacy_index()
-
-    assert len(legacy["Alex"]) == len(alex_eras)
-    assert len(legacy["Jordan"]) == len(jordan_eras)
+    alex_dataset_eras = dataset.by_character["Alex"].eras
+    jordan_dataset_eras = dataset.by_character["Jordan"].eras
+    assert len(alex_dataset_eras) == len(alex_eras)
+    assert len(jordan_dataset_eras) == len(jordan_eras)
     for idx in range(len(alex_eras)):
-        assert legacy["Alex"][idx]["date_start"] == legacy["Jordan"][idx]["date_start"]
-        assert legacy["Alex"][idx]["date_end"] == legacy["Jordan"][idx]["date_end"]
-        assert legacy["Alex"][idx]["partners"][0][0] == "Jordan"
-        assert legacy["Jordan"][idx]["partners"][0][0] == "Alex"
-        assert legacy["Alex"][idx]["partners"][0][1] == expected_alex_weights[idx]
-        assert legacy["Jordan"][idx]["partners"][0][1] == expected_jordan_weights[idx]
+        assert alex_dataset_eras[idx].date_start == jordan_dataset_eras[idx].date_start
+        assert alex_dataset_eras[idx].date_end == jordan_dataset_eras[idx].date_end
+        assert alex_dataset_eras[idx].partners[0].partner == "Jordan"
+        assert jordan_dataset_eras[idx].partners[0].partner == "Alex"
+        assert alex_dataset_eras[idx].partners[0].weight == expected_alex_weights[idx]
+        assert jordan_dataset_eras[idx].partners[0].weight == expected_jordan_weights[idx]

@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-04-30
+
+### Changed
+- Reviewed and integrated refactoring work delivered across PRs #307-#314.
+- Removed legacy compatibility code paths and obsolete environment-variable/data-index fallbacks to simplify the supported runtime surface.
+- Consolidated and parameterized positive-weight validation/error handling to reduce duplication while preserving expected error semantics.
+- Refined normalization and RNG typing in generation paths to improve readability, type safety, and lint compliance.
+- Updated documentation for removed legacy behavior and aligned release documentation with the current codebase state.
+
 ## [0.2.1] - 2026-04-29
 
 ### Added

@@ -22,7 +22,10 @@ from .partner_models import (
 )
 
 ANY_TITLE_TOKEN_PATTERN = re.compile(r"@(?P<key>[A-Za-z_]\w*)\b")
-_MISSING_TITLE_AT_PATTERN = re.compile(r"(?<!@)\b(?P<key>protagonist|setting|time_period)\b")
+_ALLOWED_TITLE_TOKENS = frozenset({"protagonist", "setting", "time_period"})
+_MISSING_TITLE_AT_PATTERN = re.compile(
+    rf"(?<!@)\b(?P<key>{'|'.join(re.escape(t) for t in sorted(_ALLOWED_TITLE_TOKENS))})\b"
+)
 EXPECTED_GENERATED_FIELD_KEYS = {
     "title",
     "protagonist",
@@ -74,10 +77,9 @@ def _validate_no_duplicate_strings(section_name: str, key: str, values: list[str
 
 
 def _validate_title_tokens(values: list[str]) -> None:
-    allowed = {"protagonist", "setting", "time_period"}
     for idx, value in enumerate(values):
         for token in ANY_TITLE_TOKEN_PATTERN.findall(value):
-            if token not in allowed:
+            if token not in _ALLOWED_TITLE_TOKENS:
                 raise ValueError(
                     f"titles.titles[{idx}] contains unsupported token '@{token}'"
                 )

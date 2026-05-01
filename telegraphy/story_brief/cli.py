@@ -52,8 +52,8 @@ def build_parser() -> argparse.ArgumentParser:
         "--seed",
         type=int,
         help=(
-            "Optional random seed for reproducible output; when omitted, Telegraphy uses "
-            "secrets.SystemRandom for OS-backed entropy instead of the default PRNG."
+            "Optional random seed for reproducible output. If omitted, Telegraphy uses "
+            "OS-backed entropy (`secrets.SystemRandom`) for non-deterministic runs."
         ),
     )
     parser.add_argument(

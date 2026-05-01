@@ -10,7 +10,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from telegraphy.story_brief.generate_story_brief import get_data
+from telegraphy.story_brief.generate_story_brief import clear_get_data_cache, get_data
 
 pytestmark = pytest.mark.integration
 
@@ -121,7 +121,9 @@ def test_print_only_with_explicit_date_sets_time_period(tmp_path: Path) -> None:
     assert "time_period: '2000-01-01'" in result.stdout
 
 
-def test_print_only_seeded_output_matches_front_matter_schema(tmp_path: Path) -> None:
+def test_print_only_seeded_output_matches_front_matter_schema(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     selected_date = "2000-01-01"
     result = run_cli(
         "--seed",
@@ -141,12 +143,14 @@ def test_print_only_seeded_output_matches_front_matter_schema(tmp_path: Path) ->
     parsed = yaml.safe_load(front_matter)
     assert isinstance(parsed, dict)
 
+    monkeypatch.delenv("TELEGRAPHY_DATA_DIR", raising=False)
+    clear_get_data_cache()
     required_keys = list(get_data()["ordered_keys"])
     assert list(parsed) == required_keys
 
     assert isinstance(parsed["title"], str)
     assert parsed["title"].strip()
-    assert parsed["time_period"] == selected_date
+    assert str(parsed["time_period"]) == selected_date
     assert isinstance(parsed["word_count_target"], int)
     assert parsed["word_count_target"] > 0
     assert isinstance(parsed["sexual_scene_tags"], list)

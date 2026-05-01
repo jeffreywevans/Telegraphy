@@ -188,8 +188,8 @@ def _load_json(path: Any) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def load_json(path: Any) -> Any:
-    """Load JSON from a Path-like object or Traversable resource."""
+def load_json(path: Path | Traversable) -> Any:
+    """Load JSON from a pathlib.Path or Traversable resource."""
     return _load_json(path)
 
 

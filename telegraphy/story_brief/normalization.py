@@ -16,7 +16,13 @@ def _build_story_data(dataset_payloads: dict[str, Any]) -> dict[str, Any]:
     partner_distributions = dataset_payloads["partner_distributions"]
 
     validated = validate_story_data(titles, entities, prompts, config, partner_distributions)
+
+    normalized_titles = tuple(str(value) for value in titles["titles"])
     prompt_lists = {key: tuple(str(value) for value in prompts[key]) for key in PROMPT_LIST_KEYS}
+    sorted_prompt_lists = {
+        f"{key}_sorted": tuple(stable_sorted_pool(values))
+        for key, values in prompt_lists.items()
+    }
 
     sexual_scene_tag_groups = {
         str(group_name): tuple(str(tag) for tag in tags)
@@ -32,22 +38,15 @@ def _build_story_data(dataset_payloads: dict[str, Any]) -> dict[str, Any]:
         options_str, weights_raw = (), ()
     sexual_scene_tag_count_options = tuple(map(int, options_str))
     sexual_scene_tag_count_weights = tuple(map(float, weights_raw))
+    word_count_targets = tuple(int(value) for value in config["word_count_targets"])
 
     return {
-        "titles": tuple(str(v) for v in titles["titles"]),
-        "titles_sorted": tuple(stable_sorted_pool(str(v) for v in titles["titles"])),
+        "titles": normalized_titles,
+        "titles_sorted": tuple(stable_sorted_pool(normalized_titles)),
         "character_availability": tuple(validated.character_availability),
         "setting_availability": tuple(validated.setting_availability),
-        "central_conflicts": prompt_lists["central_conflicts"],
-        "inciting_pressures": prompt_lists["inciting_pressures"],
-        "ending_types": prompt_lists["ending_types"],
-        "style_guidance": prompt_lists["style_guidance"],
-        "weather": prompt_lists["weather"],
-        "central_conflicts_sorted": tuple(stable_sorted_pool(prompt_lists["central_conflicts"])),
-        "inciting_pressures_sorted": tuple(stable_sorted_pool(prompt_lists["inciting_pressures"])),
-        "ending_types_sorted": tuple(stable_sorted_pool(prompt_lists["ending_types"])),
-        "style_guidance_sorted": tuple(stable_sorted_pool(prompt_lists["style_guidance"])),
-        "weather_sorted": tuple(stable_sorted_pool(prompt_lists["weather"])),
+        **prompt_lists,
+        **sorted_prompt_lists,
         "date_start": validated.date_start,
         "date_end": validated.date_end,
         "sexual_content_options": tuple(str(v) for v in config["sexual_content_options"]),
@@ -60,10 +59,8 @@ def _build_story_data(dataset_payloads: dict[str, Any]) -> dict[str, Any]:
         },
         "sexual_scene_tag_count_options": sexual_scene_tag_count_options,
         "sexual_scene_tag_count_weights": sexual_scene_tag_count_weights,
-        "word_count_targets": tuple(int(v) for v in config["word_count_targets"]),
-        "word_count_targets_sorted": tuple(
-            stable_sorted_pool(int(v) for v in config["word_count_targets"])
-        ),
+        "word_count_targets": word_count_targets,
+        "word_count_targets_sorted": tuple(stable_sorted_pool(word_count_targets)),
         "ordered_keys": tuple(str(v) for v in config["ordered_keys"]),
         "writing_preamble": str(config["writing_preamble"]),
         "dataset_version": str(config["dataset_version"]),

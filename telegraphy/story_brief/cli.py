@@ -28,7 +28,7 @@ StoryFields = Mapping[str, Any]
 StoryRng = Union[random.Random, secrets.SystemRandom]
 
 
-def _parse_story_date(raw_date: str) -> date:  # pragma: no cover
+def _parse_story_date(raw_date: str) -> date:
     """Parse a YYYY-MM-DD command-line date for argparse."""
     try:
         return date.fromisoformat(raw_date)

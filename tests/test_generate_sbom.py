@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 import json
-import subprocess
-import sys
+import runpy
 import tomllib
 from pathlib import Path
 
@@ -62,13 +61,21 @@ dependencies = []
         generate_sbom._load_project_metadata(pyproject_path)
 
 
-def test_module_entrypoint_exits_cleanly_and_writes_output() -> None:
-    result = subprocess.run(
-        [sys.executable, "-m", "telegraphy.scripts.generate_sbom"],
-        check=False,
-        capture_output=True,
-        text=True,
-    )
+def test_module_entrypoint_exits_cleanly_and_writes_output(monkeypatch) -> None:
+    captured: dict[str, object] = {}
 
-    assert result.returncode == 0, result.stderr
-    assert generate_sbom.SBOM_PATH.exists()
+    def _fake_write_text(self: Path, data: str, encoding: str = "utf-8") -> int:
+        captured["path"] = self
+        captured["data"] = data
+        captured["encoding"] = encoding
+        return len(data)
+
+    monkeypatch.setattr(Path, "write_text", _fake_write_text)
+
+    with pytest.raises(SystemExit) as exc_info:
+        runpy.run_path(str(generate_sbom.__file__), run_name="__main__")
+
+    assert exc_info.value.code == 0
+    assert captured["path"] == generate_sbom.SBOM_PATH
+    assert captured["encoding"] == "utf-8"
+    assert '"bomFormat": "CycloneDX"' in str(captured["data"])

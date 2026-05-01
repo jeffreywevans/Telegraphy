@@ -82,7 +82,9 @@ def _validate_title_tokens(values: list[str]) -> None:
                     f"titles.titles[{idx}] contains unsupported token '@{token}'"
                 )
 
-        bare_tokens = sorted({match.group("key") for match in _MISSING_TITLE_AT_PATTERN.finditer(value)})
+        bare_tokens = sorted(
+            {match.group("key") for match in _MISSING_TITLE_AT_PATTERN.finditer(value)}
+        )
         if bare_tokens:
             raise ValueError(
                 f"titles.titles[{idx}] appears to reference token(s) without '@': "

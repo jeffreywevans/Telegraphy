@@ -72,45 +72,13 @@ def test_data_file_uses_env_override_with_expanduser(
     assert Path(resolved) == override / "titles.json"
 
 
-def test_data_file_repo_relative_when_resources_are_unavailable(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    data_dir = tmp_path / "data"
-    data_dir.mkdir()
-    expected = data_dir / "titles.json"
-    expected.write_text("{}", encoding="utf-8")
-
-    monkeypatch.setattr(data_io, "__file__", str(tmp_path / "data_io.py"))
-    monkeypatch.setattr(data_io, "__package__", "telegraphy.story_brief")
-
-    def raise_missing(_package: str) -> object:
-        raise ModuleNotFoundError("no package resources")
-
-    monkeypatch.setattr(data_io, "files", raise_missing)
-
-    assert Path(data_io._data_file("titles.json")) == expected
-
-
-def test_data_file_falls_back_to_repo_relative_when_resources_unavailable(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    repo_relative = tmp_path / "data" / "titles.json"
-    repo_relative.parent.mkdir(parents=True)
-
-    monkeypatch.setattr(data_io, "__file__", str(tmp_path / "data_io.py"))
-    monkeypatch.setattr(data_io, "__package__", "telegraphy.story_brief")
-
-    def raise_missing(_package: str) -> object:
-        raise ModuleNotFoundError("no package resources")
-
-    monkeypatch.setattr(data_io, "files", raise_missing)
-
-    assert Path(data_io._data_file("titles.json")) == repo_relative
-
-
 @pytest.mark.parametrize(
     "error",
-    [FileNotFoundError("missing package data"), TypeError("invalid package type")],
+    [
+        ModuleNotFoundError("no package resources"),
+        FileNotFoundError("missing package data"),
+        TypeError("invalid package type"),
+    ],
 )
 def test_data_file_repo_relative_fallback_for_resource_resolution_errors(
     error: Exception, tmp_path: Path, monkeypatch: pytest.MonkeyPatch

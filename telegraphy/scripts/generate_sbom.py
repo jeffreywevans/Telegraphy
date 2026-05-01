@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import json
+import tomllib
 import uuid
 from pathlib import Path
-import tomllib
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 PYPROJECT_PATH = REPO_ROOT / "pyproject.toml"

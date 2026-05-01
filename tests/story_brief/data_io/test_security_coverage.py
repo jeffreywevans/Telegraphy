@@ -23,6 +23,11 @@ def test_expand_home_marker_accepts_bare_home() -> None:
     assert data_io._expand_home_marker("~") == str(Path.home())
 
 
+def test_expand_home_marker_accepts_windows_style_home_prefix() -> None:
+    expected = str(Path.home() / "dataset")
+    assert data_io._expand_home_marker(r"~\dataset") == expected
+
+
 def test_override_rejects_named_user_home_expansion() -> None:
     with pytest.raises(data_io.DataDirError, match="must not use ~user expansion"):
         data_io._validated_override_path_text("~other-user/story-data")
@@ -31,6 +36,16 @@ def test_override_rejects_named_user_home_expansion() -> None:
 def test_data_file_rejects_unknown_filename() -> None:
     with pytest.raises(ValueError, match="Refusing to open unknown data file"):
         data_io._data_file_from_dir(Path.cwd(), "../titles.json")
+
+
+def test_data_file_rejects_case_variant_of_allowed_filename() -> None:
+    with pytest.raises(ValueError, match="Refusing to open unknown data file"):
+        data_io._data_file_from_dir(Path.cwd(), "TITLES.JSON")
+
+
+def test_validated_override_path_rejects_backslash_parent_traversal() -> None:
+    with pytest.raises(data_io.DataDirError, match="parent-directory traversal"):
+        data_io._validated_override_path_text(r"/tmp/story-data\..\escape")
 
 
 def test_data_file_uses_traversable_joinpath() -> None:
@@ -127,3 +142,36 @@ def test_load_json_uses_o_nofollow_for_paths_from_fallback_data_dir(
     assert opened_flags
     if hasattr(os, "O_NOFOLLOW"):
         assert all(flags & os.O_NOFOLLOW for flags in opened_flags)
+
+
+def test_load_json_closes_fd_when_fdopen_fails(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    payload_path = tmp_path / "payload.json"
+    payload_path.write_text("{}", encoding="utf-8")
+
+    recorded: dict[str, int] = {}
+    real_open = os.open
+    real_close = os.close
+
+    def recording_open(path: str | os.PathLike[str], flags: int, mode: int = 0o777) -> int:
+        fd = real_open(path, flags, mode)
+        recorded["fd"] = fd
+        return fd
+
+    def recording_close(fd: int) -> None:
+        recorded["closed_fd"] = fd
+        real_close(fd)
+
+    def exploding_fdopen(*_args: object, **_kwargs: object) -> object:
+        raise OSError("fdopen failed")
+
+    monkeypatch.setattr(data_io.os, "open", recording_open)
+    monkeypatch.setattr(data_io.os, "close", recording_close)
+    monkeypatch.setattr(data_io.os, "fdopen", exploding_fdopen)
+
+    with pytest.raises(OSError, match="fdopen failed"):
+        data_io._load_json(payload_path)
+
+    assert "fd" in recorded
+    assert recorded.get("closed_fd") == recorded["fd"]

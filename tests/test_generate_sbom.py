@@ -1,8 +1,12 @@
 from __future__ import annotations
 
 import json
+import subprocess
+import sys
 import tomllib
 from pathlib import Path
+
+import pytest
 
 from telegraphy.scripts import generate_sbom
 
@@ -40,3 +44,31 @@ def test_main_writes_valid_json(tmp_path, monkeypatch) -> None:
 
     written = json.loads(output_path.read_text(encoding="utf-8"))
     assert written["bomFormat"] == "CycloneDX"
+
+
+def test_load_project_metadata_raises_without_exactly_one_dependency(tmp_path) -> None:
+    pyproject_path = tmp_path / "pyproject.toml"
+    pyproject_path.write_text(
+        """
+[project]
+name = "telegraphy"
+version = "0.1.0"
+dependencies = []
+""".strip(),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="exactly one runtime dependency"):
+        generate_sbom._load_project_metadata(pyproject_path)
+
+
+def test_module_entrypoint_exits_cleanly_and_writes_output() -> None:
+    result = subprocess.run(
+        [sys.executable, "-m", "telegraphy.scripts.generate_sbom"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert generate_sbom.SBOM_PATH.exists()

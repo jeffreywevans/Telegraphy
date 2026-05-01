@@ -161,3 +161,20 @@ def test_to_markdown_handles_missing_ordered_keys_and_body_fields() -> None:
     assert "missing_key: null" in text
     assert "# Untitled Story Brief" in text
     assert "approximately N/A words" in text
+
+
+def test_to_markdown_quotes_iso_date_and_timestamp_scalars() -> None:
+    text = to_markdown(
+        {
+            "date_only": "2026-05-01",
+            "timestamp": "2026-05-01 12:34:56",
+            "nondatetime": "2026-05-01T12:34",
+        },
+        ordered_keys=["date_only", "timestamp", "nondatetime"],
+        writing_preamble="Preamble",
+    )
+
+    yaml_block = text.split("---\n", 2)[1]
+    assert "date_only: '2026-05-01'" in yaml_block
+    assert "timestamp: '2026-05-01 12:34:56'" in yaml_block
+    assert "nondatetime: 2026-05-01T12:34" in yaml_block

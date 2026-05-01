@@ -265,7 +265,7 @@ def test_load_data_missing_filename_without_exc_filename(
     monkeypatch.setattr(data_io, "_load_json", raise_missing)
     monkeypatch.delenv("TELEGRAPHY_DATA_DIR", raising=False)
 
-    with pytest.raises(ValueError, match="file 'unknown file' from data directory"):
+    with pytest.raises(data_io.DataDirError, match="file 'unknown file' from data directory"):
         data_io.load_data(tmp_path)
 
 

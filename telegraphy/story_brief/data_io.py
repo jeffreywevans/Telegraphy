@@ -19,7 +19,7 @@ _CONFIGURED_DATA_DIR_LABEL: Final = (
 _PACKAGE_DATA_RESOURCE: Final = "telegraphy.story_brief.data"
 
 
-class DataDirError(ValueError):
+class DataDirError(RuntimeError):
     """Raised when the configured data directory is invalid or unreachable."""
 
 

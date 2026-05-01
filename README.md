@@ -353,6 +353,14 @@ sbom.cdx.json
 
 You can use this file for dependency transparency, supply-chain review, and security tooling that ingests CycloneDX JSON.
 
+To regenerate the SBOM after dependency or version changes:
+
+```bash
+python -m telegraphy.scripts.generate_sbom
+```
+
+The repository includes `sbom.cdx.json` in source distributions via `MANIFEST.in`.
+
 ## How the generator works
 
 Telegraphy follows a small, deliberate pipeline:

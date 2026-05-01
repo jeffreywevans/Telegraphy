@@ -2,11 +2,11 @@
   "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:7b14340b-fbe2-45b6-a041-5e2ba712346d",
+  "serialNumber": "urn:uuid:db47916b-67dd-5d96-8618-d4d687888069",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-05-01T00:00:00Z",
     "component": {
+      "bom-ref": "pkg:pypi/telegraphy@0.2.2",
       "type": "application",
       "name": "telegraphy",
       "version": "0.2.2",
@@ -18,19 +18,11 @@
           }
         }
       ]
-    },
-    "tools": {
-      "components": [
-        {
-          "type": "application",
-          "name": "manual-maintained",
-          "version": "1"
-        }
-      ]
     }
   },
   "components": [
     {
+      "bom-ref": "pkg:pypi/pyyaml@6.0.3",
       "type": "library",
       "name": "PyYAML",
       "version": "6.0.3",

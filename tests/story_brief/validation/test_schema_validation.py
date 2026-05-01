@@ -82,6 +82,10 @@ def test_schema_validation_accepts_current_data(story_dataset_payloads) -> None:
             "unsupported token",
         ),
         (
+            lambda t, e, p, c: t.update({"titles": ["A Tale of protagonist"]}),
+            "without '@'",
+        ),
+        (
             lambda t, e, p, c: c.update(
                 {"date_start": "1900-01-01", "date_end": "1900-12-31"}
             ),

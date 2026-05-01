@@ -22,6 +22,7 @@ from .partner_models import (
 )
 
 ANY_TITLE_TOKEN_PATTERN = re.compile(r"@(?P<key>[A-Za-z_]\w*)\b")
+_MISSING_TITLE_AT_PATTERN = re.compile(r"(?<!@)\b(?P<key>protagonist|setting|time_period)\b")
 EXPECTED_GENERATED_FIELD_KEYS = {
     "title",
     "protagonist",
@@ -80,6 +81,13 @@ def _validate_title_tokens(values: list[str]) -> None:
                 raise ValueError(
                     f"titles.titles[{idx}] contains unsupported token '@{token}'"
                 )
+
+        bare_tokens = sorted({match.group("key") for match in _MISSING_TITLE_AT_PATTERN.finditer(value)})
+        if bare_tokens:
+            raise ValueError(
+                f"titles.titles[{idx}] appears to reference token(s) without '@': "
+                f"{', '.join(bare_tokens)}"
+            )
 
 
 def _validate_prompt_lists(prompts: dict[str, Any]) -> None:

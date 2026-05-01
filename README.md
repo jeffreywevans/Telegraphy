@@ -159,7 +159,7 @@ story-brief --validate-strict --print-only
 | Option | Purpose |
 | --- | --- |
 | `--print-only` | Print Markdown to the terminal and skip file writing. |
-| `--seed <int>` | Use deterministic randomness for reproducible briefs. |
+| `--seed <int>` | Use deterministic randomness for reproducible briefs; omit it to use OS-backed entropy. |
 | `--date YYYY-MM-DD` | Force the story date for scenario testing. |
 | `-o, --output-dir <path>` | Choose the output directory. Defaults to `output/story-seeds`. |
 | `--filename <name.md>` | Choose the output filename. |
@@ -370,7 +370,7 @@ The main modules are:
 
 Seeded generation is designed to be stable. When you supply `--seed`, Telegraphy uses a deterministic random source and sorted selection pools so that the same inputs produce the same brief.
 
-When no seed is supplied, Telegraphy uses `secrets.SystemRandom` so unseeded runs draw OS-backed entropy instead of the default deterministic PRNG stream.
+When no seed is supplied, Telegraphy uses `secrets.SystemRandom` so unseeded runs draw OS-backed entropy instead of using the default software-based PRNG.
 
 ## Output files and safety
 

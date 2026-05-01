@@ -8,7 +8,10 @@ import yaml
 
 from ._constants import TITLE_TOKEN_PATTERN
 
-_ISO_DATE_SCALAR_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+_ISO_DATE_SCALAR_PATTERN = re.compile(
+    r"^\d{4}-\d{2}-\d{2}(?:[ tT]\d{2}:\d{2}:\d{2})?$",
+    re.ASCII,
+)
 
 
 class _StoryBriefDumper(yaml.SafeDumper):

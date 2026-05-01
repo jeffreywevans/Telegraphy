@@ -370,7 +370,7 @@ The main modules are:
 
 Seeded generation is designed to be stable. When you supply `--seed`, Telegraphy uses a deterministic random source and sorted selection pools so that the same inputs produce the same brief.
 
-When no seed is supplied, Telegraphy uses `secrets.SystemRandom`.
+When no seed is supplied, Telegraphy uses `secrets.SystemRandom` so unseeded runs draw OS-backed entropy instead of the default deterministic PRNG stream.
 
 ## Output files and safety
 

@@ -48,7 +48,14 @@ def build_parser() -> argparse.ArgumentParser:
         help="Directory where the markdown file will be written.",
     )
     parser.add_argument("--filename", help="Optional explicit filename for the markdown file.")
-    parser.add_argument("--seed", type=int, help="Optional random seed for reproducible output.")
+    parser.add_argument(
+        "--seed",
+        type=int,
+        help=(
+            "Optional random seed for reproducible output; when omitted, Telegraphy uses "
+            "secrets.SystemRandom for OS-backed entropy instead of the default PRNG."
+        ),
+    )
     parser.add_argument(
         "--date",
         type=_parse_story_date,

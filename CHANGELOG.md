@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-05-01
+
+### Added
+- Released Telegraphy 0.3.0 as the new project baseline after recent generator, validation, and documentation updates.
+
+### Changed
+- Updated package metadata and top-level documentation to consistently report version 0.3.0.
+- Refreshed release-status text in the README to align with the 0.3.0 declaration.
+
 ## [0.2.2] - 2026-04-30
 
 ### Changed

@@ -277,7 +277,7 @@ For experiments, alternate timelines, review fixtures, or private datasets, poin
 TELEGRAPHY_DATA_DIR=/absolute/path/to/story-data story-brief --print-only
 ```
 
-`TELEGRAPHY_DATA_DIR` is the only supported environment variable override as of 0.2.2. The legacy `COMMUTED_STORY_BRIEF_DATA_DIR` override was removed and is intentionally ignored.
+`TELEGRAPHY_DATA_DIR` is the only supported environment variable override as of 0.3.0. The legacy `COMMUTED_STORY_BRIEF_DATA_DIR` override was removed and is intentionally ignored.
 
 Override directories must:
 
@@ -477,7 +477,7 @@ Current package facts:
 | Field | Value |
 | --- | --- |
 | Package | `telegraphy` |
-| Current version | `0.2.2` |
+| Current version | `0.3.0` |
 | Python | `>=3.12` |
 | Runtime dependency | `PyYAML>=6.0.3` |
 | Console script | `story-brief = telegraphy.story_brief.cli:main` |
@@ -500,9 +500,9 @@ For generation changes, preserve deterministic seeded behavior unless the PR exp
 
 ## Release notes and status
 
-Current status: `0.2.2`.
+Current status: `0.3.0`.
 
-This release focuses on documentation refreshes and maintainer-focused clarity while preserving the package architecture introduced in 0.2.0.
+This release establishes the 0.3.0 line, reflecting the latest generator, validation, and documentation baseline.
 
 Highlights:
 

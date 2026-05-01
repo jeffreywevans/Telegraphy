@@ -37,8 +37,11 @@ select = ["E", "F", "I", "B"]
 
 [tool.mypy]
 strict = true
-exclude = ["^telegraphy/scripts/"]
 
 [[tool.mypy.overrides]]
 module = ["yaml"]
 ignore_missing_imports = true
+[[tool.mypy.overrides]]
+module = ["coverage", "coverage.*"]
+ignore_missing_imports = true
+

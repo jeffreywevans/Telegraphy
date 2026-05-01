@@ -20,7 +20,7 @@ from ._constants import (
     SETTING_AVAILABILITY_KEY as _SETTING_AVAILABILITY_KEY,
 )
 from .generation import pick_story_fields as _pick_story_fields
-from .linting import emit_lint_report as _emit_lint_report
+from .linting import emit_lint_report
 from .rendering import to_markdown as _to_markdown
 from .validation import (
     EXPECTED_GENERATED_FIELD_KEYS as _EXPECTED_GENERATED_FIELD_KEYS,
@@ -44,9 +44,11 @@ SETTING_AVAILABILITY_KEY = _SETTING_AVAILABILITY_KEY
 PARTNER_DISTRIBUTIONS_KEY = _PARTNER_DISTRIBUTIONS_KEY
 
 
-# Keep this underscored export for backward compatibility with callers that
-# historically imported `_emit_lint_report` from this facade module.
-__all__ = ["_emit_lint_report"]
+# Public export for lint report emission from this facade module.
+__all__ = ["emit_lint_report"]
+
+# Backward-compatible alias for older callers.
+_emit_lint_report = emit_lint_report
 
 # Canonical dataset file mapping lives in telegraphy.story_brief.data_io.
 STORY_DATASET_FILES = _data_io_module.DATA_FILENAMES

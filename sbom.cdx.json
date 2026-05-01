@@ -1,0 +1,45 @@
+{
+  "$schema": "https://cyclonedx.org/schema/bom-1.6.schema.json",
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:db47916b-67dd-5d96-8618-d4d687888069",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "bom-ref": "pkg:pypi/telegraphy@0.2.2",
+      "type": "application",
+      "name": "telegraphy",
+      "version": "0.2.2",
+      "purl": "pkg:pypi/telegraphy@0.2.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    }
+  },
+  "components": [
+    {
+      "bom-ref": "pkg:pypi/pyyaml@6.0.3",
+      "type": "library",
+      "name": "PyYAML",
+      "version": "6.0.3",
+      "purl": "pkg:pypi/pyyaml@6.0.3",
+      "scope": "required"
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "pkg:pypi/telegraphy@0.2.2",
+      "dependsOn": [
+        "pkg:pypi/pyyaml@6.0.3"
+      ]
+    },
+    {
+      "ref": "pkg:pypi/pyyaml@6.0.3",
+      "dependsOn": []
+    }
+  ]
+}

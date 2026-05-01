@@ -14,7 +14,7 @@ from typing import Any
 import pytest
 
 from telegraphy.story_brief import generate_story_brief as story_brief
-from telegraphy.story_brief.data_io import _data_file, _load_json
+from telegraphy.story_brief.data_io import data_file, load_json
 
 _STORY_DATASET_FILES = tuple(story_brief.STORY_DATASET_FILES.values())
 
@@ -22,7 +22,7 @@ _STORY_DATASET_FILES = tuple(story_brief.STORY_DATASET_FILES.values())
 @lru_cache(maxsize=1)
 def _load_story_dataset_payloads() -> dict[str, dict[str, Any]]:
     return {
-        key: _load_json(_data_file(filename))
+        key: load_json(data_file(filename))
         for key, filename in story_brief.STORY_DATASET_FILES.items()
     }
 
@@ -96,7 +96,10 @@ def partner_payload_factory() -> Callable[..., dict[str, Any]]:
 @pytest.fixture
 def source_story_data_dir() -> Path:
     """Canonical story dataset directory used by CLI/data tests."""
-    return _data_file(story_brief.CONFIG_FILENAME).parent
+    config_path = data_file(story_brief.CONFIG_FILENAME)
+    if not isinstance(config_path, Path):
+        raise TypeError("Test fixture requires filesystem-backed story dataset files")
+    return config_path.parent
 
 
 def clone_story_dataset(destination: Path, *, source_story_data_dir: Path) -> Path:

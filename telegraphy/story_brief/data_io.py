@@ -167,6 +167,11 @@ def _data_file(filename: str) -> Path | Traversable:
     return _data_file_from_dir(resolve_data_dir(), filename)
 
 
+def data_file(filename: str) -> Path | Traversable:
+    """Return a validated path to one required story-brief data file."""
+    return _data_file(filename)
+
+
 def _load_json(path: Any) -> Any:
     if isinstance(path, Path):
         flags = os.O_RDONLY
@@ -181,6 +186,11 @@ def _load_json(path: Any) -> Any:
         with handle:
             return json.load(handle)
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def load_json(path: Path | Traversable) -> Any:
+    """Load JSON from a pathlib.Path or Traversable resource."""
+    return _load_json(path)
 
 
 def _load_required_dataset_files(

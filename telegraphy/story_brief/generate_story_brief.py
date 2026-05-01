@@ -6,7 +6,7 @@ from __future__ import annotations
 import random
 import secrets
 from datetime import date
-from typing import TypedDict
+from typing import TypedDict, cast
 
 from . import data_io as _data_io_module
 from . import filenames as _filenames
@@ -93,7 +93,7 @@ class StoryData(TypedDict):
 
 def load_story_data() -> StoryData:
     """Return an isolated copy of normalized story data."""
-    return _data_io_module.get_normalized_story_data()
+    return cast(StoryData, _data_io_module.get_normalized_story_data())
 
 
 def _clear_get_data_cache() -> None:

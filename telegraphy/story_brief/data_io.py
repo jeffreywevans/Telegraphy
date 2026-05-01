@@ -247,7 +247,10 @@ def _get_normalized_story_data_cached() -> dict[str, Any]:
         config["sexual_scene_tag_count_weights"].items(),
         key=lambda item: int(item[0]),
     )
-    options_str, weights_raw = zip(*sorted_items, strict=False)
+    if sorted_items:
+        options_str, weights_raw = zip(*sorted_items, strict=False)
+    else:
+        options_str, weights_raw = (), ()
     sexual_scene_tag_count_options = tuple(map(int, options_str))
     sexual_scene_tag_count_weights = tuple(map(float, weights_raw))
 

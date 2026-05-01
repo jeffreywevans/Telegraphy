@@ -45,7 +45,7 @@ def test_data_file_rejects_case_variant_of_allowed_filename() -> None:
 
 def test_validated_override_path_rejects_backslash_parent_traversal() -> None:
     with pytest.raises(data_io.DataDirError, match="parent-directory traversal"):
-        data_io._validated_override_path_text(r"/tmp/story-data\\..\\escape")
+        data_io._validated_override_path_text(r"/tmp/story-data\..\escape")
 
 
 def test_data_file_uses_traversable_joinpath() -> None:
@@ -173,4 +173,5 @@ def test_load_json_closes_fd_when_fdopen_fails(
     with pytest.raises(OSError, match="fdopen failed"):
         data_io._load_json(payload_path)
 
-    assert recorded["closed_fd"] == recorded["fd"]
+    assert "fd" in recorded
+    assert recorded.get("closed_fd") == recorded["fd"]

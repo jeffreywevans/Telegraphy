@@ -8,6 +8,9 @@ from collections.abc import Callable
 from pathlib import Path
 
 import pytest
+import yaml
+
+from telegraphy.story_brief.generate_story_brief import get_data
 
 pytestmark = pytest.mark.integration
 
@@ -116,6 +119,38 @@ def test_print_only_with_explicit_date_sets_time_period(tmp_path: Path) -> None:
     result = run_cli("--seed", "42", "--date", "2000-01-01", "--print-only", cwd=tmp_path)
     assert result.returncode == 0
     assert "time_period: '2000-01-01'" in result.stdout
+
+
+def test_print_only_seeded_output_matches_front_matter_schema(tmp_path: Path) -> None:
+    selected_date = "2000-01-01"
+    result = run_cli(
+        "--seed",
+        "42",
+        "--date",
+        selected_date,
+        "--print-only",
+        cwd=tmp_path,
+    )
+
+    assert result.returncode == 0
+    assert result.stderr == ""
+    assert result.stdout.startswith("---\n")
+    assert "\n---\n" in result.stdout
+
+    _opening_delimiter, front_matter, _body = result.stdout.split("---\n", 2)
+    parsed = yaml.safe_load(front_matter)
+    assert isinstance(parsed, dict)
+
+    required_keys = list(get_data()["ordered_keys"])
+    assert list(parsed) == required_keys
+
+    assert isinstance(parsed["title"], str)
+    assert parsed["title"].strip()
+    assert parsed["time_period"] == selected_date
+    assert isinstance(parsed["word_count_target"], int)
+    assert parsed["word_count_target"] > 0
+    assert isinstance(parsed["sexual_scene_tags"], list)
+    assert all(isinstance(tag, str) and tag.strip() for tag in parsed["sexual_scene_tags"])
 
 
 def test_write_and_force_overwrite_behavior(tmp_path: Path) -> None:

@@ -8,7 +8,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 PYPROJECT_PATH = REPO_ROOT / "pyproject.toml"
 SBOM_PATH = REPO_ROOT / "sbom.cdx.json"
-SCHEMA = "http://cyclonedx.org/schema/bom-1.6.schema.json"
+SCHEMA = "https://cyclonedx.org/schema/bom-1.6.schema.json"
 
 
 def _load_project_metadata(pyproject_path: Path) -> tuple[str, str, str]:

@@ -530,7 +530,7 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
             lambda _titles, entities, _prompts, _config: entities[
                 "character_availability"
             ].append(["Bad Boundary", None, 2000]),
-            r"boundary values must be an integer year or ISO date string",
+            r"boundary values must be ISO date strings \(YYYY-MM-DD\)",
         ),
         (
             lambda _titles, entities, _prompts, _config: entities[
@@ -674,36 +674,3 @@ def test_schema_validation_rejects_uncovered_branch_conditions(
     _assert_schema_rejects(story_dataset_payloads, mutator, expected_message)
 
 
-def test_schema_validation_accepts_integer_year_availability_boundaries(
-    story_dataset_payloads: dict[str, dict[str, Any]],
-) -> None:
-    titles = story_dataset_payloads["titles"]
-    entities = story_dataset_payloads["entities"]
-    prompts = story_dataset_payloads["prompts"]
-    config = story_dataset_payloads["config"]
-    partner_distributions = story_dataset_payloads["partner_distributions"]
-
-    titles["titles"] = ["A Night in @setting with @protagonist"]
-    entities["character_availability"] = [
-        ["Alex", 2000, 2000],
-        ["Jordan", 2000, 2000],
-    ]
-    entities["setting_availability"] = [["Seattle", 2000, 2000]]
-    config.update({"date_start": "2000-01-01", "date_end": "2000-01-01"})
-    _set_minimal_partner_distributions(partner_distributions)
-
-    validated_data = validate_story_data(
-        titles,
-        entities,
-        prompts,
-        config,
-        partner_distributions,
-    )
-
-    assert validated_data.character_availability == [
-        ("Alex", date(2000, 1, 1), date(2000, 1, 1)),
-        ("Jordan", date(2000, 1, 1), date(2000, 1, 1)),
-    ]
-    assert validated_data.setting_availability == [
-        ("Seattle", date(2000, 1, 1), date(2000, 1, 1)),
-    ]

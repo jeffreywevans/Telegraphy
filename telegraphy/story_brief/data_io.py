@@ -9,10 +9,10 @@ from importlib.resources import files
 from importlib.resources.abc import Traversable
 from pathlib import Path
 from typing import Any, Final
+
 from ._constants import PROMPT_LIST_KEYS
 from .generation import stable_sorted_pool
 from .validation import validate_story_data
-
 
 DATA_DIR_ENV_VAR: Final = "TELEGRAPHY_DATA_DIR"
 _CONFIGURED_DATA_DIR_LABEL: Final = (
@@ -282,7 +282,9 @@ def _get_normalized_story_data_cached() -> dict[str, Any]:
         "sexual_scene_tag_count_options": sexual_scene_tag_count_options,
         "sexual_scene_tag_count_weights": sexual_scene_tag_count_weights,
         "word_count_targets": tuple(int(v) for v in config["word_count_targets"]),
-        "word_count_targets_sorted": tuple(stable_sorted_pool(int(v) for v in config["word_count_targets"])),
+        "word_count_targets_sorted": tuple(
+            stable_sorted_pool(int(v) for v in config["word_count_targets"])
+        ),
         "ordered_keys": tuple(str(v) for v in config["ordered_keys"]),
         "writing_preamble": str(config["writing_preamble"]),
         "dataset_version": str(config["dataset_version"]),

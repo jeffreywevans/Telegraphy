@@ -19,7 +19,7 @@ _CONFIGURED_DATA_DIR_LABEL: Final = (
 _PACKAGE_DATA_RESOURCE: Final = "telegraphy.story_brief.data"
 
 
-class DataDirError(ValueError):
+class DataDirError(RuntimeError):
     """Raised when the configured data directory is invalid or unreachable."""
 
 
@@ -210,7 +210,7 @@ def load_data(data_dir: Path | Traversable | None = None) -> dict[str, Any]:
     try:
         return _load_required_dataset_files(selected_data_dir)
     except FileNotFoundError as exc:
-        raise ValueError(
+        raise DataDirError(
             f"Failed to load story brief dataset file "
             f"'{_missing_file_name(exc)}' from {_load_failure_location()}. "
             "Verify the directory exists and contains the required JSON files."

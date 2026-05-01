@@ -74,7 +74,7 @@ def test_load_data_reports_configured_missing_filename(
     data_dir.mkdir()
     monkeypatch.setenv(data_io.DATA_DIR_ENV_VAR, str(data_dir))
 
-    with pytest.raises(ValueError) as exc_info:
+    with pytest.raises(data_io.DataDirError) as exc_info:
         data_io.load_data()
 
     message = str(exc_info.value)

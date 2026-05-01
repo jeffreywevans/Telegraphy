@@ -9,6 +9,22 @@ import yaml
 from ._constants import TITLE_TOKEN_PATTERN
 
 
+_ISO_DATE_SCALAR_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+class _StoryBriefDumper(yaml.SafeDumper):
+    """Safe dumper with stable scalar rendering for front matter."""
+
+
+def _represent_story_scalar(dumper: _StoryBriefDumper, value: str) -> yaml.ScalarNode:
+    """Quote ISO-like date strings to prevent implicit YAML date coercion."""
+    style = "'" if _ISO_DATE_SCALAR_PATTERN.fullmatch(value) else None
+    return dumper.represent_scalar("tag:yaml.org,2002:str", value, style=style)
+
+
+_StoryBriefDumper.add_representer(str, _represent_story_scalar)
+
+
 def render_title(
     template: str, *, protagonist: str, setting: str, time_period: str
 ) -> str:
@@ -46,11 +62,12 @@ def to_markdown(
         else:
             ordered_fields[key] = value
 
-    yaml_text = yaml.safe_dump(
+    yaml_text = yaml.dump(
         ordered_fields,
         sort_keys=False,
         allow_unicode=True,
         default_flow_style=False,
+        Dumper=_StoryBriefDumper,
     ).strip()
 
     body = [

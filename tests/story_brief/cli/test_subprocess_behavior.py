@@ -150,7 +150,8 @@ def test_print_only_seeded_output_matches_front_matter_schema(
 
     assert isinstance(parsed["title"], str)
     assert parsed["title"].strip()
-    assert str(parsed["time_period"]) == selected_date
+    assert parsed["time_period"] == selected_date
+    assert isinstance(parsed["time_period"], str)
     assert isinstance(parsed["word_count_target"], int)
     assert parsed["word_count_target"] > 0
     assert isinstance(parsed["sexual_scene_tags"], list)

@@ -30,7 +30,7 @@ Compared with one-file-per-key, domain-based files avoid sprawl while keeping re
 
 When adding a new generated story-brief field, treat this as a **three-part coordinated change** to avoid validation mismatches:
 
-1. **Generation path:** update `telegraphy/story_brief/generation.py` (specifically `pick_story_fields`) so the new field is emitted in output.
+1. **Generation path:** update `telegraphy/story_brief/generation.py` (specifically `pick_story_fields`) so the new field is emitted in output. If the field is used in title templates, also update the `render_title` call to pass it as a keyword argument.
 2. **Data config:** add the field name in `telegraphy/story_brief/data/config.json` under `ordered_keys` (and any associated metadata if required).
 3. **Schema validation constant:** update `EXPECTED_GENERATED_FIELD_KEYS` in `telegraphy/story_brief/schema_validation.py` to include the new field. If the field is used in title templates (for example, `@my_new_field`), also update the allowed token set in `_validate_title_tokens` in the same module.
 

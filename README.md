@@ -277,7 +277,7 @@ For experiments, alternate timelines, review fixtures, or private datasets, poin
 TELEGRAPHY_DATA_DIR=/absolute/path/to/story-data story-brief --print-only
 ```
 
-`TELEGRAPHY_DATA_DIR` is the only supported environment variable override as of 0.3.0. The legacy `COMMUTED_STORY_BRIEF_DATA_DIR` override was removed and is intentionally ignored.
+`TELEGRAPHY_DATA_DIR` is the only supported environment variable override. The legacy `COMMUTED_STORY_BRIEF_DATA_DIR` override was removed and is intentionally ignored.
 
 Override directories must:
 

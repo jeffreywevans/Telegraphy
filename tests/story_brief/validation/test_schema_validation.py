@@ -1,6 +1,6 @@
 import math
 from collections.abc import Callable
-from datetime import date, timedelta
+from datetime import timedelta
 from typing import Any
 
 import pytest

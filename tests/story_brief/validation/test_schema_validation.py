@@ -529,6 +529,12 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
         (
             lambda _titles, entities, _prompts, _config: entities[
                 "character_availability"
+            ].append(["Integer Boundary", 2000, "2000-12-31"]),
+            r"boundary values must be ISO date strings \(YYYY-MM-DD\)",
+        ),
+        (
+            lambda _titles, entities, _prompts, _config: entities[
+                "character_availability"
             ].append(["Bad Boundary", None, 2000]),
             r"boundary values must be ISO date strings \(YYYY-MM-DD\)",
         ),

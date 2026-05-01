@@ -15,11 +15,11 @@ There appears to be overlap in fallback-path assertions in `tests/story_brief/li
 - `test_data_file_repo_relative_when_resources_are_unavailable`
 - `test_data_file_falls_back_to_repo_relative_when_resources_unavailable`
 
-These both force `ModuleNotFoundError` from `importlib.resources.files(...)` and assert repo-relative fallback path shape. Keeping one would likely preserve behavior confidence while reducing maintenance overhead.
+These both force `ModuleNotFoundError` from `importlib.resources.files(...)` and assert repo-relative fallback path shape. Consolidating them into a single parametrized test preserves behavior confidence while reducing maintenance overhead.
 
 ## Recommendation for 100/100 goals
 - Keep security and error-path tests in `tests/story_brief/data_io/` as they are high-value.
-- If pruning, remove only one of the two duplicated fallback tests above.
+- If pruning, consolidate duplicated fallback tests into a single parametrized test.
 - Prefer adding narrow tests for any currently uncovered branches instead of broad refactor churn.
 
 In short: **targeted cleanup + branch-specific tests**, not a full rewrite.

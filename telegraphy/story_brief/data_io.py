@@ -30,7 +30,7 @@ DATA_FILENAMES: Final[dict[str, str]] = {
 }
 
 _ALLOWED_FILENAMES: Final[frozenset[str]] = frozenset(DATA_FILENAMES.values())
-_ALLOWED_FILENAMES_SORTED: Final[tuple[str, ...]] = tuple(sorted(_ALLOWED_FILENAMES))
+_ALLOWED_FILENAMES_SORTED: Final[str] = ", ".join(map(repr, sorted(_ALLOWED_FILENAMES)))
 _ALLOWED_FILENAMES_NFC_CASEFOLDED: Final[frozenset[str]] = frozenset(
     unicodedata.normalize("NFC", filename).casefold() for filename in _ALLOWED_FILENAMES
 )

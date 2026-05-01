@@ -30,6 +30,10 @@ DATA_FILENAMES: Final[dict[str, str]] = {
 }
 
 _ALLOWED_FILENAMES: Final[frozenset[str]] = frozenset(DATA_FILENAMES.values())
+_ALLOWED_FILENAMES_SORTED: Final[tuple[str, ...]] = tuple(sorted(_ALLOWED_FILENAMES))
+_ALLOWED_FILENAMES_NFC_CASEFOLDED: Final[frozenset[str]] = frozenset(
+    unicodedata.normalize("NFC", filename).casefold() for filename in _ALLOWED_FILENAMES
+)
 _HOME_MARKERS: Final[tuple[str, str]] = ("~/", "~\\")
 
 
@@ -115,25 +119,20 @@ def resolve_data_dir() -> Path | Traversable:
 def _validate_data_filename(filename: str) -> None:
     """Reject every filename except the statically known dataset files."""
     normalized_filename = unicodedata.normalize("NFC", filename)
-    normalized_allowed_filenames = {
-        unicodedata.normalize("NFC", allowed_filename) for allowed_filename in _ALLOWED_FILENAMES
-    }
     if normalized_filename != filename:
         raise ValueError(
             f"Refusing to open non-canonical data file {filename!r}. "
             "Use canonical NFC filename forms only."
         )
-    if normalized_filename.casefold() not in {
-        allowed.casefold() for allowed in normalized_allowed_filenames
-    }:
+    if normalized_filename.casefold() not in _ALLOWED_FILENAMES_NFC_CASEFOLDED:
         raise ValueError(
             f"Refusing to open unknown data file {filename!r}. "
-            f"Allowed files: {sorted(_ALLOWED_FILENAMES)}"
+            f"Allowed files: {_ALLOWED_FILENAMES_SORTED}"
         )
     if filename not in _ALLOWED_FILENAMES:
         raise ValueError(
             f"Refusing to open unknown data file {filename!r}. "
-            f"Allowed files: {sorted(_ALLOWED_FILENAMES)}"
+            f"Allowed files: {_ALLOWED_FILENAMES_SORTED}"
         )
 
 

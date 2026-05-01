@@ -18,6 +18,7 @@ Telegraphy does not write prose. It generates the feedstock: YAML front matter, 
 - [CLI examples](#cli-examples)
 - [Data override](#data-override)
 - [Validation and linting](#validation-and-linting)
+- [Software bill of materials (SBOM)](#software-bill-of-materials-sbom)
 - [How the generator works](#how-the-generator-works)
 - [Output files and safety](#output-files-and-safety)
 - [Development](#development)
@@ -341,6 +342,16 @@ story-brief --lint-dataset
 story-brief --validate-strict --seed 42 --date 2000-01-01 --print-only
 pytest -q tests/story_brief
 ```
+
+## Software bill of materials (SBOM)
+
+Telegraphy ships a CycloneDX SBOM at:
+
+```text
+sbom.cdx.json
+```
+
+You can use this file for dependency transparency, supply-chain review, and security tooling that ingests CycloneDX JSON.
 
 ## How the generator works
 

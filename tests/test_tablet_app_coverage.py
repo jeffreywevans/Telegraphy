@@ -23,7 +23,8 @@ def test_init_and_configure_style_and_build(monkeypatch):
     style = MagicMock()
     monkeypatch.setattr(tablet_app.ttk, "Style", lambda _parent: style)
 
-    make_widget = lambda: SimpleNamespace(pack=MagicMock(), bind=MagicMock(), configure=MagicMock())
+    def make_widget() -> SimpleNamespace:
+        return SimpleNamespace(pack=MagicMock(), bind=MagicMock(), configure=MagicMock())
     canvas = make_widget()
     canvas.create_window = MagicMock(return_value=111)
     canvas.create_oval = MagicMock()

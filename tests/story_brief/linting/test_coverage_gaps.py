@@ -24,7 +24,7 @@ from telegraphy.story_brief.partner_models import parse_partner_distribution_pay
 
 
 def test_emit_lint_report_prints_sections(capsys: pytest.CaptureFixture[str]) -> None:
-    story_brief._emit_lint_report(
+    story_brief.emit_lint_report(
         DatasetLintReport(errors=["error one"], warnings=["warn one", "warn two"])
     )
 
@@ -37,7 +37,7 @@ def test_emit_lint_report_prints_sections(capsys: pytest.CaptureFixture[str]) ->
 
 
 def test_emit_lint_report_prints_clean_state(capsys: pytest.CaptureFixture[str]) -> None:
-    story_brief._emit_lint_report(DatasetLintReport(errors=[], warnings=[]))
+    story_brief.emit_lint_report(DatasetLintReport(errors=[], warnings=[]))
 
     output = capsys.readouterr().out
     assert "Dataset lint: no blocking coverage gaps found." in output
@@ -47,7 +47,7 @@ def test_emit_lint_report_prints_clean_state(capsys: pytest.CaptureFixture[str])
 def test_emit_lint_report_accepts_explicit_file_stream() -> None:
     out = StringIO()
 
-    story_brief._emit_lint_report(
+    story_brief.emit_lint_report(
         DatasetLintReport(errors=["error one"], warnings=["warn one"]), file=out
     )
 

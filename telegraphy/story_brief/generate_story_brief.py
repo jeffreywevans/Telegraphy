@@ -47,8 +47,6 @@ PARTNER_DISTRIBUTIONS_KEY = _PARTNER_DISTRIBUTIONS_KEY
 # Public export for lint report emission from this facade module.
 __all__ = ["emit_lint_report"]
 
-# Backward-compatible alias for older callers.
-_emit_lint_report = emit_lint_report
 
 # Canonical dataset file mapping lives in telegraphy.story_brief.data_io.
 STORY_DATASET_FILES = _data_io_module.DATA_FILENAMES

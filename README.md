@@ -539,13 +539,14 @@ Pinned SHAs reduce supply-chain risk from mutable tags and make CI behavior easi
 Where practical, workflow `uses:` references should follow this style:
 
 ```yaml
-- uses: owner/action@<40-character-commit-sha> # optional human-friendly version comment
+- uses: owner/action@<40-character-commit-sha> # v1.2.3
 ```
 
-In a small number of cases, we intentionally keep a trusted GitHub-maintained action on a major tag
-(for example `@v4`) instead of a SHA. When we do this, the trade-off is explicit: the repository
-chooses to trust GitHub's managed release process for that security toolchain, and to accept the
-small reduction in strict immutability in exchange for simpler maintenance.
+In a small number of cases, we intentionally keep a trusted GitHub-maintained action (for example,
+from the `actions/` or `github/` organizations) on a major tag (for example `@v4`) instead of a SHA.
+When we do this, the trade-off is explicit: the repository chooses to trust GitHub's managed release
+process for that core toolchain, and to accept the small reduction in strict immutability in exchange
+for simpler maintenance.
 
 ### Project metadata
 

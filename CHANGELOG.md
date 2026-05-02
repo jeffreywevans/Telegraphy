@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-05-02
+
+Released Telegraphy 0.4.0 with a new desktop GUI experience and the supporting quality/reliability updates completed alongside it.
+
+### Added
+- Added a new `telegraphy-gui` desktop command that launches a tkinter tablet-style interface for story-brief generation.
+- Added the `telegraphy.gui` package and `TelegraphyTablet` app shell, including threaded generation and clipboard-copy workflow.
+- Added substantial unit coverage for the GUI module, including rendering, worker queue, subprocess execution, decode fallback, and clipboard behaviors.
+
+### Changed
+- Updated tox configuration for Tox 4 compatibility and cleaner environment labels used in CI and local QA runs.
+- Improved GUI internals for maintainability (style/font constant deduplication, typing fixes for tkinter polygon creation, and clearer test call structure).
+
+### Fixed
+- Hardened GUI subprocess output decoding to gracefully handle invalid preferred encoding names and non-UTF-8 byte streams.
+- Fixed style and lint issues in GUI-focused tests (line-length/readability cleanups and Ruff E731 remediation).
+
 ## [0.3.3] - 2026-05-02
 
 Released Telegraphy 0.3.3 to document and ship the substantive security, reliability, and CI workflow improvements delivered since 0.3.2.
@@ -85,7 +102,8 @@ This release marks the transition from a single-purpose generator script into a 
 - Refactored story brief generation into focused modules (CLI, data loading, validation, linting, etc.).
 - Hardened output-path handling and filename generation.
 
-[Unreleased]: https://github.com/jeffreywevans/Telegraphy/compare/v0.3.3...HEAD
+[Unreleased]: https://github.com/jeffreywevans/Telegraphy/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/jeffreywevans/Telegraphy/compare/v0.3.3...v0.4.0
 [0.3.3]: https://github.com/jeffreywevans/Telegraphy/compare/v0.3.2...v0.3.3
 [0.3.2]: https://github.com/jeffreywevans/Telegraphy/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/jeffreywevans/Telegraphy/compare/v0.3.0...v0.3.1

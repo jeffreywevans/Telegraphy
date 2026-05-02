@@ -37,7 +37,6 @@ class TelegraphyTablet(tk.Tk):
         self._build_shell()
         self._poll_worker_queue()
 
-
     def _select_display_font(self) -> str:
         available_fonts = {name.lower() for name in tkfont.families(self)}
 
@@ -53,18 +52,21 @@ class TelegraphyTablet(tk.Tk):
                 available_fonts,
             )
 
-        # Apple platforms should prefer the system UI font (San Francisco).
-        return self._pick_first_available_font(
-            (".AppleSystemUIFont", "SF Pro Text", "Helvetica Neue"),
-            available_fonts,
-        )
+        if sys.platform == "darwin":
+            # Apple platforms should prefer the system UI font (San Francisco).
+            return self._pick_first_available_font(
+                (".AppleSystemUIFont", "SF Pro Text", "Helvetica Neue"),
+                available_fonts,
+            )
+
+        return DEFAULT_FONT_FAMILY
 
     @staticmethod
     def _pick_first_available_font(candidates: tuple[str, ...], available_fonts: set[str]) -> str:
         for font_name in candidates:
             if font_name.lower() in available_fonts:
                 return font_name
-        return candidates[-1]
+        return candidates[0] if candidates else DEFAULT_FONT_FAMILY
 
     def _configure_styles(self) -> None:
         style = ttk.Style(self)

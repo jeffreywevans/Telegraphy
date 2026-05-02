@@ -256,12 +256,23 @@ def test_font_selection_by_platform(monkeypatch):
     monkeypatch.setattr(tablet_app.sys, "platform", "darwin")
     assert tablet._select_display_font() == ".AppleSystemUIFont"
 
+    monkeypatch.setattr(tablet_app.tkfont, "families", lambda _root: ("Monospace",))
+    monkeypatch.setattr(tablet_app.sys, "platform", "freebsd13")
+    assert tablet._select_display_font() == tablet_app.DEFAULT_FONT_FAMILY
+
 
 def test_font_fallback_helpers():
     assert tablet_app.TelegraphyTablet._pick_first_available_font(
         ("One", "Two", "Three"),
         {"zero", "three"},
     ) == "Three"
+
+    assert tablet_app.TelegraphyTablet._pick_first_available_font(
+        ("One", "Two", "Three"),
+        {"zero"},
+    ) == "One"
+
+    assert tablet_app.TelegraphyTablet._pick_first_available_font((), set()) == tablet_app.DEFAULT_FONT_FAMILY
 
 def test_main_invokes_mainloop(monkeypatch):
     called: list[str] = []

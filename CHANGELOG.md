@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-05-02
+
+Released Telegraphy 0.3.1 to capture recent normalization logic hardening and documentation-link cleanup.
+
+### Changed
+- Simplified scene-tag weight normalization to use a single-pass, deterministic adjustment path, including explicit handling for under-one and over-one totals.
+- Covered previously untested normalization branches with targeted tests to strengthen line and condition coverage guarantees.
+- Updated README badge and documentation links for cross-renderer compatibility and correct license-link targets.
+- Bumped package metadata and project-facing release references from 0.3.0 to 0.3.1.
+
 ## [0.3.0] - 2026-05-01
 
 Released Telegraphy 0.3.0 as the new project baseline after recent generator, validation, and documentation updates.
@@ -48,3 +58,10 @@ This release marks the transition from a single-purpose generator script into a 
 ### Changed
 - Refactored story brief generation into focused modules (CLI, data loading, validation, linting, etc.).
 - Hardened output-path handling and filename generation.
+
+[Unreleased]: https://github.com/jeffreywevans/Telegraphy/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/jeffreywevans/Telegraphy/compare/v0.3.0...v0.3.1
+[0.3.0]: https://github.com/jeffreywevans/Telegraphy/compare/v0.2.2...v0.3.0
+[0.2.2]: https://github.com/jeffreywevans/Telegraphy/compare/v0.2.1...v0.2.2
+[0.2.1]: https://github.com/jeffreywevans/Telegraphy/compare/v0.2.0...v0.2.1
+[0.2.0]: https://github.com/jeffreywevans/Telegraphy/releases/tag/v0.2.0

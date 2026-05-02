@@ -181,7 +181,15 @@ def _validated_load_path(path: Path | Traversable) -> Path | Traversable:
     if isinstance(path, Path):
         if not path.is_absolute():
             raise ValueError("Refusing to open non-absolute filesystem path")
-        return path.resolve(strict=False)
+        resolved = path.resolve(strict=False)
+        selected_data_dir = resolve_data_dir()
+        if isinstance(selected_data_dir, Path):
+            base_resolved = selected_data_dir.resolve(strict=True)
+            if not resolved.is_relative_to(base_resolved):
+                raise ValueError(
+                    f"Refusing to open path outside configured data directory: {resolved}"
+                )
+        return resolved
 
     return path
 

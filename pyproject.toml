@@ -22,6 +22,7 @@ dev = [
 
 [project.scripts]
 story-brief = "telegraphy.story_brief.cli:main"
+telegraphy-gui = "telegraphy.gui.tablet_app:main"
 
 [tool.setuptools.packages.find]
 include = ["telegraphy*"]

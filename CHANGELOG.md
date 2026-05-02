@@ -8,13 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [0.3.2] - 2026-05-02
 
-Released Telegraphy 0.3.2 to formalize the latest normalization, test-coverage, and documentation consistency updates.
+Released Telegraphy 0.3.2 to formalize project metadata and documentation consistency.
 
 ### Changed
-- Simplified scene-tag weight normalization in `telegraphy/story_brief/normalization.py` to run through a deterministic single-pass adjustment path, with explicit handling when cumulative weights are below or above 1.0.
-- Added targeted normalization tests in `tests/story_brief/generation/test_weighted_choice.py` to exercise previously uncovered branches and improve condition/line coverage confidence for weighted selection behavior.
-- Updated README badge and documentation links for cross-renderer compatibility and correct license-link targets, reducing documentation drift across GitHub and package-index surfaces.
 - Bumped package metadata and project-facing release references from 0.3.1 to 0.3.2 to keep tooling, docs, and release notes in sync.
+
 
 ## [0.3.1] - 2026-05-02
 

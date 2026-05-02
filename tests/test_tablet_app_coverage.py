@@ -117,7 +117,7 @@ def test_generate_story_brief_starts_worker(monkeypatch):
     tablet.generate_button.configure.assert_called_once_with(state="disabled")
     tablet.copy_button.configure.assert_called_once_with(state="disabled")
     tablet.status.configure.assert_called_once_with(text="Generating...")
-    tablet._set_output.assert_called_once_with("The typewriter goblin is warming up...")
+    tablet._set_output.assert_called_once_with("Kendall is warming her sweet ass up...")
     assert thread_record == {"target": tablet._run_cli_worker, "daemon": True, "started": True}
 
 

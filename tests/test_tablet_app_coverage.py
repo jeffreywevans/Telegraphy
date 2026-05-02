@@ -225,7 +225,18 @@ def test_poll_queue_and_copy_and_output_and_draw(monkeypatch):
     assert len(rr_calls) == 2
     assert tablet.canvas.deleted_tags == ["tablet"]
 
-    polygon_id = tablet_app.TelegraphyTablet._rounded_rectangle(tablet, 0, 0, 10, 10, radius=1, fill="f", outline="o", width=2, tags="t")
+    polygon_id = tablet_app.TelegraphyTablet._rounded_rectangle(
+        tablet,
+        0,
+        0,
+        10,
+        10,
+        radius=1,
+        fill="f",
+        outline="o",
+        width=2,
+        tags="t",
+    )
     assert polygon_id == 999
     assert tablet.canvas.polygon_call is not None
 

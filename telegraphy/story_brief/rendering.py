@@ -56,9 +56,14 @@ def to_markdown(
     writing_preamble: str,
 ) -> str:
     """Render selected story fields as Markdown with YAML front matter."""
+    missing_keys = [key for key in ordered_keys if key not in fields]
+    if missing_keys:
+        missing = ", ".join(missing_keys)
+        raise ValueError(f"Missing required field keys for Markdown rendering: {missing}")
+
     ordered_fields: dict[str, Any] = {}
     for key in ordered_keys:
-        value = fields.get(key)
+        value = fields[key]
         if isinstance(value, list) and all(isinstance(item, str) for item in value):
             ordered_fields[key] = _format_yaml_list(value)
         else:

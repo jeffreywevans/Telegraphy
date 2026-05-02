@@ -272,7 +272,10 @@ def test_font_fallback_helpers():
         {"zero"},
     ) == "One"
 
-    assert tablet_app.TelegraphyTablet._pick_first_available_font((), set()) == tablet_app.DEFAULT_FONT_FAMILY
+    assert (
+        tablet_app.TelegraphyTablet._pick_first_available_font((), set())
+        == tablet_app.DEFAULT_FONT_FAMILY
+    )
 
 def test_main_invokes_mainloop(monkeypatch):
     called: list[str] = []

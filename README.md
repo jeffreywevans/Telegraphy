@@ -6,7 +6,10 @@
 
 Telegraphy is a Python package and command-line tool for generating structured story briefs from a versioned, data-driven canon dataset.
 
-It currently exposes one console command: `story-brief`.
+It exposes two user-facing entry points:
+
+- `story-brief` (CLI)
+- `telegraphy-gui` (desktop GUI)
 
 Telegraphy does not write prose. It generates the feedstock: YAML front matter, scenario constraints, style guidance, date-aware character and setting selections, optional sexual-content metadata, and a Markdown drafting scaffold. The result is a repeatable prompt artifact that can be copied into a writing workflow or saved as a Markdown seed file.
 
@@ -15,6 +18,8 @@ Telegraphy does not write prose. It generates the feedstock: YAML front matter, 
 - [What is this?](#what-is-this)
 - [Install](#install)
 - [Quickstart](#quickstart)
+- [GUI quickstart](#gui-quickstart)
+- [Using the GUI](#using-the-gui)
 - [CLI examples](#cli-examples)
 - [Data override](#data-override)
 - [Validation and linting](#validation-and-linting)
@@ -96,6 +101,18 @@ You can also run it as a module:
 python -m telegraphy.story_brief --help
 ```
 
+You can verify that the GUI launcher is available with:
+
+```bash
+telegraphy-gui
+```
+
+If you prefer module execution:
+
+```bash
+python -m telegraphy.gui.tablet_app
+```
+
 ## Quickstart
 
 Print a generated brief to the terminal:
@@ -152,6 +169,58 @@ Run strict validation before generation:
 ```bash
 story-brief --validate-strict --print-only
 ```
+
+Launch the GUI and generate from a tablet-style interface:
+
+```bash
+telegraphy-gui
+```
+
+## GUI quickstart
+
+Start the GUI:
+
+```bash
+telegraphy-gui
+```
+
+Press **GENERATE!** to run the same generator used by the CLI (`python -m telegraphy.story_brief --print-only`).
+
+Press **COPY!** to copy the most recent successful brief to your clipboard.
+
+## Using the GUI
+
+The 0.4.0 GUI is intentionally focused: it is a tablet-shaped desktop wrapper around the existing `story-brief` engine.
+
+### What happens when you click GENERATE!
+
+1. The GUI disables both buttons to avoid overlapping runs.
+2. It starts a background worker thread so the window stays responsive.
+3. The worker executes: `python -m telegraphy.story_brief --print-only`.
+4. On success, the generated Markdown is displayed in the output pane and cached as the latest output.
+5. On failure, stderr/stdout diagnostics are shown in the output pane and copy is disabled for empty output.
+
+### GUI layout
+
+- **Header**: app title and subtitle.
+- **Toolbar**:
+  - **GENERATE!**: run generation.
+  - **COPY!**: copy last successful output.
+  - **Status**: live state (Ready, Generating, Generated, Failed, Copied).
+- **Output pane**: read-only text area with scrollbar showing Markdown output or errors.
+
+### GUI behavior details
+
+- Uses your local Python interpreter from the current environment.
+- Decodes CLI output using your preferred locale encoding, then falls back to UTF-8 with replacement for robust display.
+- Never writes files directly; it always requests `--print-only` output from the CLI.
+- Clipboard copy only works after a successful generation.
+
+### GUI troubleshooting
+
+- If `telegraphy-gui` fails to launch, ensure `tkinter` is available in your Python build.
+- If generation fails, read the output pane: the GUI surfaces the underlying CLI error message.
+- For reproducible debugging, run the CLI directly with explicit flags (for example `story-brief --seed 42 --date 2000-01-01 --print-only`).
 
 ## CLI examples
 

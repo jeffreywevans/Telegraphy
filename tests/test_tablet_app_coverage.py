@@ -2,62 +2,9 @@ from __future__ import annotations
 
 import queue
 from types import SimpleNamespace
+from unittest.mock import MagicMock, call
 
 from telegraphy.gui import tablet_app
-
-
-class DummyWidget:
-    def __init__(self) -> None:
-        self.configs: list[dict[str, object]] = []
-
-    def configure(self, **kwargs: object) -> None:
-        self.configs.append(kwargs)
-
-
-class DummyOutput(DummyWidget):
-    def __init__(self) -> None:
-        super().__init__()
-        self.deleted: list[tuple[str, str]] = []
-        self.inserted: list[tuple[str, str]] = []
-        self.seen: list[str] = []
-
-    def delete(self, start: str, end: str) -> None:
-        self.deleted.append((start, end))
-
-    def insert(self, start: str, text: str) -> None:
-        self.inserted.append((start, text))
-
-    def see(self, index: str) -> None:
-        self.seen.append(index)
-
-
-class DummyCanvas:
-    def __init__(self) -> None:
-        self.deleted_tags: list[str] = []
-        self.ovals: list[tuple[float, ...]] = []
-        self.coords_calls: list[tuple[int, float, float]] = []
-        self.itemconfigure_calls: list[tuple[int, dict[str, object]]] = []
-        self.lowered: list[str] = []
-        self.polygon_call: dict[str, object] | None = None
-
-    def delete(self, tag: str) -> None:
-        self.deleted_tags.append(tag)
-
-    def create_oval(self, *args: float, **kwargs: object) -> None:
-        self.ovals.append((*args,))
-
-    def coords(self, window: int, x: float, y: float) -> None:
-        self.coords_calls.append((window, x, y))
-
-    def itemconfigure(self, window: int, **kwargs: object) -> None:
-        self.itemconfigure_calls.append((window, kwargs))
-
-    def tag_lower(self, tag: str) -> None:
-        self.lowered.append(tag)
-
-    def create_polygon(self, points: list[float], **kwargs: object) -> int:
-        self.polygon_call = {"points": points, **kwargs}
-        return 999
 
 
 def _make_tablet() -> tablet_app.TelegraphyTablet:
@@ -73,16 +20,60 @@ def test_init_and_configure_style_and_build(monkeypatch):
     monkeypatch.setattr(tablet, "minsize", lambda _w, _h: None)
     monkeypatch.setattr(tablet, "configure", lambda **_kwargs: None)
 
-    calls: list[str] = []
-    monkeypatch.setattr(tablet, "_configure_styles", lambda: calls.append("styles"))
-    monkeypatch.setattr(tablet, "_build_shell", lambda: calls.append("shell"))
-    monkeypatch.setattr(tablet, "_poll_worker_queue", lambda: calls.append("poll"))
+    style = MagicMock()
+    monkeypatch.setattr(tablet_app.ttk, "Style", lambda _parent: style)
+
+    make_widget = lambda: SimpleNamespace(pack=MagicMock(), bind=MagicMock(), configure=MagicMock())
+    canvas = make_widget()
+    canvas.create_window = MagicMock(return_value=111)
+    canvas.create_oval = MagicMock()
+    canvas.create_polygon = MagicMock(return_value=321)
+    canvas.coords = MagicMock()
+    canvas.itemconfigure = MagicMock()
+    canvas.tag_lower = MagicMock()
+
+    frame = make_widget()
+    label = make_widget()
+    text = make_widget()
+    text.yview = MagicMock()
+    text.delete = MagicMock()
+    text.insert = MagicMock()
+    text.see = MagicMock()
+    button = make_widget()
+    status = make_widget()
+    scrollbar = make_widget()
+    scrollbar.set = MagicMock()
+
+    monkeypatch.setattr(tablet_app.tk, "Canvas", lambda *args, **kwargs: canvas)
+    monkeypatch.setattr(tablet_app.tk, "Frame", lambda *args, **kwargs: frame)
+    monkeypatch.setattr(tablet_app.tk, "Label", lambda *args, **kwargs: label)
+    monkeypatch.setattr(tablet_app.tk, "Text", lambda *args, **kwargs: text)
+    monkeypatch.setattr(tablet_app.ttk, "Button", lambda *args, **kwargs: button)
+    monkeypatch.setattr(tablet_app.ttk, "Label", lambda *args, **kwargs: status)
+    monkeypatch.setattr(tablet_app.ttk, "Scrollbar", lambda *args, **kwargs: scrollbar)
+
+    poll_calls: list[tuple[int, object]] = []
+    monkeypatch.setattr(tablet, "after", lambda delay, fn: poll_calls.append((delay, fn)))
 
     tablet.__init__()
 
     assert tablet.latest_output == ""
     assert isinstance(tablet.result_queue, queue.Queue)
-    assert calls == ["styles", "shell", "poll"]
+    style.theme_use.assert_called_once_with("clam")
+    assert style.configure.call_args_list == [
+        call(
+            tablet_app.TABLET_BUTTON_STYLE,
+            font=(tablet_app.FONT_FAMILY, 14, "bold"),
+            padding=(18, 12),
+        ),
+        call(
+            "Status.TLabel",
+            background="#111827",
+            foreground="#d1d5db",
+            font=(tablet_app.FONT_FAMILY, 10),
+        ),
+    ]
+    assert poll_calls[-1] == (100, tablet._poll_worker_queue)
 
 
 def test_decode_output_paths(monkeypatch):
@@ -100,12 +91,11 @@ def test_decode_output_paths(monkeypatch):
 
 def test_generate_story_brief_starts_worker(monkeypatch):
     tablet = _make_tablet()
-    tablet.generate_button = DummyWidget()
-    tablet.copy_button = DummyWidget()
-    tablet.status = DummyWidget()
+    tablet.generate_button = MagicMock()
+    tablet.copy_button = MagicMock()
+    tablet.status = MagicMock()
 
-    set_output_calls: list[str] = []
-    monkeypatch.setattr(tablet, "_set_output", lambda msg: set_output_calls.append(msg))
+    monkeypatch.setattr(tablet, "_set_output", MagicMock())
 
     thread_record: dict[str, object] = {}
 
@@ -121,10 +111,10 @@ def test_generate_story_brief_starts_worker(monkeypatch):
 
     tablet.generate_story_brief()
 
-    assert tablet.generate_button.configs[-1] == {"state": "disabled"}
-    assert tablet.copy_button.configs[-1] == {"state": "disabled"}
-    assert tablet.status.configs[-1] == {"text": "Generating..."}
-    assert set_output_calls == ["The typewriter goblin is warming up..."]
+    tablet.generate_button.configure.assert_called_once_with(state="disabled")
+    tablet.copy_button.configure.assert_called_once_with(state="disabled")
+    tablet.status.configure.assert_called_once_with(text="Generating...")
+    tablet._set_output.assert_called_once_with("The typewriter goblin is warming up...")
     assert thread_record == {"target": tablet._run_cli_worker, "daemon": True, "started": True}
 
 
@@ -171,11 +161,12 @@ def test_run_cli_worker_success_error_and_exception(monkeypatch):
 def test_poll_queue_and_copy_and_output_and_draw(monkeypatch):
     tablet = _make_tablet()
     tablet.result_queue = queue.Queue()
-    tablet.generate_button = DummyWidget()
-    tablet.copy_button = DummyWidget()
-    tablet.status = DummyWidget()
-    tablet.output = DummyOutput()
-    tablet.canvas = DummyCanvas()
+    tablet.generate_button = MagicMock()
+    tablet.copy_button = MagicMock()
+    tablet.status = MagicMock()
+    tablet.output = MagicMock()
+    tablet.canvas = MagicMock()
+    tablet.canvas.create_polygon.return_value = 999
     tablet.screen_window = 7
     tablet.latest_output = ""
 
@@ -186,44 +177,49 @@ def test_poll_queue_and_copy_and_output_and_draw(monkeypatch):
     monkeypatch.setattr(tablet, "_set_output", lambda msg: output_messages.append(msg))
 
     tablet._poll_worker_queue()
-    assert after_calls and after_calls[-1][0] == 100
+    assert after_calls[-1] == (100, tablet._poll_worker_queue)
 
     tablet.result_queue.put(("success", "hello world"))
     tablet._poll_worker_queue()
     assert tablet.latest_output == "hello world"
     assert output_messages[-1] == "hello world"
-    assert tablet.status.configs[-1] == {"text": "Generated. Ready to copy."}
+    tablet.status.configure.assert_called_with(text="Generated. Ready to copy.")
 
     tablet.result_queue.put(("error", "bad"))
     tablet._poll_worker_queue()
     assert tablet.latest_output == ""
     assert output_messages[-1] == "bad"
-    assert tablet.status.configs[-1] == {"text": "Generation failed."}
+    tablet.status.configure.assert_called_with(text="Generation failed.")
 
     tablet.copy_latest_output()
-    assert tablet.status.configs[-1] == {"text": "Nothing to copy yet."}
+    tablet.status.configure.assert_called_with(text="Nothing to copy yet.")
 
-    calls: list[tuple[str, str | None]] = []
-    monkeypatch.setattr(tablet, "clipboard_clear", lambda: calls.append(("clear", None)))
-    monkeypatch.setattr(tablet, "clipboard_append", lambda text: calls.append(("append", text)))
-    monkeypatch.setattr(tablet, "update_idletasks", lambda: calls.append(("update", None)))
+    monkeypatch.setattr(tablet, "clipboard_clear", MagicMock())
+    monkeypatch.setattr(tablet, "clipboard_append", MagicMock())
+    monkeypatch.setattr(tablet, "update_idletasks", MagicMock())
 
     tablet.latest_output = "copy me"
     tablet.copy_latest_output()
-    assert calls == [("clear", None), ("append", "copy me"), ("update", None)]
-    assert tablet.status.configs[-1] == {"text": "Copied to clipboard."}
+    tablet.clipboard_clear.assert_called_once_with()
+    tablet.clipboard_append.assert_called_once_with("copy me")
+    tablet.update_idletasks.assert_called_once_with()
+    tablet.status.configure.assert_called_with(text="Copied to clipboard.")
 
     tablet_app.TelegraphyTablet._set_output(tablet, "render")
-    assert tablet.output.deleted == [("1.0", "end")]
-    assert tablet.output.inserted == [("1.0", "render")]
-    assert tablet.output.seen == ["1.0"]
+    assert tablet.output.configure.call_args_list[:1] == [call(state="normal")]
+    tablet.output.delete.assert_called_once_with("1.0", "end")
+    tablet.output.insert.assert_called_once_with("1.0", "render")
+    assert tablet.output.configure.call_args_list[-1] == call(state="disabled")
+    tablet.output.see.assert_called_once_with("1.0")
 
     evt = SimpleNamespace(width=500, height=300)
     rr_calls: list[tuple[float, ...]] = []
     monkeypatch.setattr(tablet, "_rounded_rectangle", lambda *args, **kwargs: rr_calls.append(args))
     tablet._redraw_tablet(evt)
     assert len(rr_calls) == 2
-    assert tablet.canvas.deleted_tags == ["tablet"]
+    tablet.canvas.delete.assert_called_once_with("tablet")
+    tablet.canvas.coords.assert_called_once_with(7, 40, 40)
+    tablet.canvas.itemconfigure.assert_called_once_with(7, width=420, height=220)
 
     polygon_id = tablet_app.TelegraphyTablet._rounded_rectangle(
         tablet,
@@ -238,7 +234,7 @@ def test_poll_queue_and_copy_and_output_and_draw(monkeypatch):
         tags="t",
     )
     assert polygon_id == 999
-    assert tablet.canvas.polygon_call is not None
+    tablet.canvas.create_polygon.assert_called_once()
 
 
 def test_main_invokes_mainloop(monkeypatch):

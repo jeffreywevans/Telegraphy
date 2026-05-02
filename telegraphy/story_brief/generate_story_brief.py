@@ -44,8 +44,28 @@ SETTING_AVAILABILITY_KEY = _SETTING_AVAILABILITY_KEY
 PARTNER_DISTRIBUTIONS_KEY = _PARTNER_DISTRIBUTIONS_KEY
 
 
-# Public export for lint report emission from this facade module.
-__all__ = ["emit_lint_report"]
+# Public exports for this facade module.
+__all__ = [
+    "NormalizedPartnerEra",
+    "StoryData",
+    "EXPECTED_GENERATED_FIELD_KEYS",
+    "build_auto_filename",
+    "CHARACTER_AVAILABILITY_KEY",
+    "SETTING_AVAILABILITY_KEY",
+    "PARTNER_DISTRIBUTIONS_KEY",
+    "STORY_DATASET_FILES",
+    "TITLES_FILENAME",
+    "ENTITIES_FILENAME",
+    "PROMPTS_FILENAME",
+    "CONFIG_FILENAME",
+    "PARTNER_DISTRIBUTIONS_FILENAME",
+    "load_story_data",
+    "clear_get_data_cache",
+    "get_data",
+    "pick_story_fields",
+    "to_markdown",
+    "emit_lint_report",
+]
 
 
 # Canonical dataset file mapping lives in telegraphy.story_brief.data_io.

@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.3.3] - 2026-05-02
+
+Released Telegraphy 0.3.3 to document and ship the substantive security, reliability, and CI workflow improvements delivered since 0.3.2.
+
+### Added
+- Added a dedicated CodeQL analysis workflow to continuously scan Python and GitHub Actions code paths.
+
+### Changed
+- Hardened `data_io` path validation to mitigate uncontrolled path-expression risks while preserving correct symlink and absolute-path behavior.
+- Improved `story_brief` CLI entrypoint testability and coverage via focused `__main__` / `_run` refinements.
+- Simplified CodeQL workflow behavior and tuned triggers/concurrency to reduce runtime churn while maintaining analysis coverage.
+- Updated CI actions to improve reproducibility and performance by pinning `actions/setup-python` to immutable references and enabling pip caching.
+- Removed an obsolete Node.js environment override from the CodeQL workflow to reduce configuration noise.
+
+### Fixed
+- Resolved failures loading `titles.json` for absolute data-directory inputs by correcting story-brief data path validation logic.
+
+
 ## [0.3.2] - 2026-05-02
 
 Released Telegraphy 0.3.2 to formalize project metadata and documentation consistency.
@@ -67,7 +85,8 @@ This release marks the transition from a single-purpose generator script into a 
 - Refactored story brief generation into focused modules (CLI, data loading, validation, linting, etc.).
 - Hardened output-path handling and filename generation.
 
-[Unreleased]: https://github.com/jeffreywevans/Telegraphy/compare/v0.3.2...HEAD
+[Unreleased]: https://github.com/jeffreywevans/Telegraphy/compare/v0.3.3...HEAD
+[0.3.3]: https://github.com/jeffreywevans/Telegraphy/compare/v0.3.2...v0.3.3
 [0.3.2]: https://github.com/jeffreywevans/Telegraphy/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/jeffreywevans/Telegraphy/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/jeffreywevans/Telegraphy/compare/v0.2.2...v0.3.0

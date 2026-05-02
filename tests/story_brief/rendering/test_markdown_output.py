@@ -151,16 +151,17 @@ def test_to_markdown_calls_get_data_once(monkeypatch) -> None:
     assert calls == 1
 
 
-def test_to_markdown_handles_missing_ordered_keys_and_body_fields() -> None:
-    text = to_markdown(
-        {"protagonist": "A"},
-        ordered_keys=["protagonist", "missing_key"],
-        writing_preamble="Preamble",
-    )
-
-    assert "missing_key: null" in text
-    assert "# Untitled Story Brief" in text
-    assert "approximately N/A words" in text
+def test_to_markdown_raises_for_missing_ordered_keys() -> None:
+    try:
+        to_markdown(
+            {"protagonist": "A"},
+            ordered_keys=["protagonist", "missing_key"],
+            writing_preamble="Preamble",
+        )
+    except ValueError as exc:
+        assert str(exc) == "Missing required field keys for Markdown rendering: missing_key"
+    else:
+        raise AssertionError("Expected ValueError for missing ordered keys")
 
 
 def test_to_markdown_quotes_iso_date_and_timestamp_scalars() -> None:

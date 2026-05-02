@@ -179,10 +179,9 @@ def _validated_load_path(path: Path | Traversable) -> Path | Traversable:
         raise ValueError("Refusing to open path containing parent-directory traversal")
 
     if isinstance(path, Path):
-        resolved_path = path.resolve(strict=False)
-        if not resolved_path.is_absolute():
+        if not path.is_absolute():
             raise ValueError("Refusing to open non-absolute filesystem path")
-        return resolved_path
+        return path.resolve(strict=False)
 
     return path
 

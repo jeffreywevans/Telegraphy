@@ -93,6 +93,12 @@ def _resolve_override_data_dir(raw_value: str) -> Path:
                 "Configured data directory must be an existing directory: "
                 f"{candidate}"
             )
+        trusted_root = _fallback_data_dir().resolve(strict=True).parent
+        if not resolved.is_relative_to(trusted_root):
+            raise DataDirError(
+                "Configured data directory must stay within the application data root: "
+                f"{trusted_root}"
+            )
     except OSError as exc:
         raise DataDirError(
             "Configured data directory is unreachable or invalid: "

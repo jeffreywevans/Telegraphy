@@ -11,6 +11,7 @@ from tkinter import ttk
 from typing import Final
 
 APP_TITLE: Final = "Telegraphy Tablet"
+TABLET_BUTTON_STYLE: Final = "Tablet.TButton"
 CLI_COMMAND: Final = [sys.executable, "-m", "telegraphy.story_brief", "--print-only"]
 
 
@@ -35,7 +36,7 @@ class TelegraphyTablet(tk.Tk):
         style = ttk.Style(self)
         style.theme_use("clam")
         style.configure(
-            "Tablet.TButton",
+            TABLET_BUTTON_STYLE,
             font=("Segoe UI", 14, "bold"),
             padding=(18, 12),
         )
@@ -79,7 +80,7 @@ class TelegraphyTablet(tk.Tk):
         self.generate_button = ttk.Button(
             toolbar,
             text="GENERATE!",
-            style="Tablet.TButton",
+            style=TABLET_BUTTON_STYLE,
             command=self.generate_story_brief,
         )
         self.generate_button.pack(side="left")
@@ -87,7 +88,7 @@ class TelegraphyTablet(tk.Tk):
         self.copy_button = ttk.Button(
             toolbar,
             text="COPY!",
-            style="Tablet.TButton",
+            style=TABLET_BUTTON_STYLE,
             command=self.copy_latest_output,
         )
         self.copy_button.pack(side="left", padx=(12, 0))

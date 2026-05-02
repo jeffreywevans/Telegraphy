@@ -254,10 +254,7 @@ def test_parse_story_date_accepts_iso_date_and_rejects_invalid(
 def test_story_brief_module_entrypoint_exits_with_main_status(monkeypatch: pytest.MonkeyPatch) -> None:
     """`python -m telegraphy.story_brief` should exit using cli.main()'s status code."""
 
-    fake_cli = types.ModuleType("telegraphy.story_brief.cli")
-    fake_cli.main = lambda: 7
-
-    monkeypatch.setitem(sys.modules, "telegraphy.story_brief.cli", fake_cli)
+    monkeypatch.setattr(story_cli, "main", lambda *_: 7)
 
     with pytest.raises(SystemExit) as exc_info:
         runpy.run_module("telegraphy.story_brief", run_name="__main__", alter_sys=True)

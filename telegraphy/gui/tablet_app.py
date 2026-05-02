@@ -8,12 +8,13 @@ import sys
 import threading
 import tkinter as tk
 from locale import getpreferredencoding
+from tkinter import font as tkfont
 from tkinter import ttk
 from typing import Final
 
 APP_TITLE: Final = "Telegraphy Tablet"
 TABLET_BUTTON_STYLE: Final = "Tablet.TButton"
-FONT_FAMILY: Final = "Segoe UI"
+DEFAULT_FONT_FAMILY: Final = "Segoe UI"
 CLI_COMMAND: Final = [sys.executable, "-m", "telegraphy.story_brief", "--print-only"]
 
 
@@ -30,23 +31,56 @@ class TelegraphyTablet(tk.Tk):
         self.latest_output = ""
         self.result_queue: queue.Queue[tuple[str, str]] = queue.Queue()
 
+        self.font_family = self._select_display_font()
+
         self._configure_styles()
         self._build_shell()
         self._poll_worker_queue()
+
+    def _select_display_font(self) -> str:
+        available_fonts = {name.lower() for name in tkfont.families(self)}
+
+        if sys.platform.startswith("win"):
+            return self._pick_first_available_font(
+                ("Aptos Serif", "Segoe UI", "Times New Roman"),
+                available_fonts,
+            )
+
+        if sys.platform == "linux":
+            return self._pick_first_available_font(
+                ("Noto Serif", "Ubuntu", "DejaVu Sans"),
+                available_fonts,
+            )
+
+        if sys.platform == "darwin":
+            # Apple platforms should prefer the system UI font (San Francisco).
+            return self._pick_first_available_font(
+                (".AppleSystemUIFont", "SF Pro Text", "Helvetica Neue"),
+                available_fonts,
+            )
+
+        return DEFAULT_FONT_FAMILY
+
+    @staticmethod
+    def _pick_first_available_font(candidates: tuple[str, ...], available_fonts: set[str]) -> str:
+        for font_name in candidates:
+            if font_name.lower() in available_fonts:
+                return font_name
+        return candidates[0] if candidates else DEFAULT_FONT_FAMILY
 
     def _configure_styles(self) -> None:
         style = ttk.Style(self)
         style.theme_use("clam")
         style.configure(
             TABLET_BUTTON_STYLE,
-            font=(FONT_FAMILY, 14, "bold"),
+            font=(self.font_family, 14, "bold"),
             padding=(18, 12),
         )
         style.configure(
             "Status.TLabel",
             background="#111827",
             foreground="#d1d5db",
-            font=(FONT_FAMILY, 10),
+            font=(self.font_family, 10),
         )
 
     def _build_shell(self) -> None:
@@ -62,7 +96,7 @@ class TelegraphyTablet(tk.Tk):
             text="TELEGRAPHY",
             bg="#111827",
             fg="#f9fafb",
-            font=(FONT_FAMILY, 22, "bold"),
+            font=(self.font_family, 22, "bold"),
             pady=10,
         )
         title.pack(fill="x", padx=24, pady=(22, 0))
@@ -72,7 +106,7 @@ class TelegraphyTablet(tk.Tk):
             text="Information Age Tablet • Story Brief Generator",
             bg="#111827",
             fg="#9ca3af",
-            font=(FONT_FAMILY, 10),
+            font=(self.font_family, 10),
         )
         subtitle.pack(fill="x", padx=24, pady=(0, 14))
 

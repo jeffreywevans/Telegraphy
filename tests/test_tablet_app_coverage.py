@@ -20,6 +20,8 @@ def test_init_and_configure_style_and_build(monkeypatch):
     monkeypatch.setattr(tablet, "minsize", lambda _w, _h: None)
     monkeypatch.setattr(tablet, "configure", lambda **_kwargs: None)
 
+    monkeypatch.setattr(tablet, "_select_display_font", lambda: "Chosen Font")
+
     style = MagicMock()
     monkeypatch.setattr(tablet_app.ttk, "Style", lambda _parent: style)
 
@@ -64,14 +66,14 @@ def test_init_and_configure_style_and_build(monkeypatch):
     assert style.configure.call_args_list == [
         call(
             tablet_app.TABLET_BUTTON_STYLE,
-            font=(tablet_app.FONT_FAMILY, 14, "bold"),
+            font=(tablet.font_family, 14, "bold"),
             padding=(18, 12),
         ),
         call(
             "Status.TLabel",
             background="#111827",
             foreground="#d1d5db",
-            font=(tablet_app.FONT_FAMILY, 10),
+            font=(tablet.font_family, 10),
         ),
     ]
     assert poll_calls[-1] == (100, tablet._poll_worker_queue)
@@ -237,6 +239,43 @@ def test_poll_queue_and_copy_and_output_and_draw(monkeypatch):
     assert polygon_id == 999
     tablet.canvas.create_polygon.assert_called_once()
 
+
+
+def test_font_selection_by_platform(monkeypatch):
+    tablet = _make_tablet()
+
+    monkeypatch.setattr(tablet_app.tkfont, "families", lambda _root: ("Aptos Serif", "Segoe UI"))
+    monkeypatch.setattr(tablet_app.sys, "platform", "win32")
+    assert tablet._select_display_font() == "Aptos Serif"
+
+    monkeypatch.setattr(tablet_app.tkfont, "families", lambda _root: ("Ubuntu",))
+    monkeypatch.setattr(tablet_app.sys, "platform", "linux")
+    assert tablet._select_display_font() == "Ubuntu"
+
+    monkeypatch.setattr(tablet_app.tkfont, "families", lambda _root: (".AppleSystemUIFont",))
+    monkeypatch.setattr(tablet_app.sys, "platform", "darwin")
+    assert tablet._select_display_font() == ".AppleSystemUIFont"
+
+    monkeypatch.setattr(tablet_app.tkfont, "families", lambda _root: ("Monospace",))
+    monkeypatch.setattr(tablet_app.sys, "platform", "freebsd13")
+    assert tablet._select_display_font() == tablet_app.DEFAULT_FONT_FAMILY
+
+
+def test_font_fallback_helpers():
+    assert tablet_app.TelegraphyTablet._pick_first_available_font(
+        ("One", "Two", "Three"),
+        {"zero", "three"},
+    ) == "Three"
+
+    assert tablet_app.TelegraphyTablet._pick_first_available_font(
+        ("One", "Two", "Three"),
+        {"zero"},
+    ) == "One"
+
+    assert (
+        tablet_app.TelegraphyTablet._pick_first_available_font((), set())
+        == tablet_app.DEFAULT_FONT_FAMILY
+    )
 
 def test_main_invokes_mainloop(monkeypatch):
     called: list[str] = []

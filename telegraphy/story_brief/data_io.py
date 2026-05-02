@@ -93,6 +93,12 @@ def _resolve_override_data_dir(raw_value: str) -> Path:
                 "Configured data directory must be an existing directory: "
                 f"{candidate}"
             )
+        trusted_root = _fallback_data_dir().resolve(strict=True).parent
+        if not resolved.is_relative_to(trusted_root):
+            raise DataDirError(
+                "Configured data directory must stay within the application data root: "
+                f"{trusted_root}"
+            )
     except OSError as exc:
         raise DataDirError(
             "Configured data directory is unreachable or invalid: "
@@ -167,12 +173,36 @@ def _data_file(filename: str) -> Path | Traversable:
     return _data_file_from_dir(resolve_data_dir(), filename)
 
 
+def _validated_load_path(path: Path | Traversable) -> Path | Traversable:
+    """Validate caller-provided load paths before any filesystem access."""
+    path_text = str(path) if isinstance(path, Path) else getattr(path, "name", "")
+    if not isinstance(path_text, str):
+        path_text = str(path_text)
+    normalized_name = unicodedata.normalize("NFC", path_text)
+    if "\x00" in normalized_name:
+        raise ValueError("Refusing to open path containing NUL bytes")
+    if _has_parent_traversal(normalized_name):
+        raise ValueError("Refusing to open path containing parent-directory traversal")
+
+    if isinstance(path, Path):
+        if not path.is_absolute():
+            raise ValueError("Refusing to open non-absolute filesystem path")
+        selected_data_dir = resolve_data_dir()
+        if isinstance(selected_data_dir, Path):
+            relative_candidate = path.relative_to(path.anchor)
+            return _contained_child_path(selected_data_dir, relative_candidate.as_posix())
+        return path.resolve(strict=False)
+
+    return path
+
+
 def data_file(filename: str) -> Path | Traversable:
     """Return a validated path to one required story-brief data file."""
     return _data_file(filename)
 
 
 def _load_json(path: Path | Traversable) -> Any:
+    path = _validated_load_path(path)
     if isinstance(path, Path):
         flags = os.O_RDONLY
         if hasattr(os, "O_NOFOLLOW"):

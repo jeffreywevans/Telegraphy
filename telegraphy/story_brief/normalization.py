@@ -32,12 +32,13 @@ def _build_story_data(dataset_payloads: dict[str, Any]) -> dict[str, Any]:
         config["sexual_scene_tag_count_weights"].items(),
         key=lambda item: int(item[0]),
     )
-    if sorted_items:
-        options_str, weights_raw = zip(*sorted_items, strict=False)
-    else:
-        options_str, weights_raw = (), ()
-    sexual_scene_tag_count_options = tuple(map(int, options_str))
-    sexual_scene_tag_count_weights = tuple(map(float, weights_raw))
+    sexual_scene_tag_count_options_list: list[int] = []
+    sexual_scene_tag_count_weights_list: list[float] = []
+    for option_raw, weight_raw in sorted_items:
+        sexual_scene_tag_count_options_list.append(int(option_raw))
+        sexual_scene_tag_count_weights_list.append(float(weight_raw))
+    sexual_scene_tag_count_options = tuple(sexual_scene_tag_count_options_list)
+    sexual_scene_tag_count_weights = tuple(sexual_scene_tag_count_weights_list)
     word_count_targets = tuple(int(value) for value in config["word_count_targets"])
 
     return {

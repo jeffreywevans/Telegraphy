@@ -223,10 +223,10 @@ def test_poll_queue_and_copy_and_output_and_draw(monkeypatch):
 
     polygon_id = tablet_app.TelegraphyTablet._rounded_rectangle(
         tablet,
-        0,
-        0,
-        10,
-        10,
+        x1=0,
+        y1=0,
+        x2=10,
+        y2=10,
         radius=1,
         fill="f",
         outline="o",

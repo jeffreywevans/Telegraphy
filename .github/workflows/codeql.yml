@@ -43,10 +43,37 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
+      - name: Detect whether CodeQL default setup is enabled
+        id: default_setup
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v7
+        with:
+          script: |
+            try {
+              const response = await github.request('GET /repos/{owner}/{repo}/code-scanning/default-setup', {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+              });
+              const state = String(response.data?.state || '').toLowerCase();
+              const enabled = state === 'configured';
+              core.setOutput('enabled', enabled ? 'true' : 'false');
+              core.notice(`CodeQL default setup state: ${state || 'unknown'}`);
+            } catch (error) {
+              core.warning(`Unable to determine default setup state (${error.message}). Proceeding with advanced workflow.`);
+              core.setOutput('enabled', 'false');
+            }
+
+      - name: Explain skip reason when default setup is enabled
+        if: steps.default_setup.outputs.enabled == 'true'
+        run: |
+          echo "Skipping advanced CodeQL workflow because default setup is enabled for this repository."
+          echo "Disable default setup in GitHub Advanced Security settings to use this advanced workflow instead."
+
       - name: Initialize CodeQL
+        if: steps.default_setup.outputs.enabled != 'true'
         uses: github/codeql-action/init@v3
         with:
           languages: python
 
       - name: Perform CodeQL Analysis
+        if: steps.default_setup.outputs.enabled != 'true'
         uses: github/codeql-action/analyze@v3

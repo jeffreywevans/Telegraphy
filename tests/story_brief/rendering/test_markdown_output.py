@@ -163,6 +163,14 @@ def test_to_markdown_raises_for_missing_ordered_keys() -> None:
     else:
         raise AssertionError("Expected ValueError for missing ordered keys")
 
+    text = to_markdown(
+        {"protagonist": "A"},
+        ordered_keys=["protagonist"],
+        writing_preamble="Preamble",
+    )
+    assert "# Untitled Story Brief" in text
+    assert "approximately N/A words" in text
+
 
 def test_to_markdown_quotes_iso_date_and_timestamp_scalars() -> None:
     text = to_markdown(

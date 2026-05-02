@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import runpy
 import sys
+import types
 from pathlib import Path
 
 import pytest
@@ -247,6 +249,20 @@ def test_parse_story_date_accepts_iso_date_and_rejects_invalid(
 
     captured = capsys.readouterr()
     assert "must be in YYYY-MM-DD format" in captured.err
+
+
+def test_story_brief_module_entrypoint_exits_with_main_status(monkeypatch: pytest.MonkeyPatch) -> None:
+    """`python -m telegraphy.story_brief` should exit using cli.main()'s status code."""
+
+    fake_cli = types.ModuleType("telegraphy.story_brief.cli")
+    fake_cli.main = lambda: 7
+
+    monkeypatch.setitem(sys.modules, "telegraphy.story_brief.cli", fake_cli)
+
+    with pytest.raises(SystemExit) as exc_info:
+        runpy.run_module("telegraphy.story_brief", run_name="__main__", alter_sys=True)
+
+    assert exc_info.value.code == 7
 
 
 def test_main_help_flag_exits_with_status_zero() -> None:

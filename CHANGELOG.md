@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-05-02
+
+Released Telegraphy 0.3.2 to formalize the latest normalization, test-coverage, and documentation consistency updates.
+
+### Changed
+- Simplified scene-tag weight normalization in `telegraphy/story_brief/normalization.py` to run through a deterministic single-pass adjustment path, with explicit handling when cumulative weights are below or above 1.0.
+- Added targeted normalization tests in `tests/story_brief/generation/test_weighted_choice.py` to exercise previously uncovered branches and improve condition/line coverage confidence for weighted selection behavior.
+- Updated README badge and documentation links for cross-renderer compatibility and correct license-link targets, reducing documentation drift across GitHub and package-index surfaces.
+- Bumped package metadata and project-facing release references from 0.3.1 to 0.3.2 to keep tooling, docs, and release notes in sync.
+
 ## [0.3.1] - 2026-05-02
 
 Released Telegraphy 0.3.1 to capture recent normalization logic hardening and documentation-link cleanup.
@@ -59,7 +69,8 @@ This release marks the transition from a single-purpose generator script into a 
 - Refactored story brief generation into focused modules (CLI, data loading, validation, linting, etc.).
 - Hardened output-path handling and filename generation.
 
-[Unreleased]: https://github.com/jeffreywevans/Telegraphy/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/jeffreywevans/Telegraphy/compare/v0.3.2...HEAD
+[0.3.2]: https://github.com/jeffreywevans/Telegraphy/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/jeffreywevans/Telegraphy/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/jeffreywevans/Telegraphy/compare/v0.2.2...v0.3.0
 [0.2.2]: https://github.com/jeffreywevans/Telegraphy/compare/v0.2.1...v0.2.2

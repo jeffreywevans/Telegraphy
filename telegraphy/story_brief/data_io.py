@@ -167,12 +167,33 @@ def _data_file(filename: str) -> Path | Traversable:
     return _data_file_from_dir(resolve_data_dir(), filename)
 
 
+def _validated_load_path(path: Path | Traversable) -> Path | Traversable:
+    """Validate caller-provided load paths before any filesystem access."""
+    path_name = getattr(path, "name", "")
+    if not isinstance(path_name, str):
+        path_name = str(path_name)
+    normalized_name = unicodedata.normalize("NFC", path_name)
+    if "\x00" in normalized_name:
+        raise ValueError("Refusing to open path containing NUL bytes")
+    if _has_parent_traversal(normalized_name):
+        raise ValueError("Refusing to open path containing parent-directory traversal")
+
+    if isinstance(path, Path):
+        resolved_path = path.resolve(strict=False)
+        if not resolved_path.is_absolute():
+            raise ValueError("Refusing to open non-absolute filesystem path")
+        return resolved_path
+
+    return path
+
+
 def data_file(filename: str) -> Path | Traversable:
     """Return a validated path to one required story-brief data file."""
     return _data_file(filename)
 
 
 def _load_json(path: Path | Traversable) -> Any:
+    path = _validated_load_path(path)
     if isinstance(path, Path):
         flags = os.O_RDONLY
         if hasattr(os, "O_NOFOLLOW"):

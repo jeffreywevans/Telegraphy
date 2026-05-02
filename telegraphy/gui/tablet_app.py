@@ -12,6 +12,7 @@ from typing import Final
 
 APP_TITLE: Final = "Telegraphy Tablet"
 TABLET_BUTTON_STYLE: Final = "Tablet.TButton"
+FONT_FAMILY: Final = "Segoe UI"
 CLI_COMMAND: Final = [sys.executable, "-m", "telegraphy.story_brief", "--print-only"]
 
 
@@ -37,14 +38,14 @@ class TelegraphyTablet(tk.Tk):
         style.theme_use("clam")
         style.configure(
             TABLET_BUTTON_STYLE,
-            font=("Segoe UI", 14, "bold"),
+            font=(FONT_FAMILY, 14, "bold"),
             padding=(18, 12),
         )
         style.configure(
             "Status.TLabel",
             background="#111827",
             foreground="#d1d5db",
-            font=("Segoe UI", 10),
+            font=(FONT_FAMILY, 10),
         )
 
     def _build_shell(self) -> None:
@@ -60,7 +61,7 @@ class TelegraphyTablet(tk.Tk):
             text="TELEGRAPHY",
             bg="#111827",
             fg="#f9fafb",
-            font=("Segoe UI", 22, "bold"),
+            font=(FONT_FAMILY, 22, "bold"),
             pady=10,
         )
         title.pack(fill="x", padx=24, pady=(22, 0))
@@ -70,7 +71,7 @@ class TelegraphyTablet(tk.Tk):
             text="Information Age Tablet • Story Brief Generator",
             bg="#111827",
             fg="#9ca3af",
-            font=("Segoe UI", 10),
+            font=(FONT_FAMILY, 10),
         )
         subtitle.pack(fill="x", padx=24, pady=(0, 14))
 

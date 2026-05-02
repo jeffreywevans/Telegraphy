@@ -93,12 +93,6 @@ def _resolve_override_data_dir(raw_value: str) -> Path:
                 "Configured data directory must be an existing directory: "
                 f"{candidate}"
             )
-        trusted_root = _fallback_data_dir().resolve(strict=True).parent
-        if not resolved.is_relative_to(trusted_root):
-            raise DataDirError(
-                "Configured data directory must stay within the application data root: "
-                f"{trusted_root}"
-            )
     except OSError as exc:
         raise DataDirError(
             "Configured data directory is unreachable or invalid: "
@@ -187,10 +181,6 @@ def _validated_load_path(path: Path | Traversable) -> Path | Traversable:
     if isinstance(path, Path):
         if not path.is_absolute():
             raise ValueError("Refusing to open non-absolute filesystem path")
-        selected_data_dir = resolve_data_dir()
-        if isinstance(selected_data_dir, Path):
-            relative_candidate = path.relative_to(path.anchor)
-            return _contained_child_path(selected_data_dir, relative_candidate.as_posix())
         return path.resolve(strict=False)
 
     return path

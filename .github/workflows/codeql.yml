@@ -7,7 +7,7 @@ on:
       - "telegraphy/**"
       - "pyproject.toml"
       - "requirements*.txt"
-      - ".github/workflows/codeql.yml"
+      - ".github/workflows/**"
 
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
@@ -16,7 +16,7 @@ on:
       - "telegraphy/**"
       - "pyproject.toml"
       - "requirements*.txt"
-      - ".github/workflows/codeql.yml"
+      - ".github/workflows/**"
 
   schedule:
     - cron: "17 4 * * 1"
@@ -36,8 +36,10 @@ concurrency:
 
 jobs:
   analyze:
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     name: Analyze ${{ matrix.language }}
     runs-on: ubuntu-latest
+
     strategy:
       fail-fast: false
       matrix:
@@ -48,11 +50,11 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@v4
         with:
           category: "/language:${{ matrix.language }}"

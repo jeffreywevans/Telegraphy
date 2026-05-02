@@ -181,7 +181,7 @@ def _validated_load_path(path: Path | Traversable) -> Path | Traversable:
     if isinstance(path, Path):
         if not path.is_absolute():
             raise ValueError("Refusing to open non-absolute filesystem path")
-        return path.resolve(strict=False)
+        return path
 
     return path
 

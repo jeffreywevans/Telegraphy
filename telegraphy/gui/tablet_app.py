@@ -7,6 +7,7 @@ import subprocess
 import sys
 import threading
 import tkinter as tk
+from locale import getpreferredencoding
 from tkinter import ttk
 from typing import Final
 
@@ -236,19 +237,29 @@ class TelegraphyTablet(tk.Tk):
                 CLI_COMMAND,
                 check=False,
                 capture_output=True,
-                text=True,
-                encoding="utf-8",
+                text=False,
             )
         except OSError as exc:
             self.result_queue.put(("error", f"Could not run Telegraphy CLI:\n{exc}"))
             return
 
+        stdout = self._decode_output(completed.stdout)
+        stderr = self._decode_output(completed.stderr)
+
         if completed.returncode == 0:
-            self.result_queue.put(("success", completed.stdout.strip()))
+            self.result_queue.put(("success", stdout.strip()))
             return
 
-        message = completed.stderr.strip() or completed.stdout.strip() or "Unknown CLI failure."
+        message = stderr.strip() or stdout.strip() or "Unknown CLI failure."
         self.result_queue.put(("error", message))
+
+    def _decode_output(self, output: bytes) -> str:
+        preferred_encoding = getpreferredencoding(False) or "utf-8"
+
+        try:
+            return output.decode(preferred_encoding)
+        except UnicodeDecodeError:
+            return output.decode("utf-8", errors="replace")
 
     def _poll_worker_queue(self) -> None:
         try:

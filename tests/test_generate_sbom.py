@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import json
+import runpy
 import tomllib
 from pathlib import Path
+
+import pytest
 
 from telegraphy.scripts import generate_sbom
 
@@ -40,3 +43,39 @@ def test_main_writes_valid_json(tmp_path, monkeypatch) -> None:
 
     written = json.loads(output_path.read_text(encoding="utf-8"))
     assert written["bomFormat"] == "CycloneDX"
+
+
+def test_load_project_metadata_raises_without_exactly_one_dependency(tmp_path) -> None:
+    pyproject_path = tmp_path / "pyproject.toml"
+    pyproject_path.write_text(
+        """
+[project]
+name = "telegraphy"
+version = "0.1.0"
+dependencies = []
+""".strip(),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="exactly one runtime dependency"):
+        generate_sbom._load_project_metadata(pyproject_path)
+
+
+def test_module_entrypoint_exits_cleanly_and_writes_output(monkeypatch) -> None:
+    captured: dict[str, object] = {}
+
+    def _fake_write_text(self: Path, data: str, encoding: str = "utf-8") -> int:
+        captured["path"] = self
+        captured["data"] = data
+        captured["encoding"] = encoding
+        return len(data)
+
+    monkeypatch.setattr(Path, "write_text", _fake_write_text)
+
+    with pytest.raises(SystemExit) as exc_info:
+        runpy.run_path(str(generate_sbom.__file__), run_name="__main__")
+
+    assert exc_info.value.code == 0
+    assert captured["path"] == generate_sbom.SBOM_PATH
+    assert captured["encoding"] == "utf-8"
+    assert '"bomFormat": "CycloneDX"' in str(captured["data"])

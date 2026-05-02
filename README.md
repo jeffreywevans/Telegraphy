@@ -531,6 +531,22 @@ The repository uses:
 - GitHub Actions for CI;
 - SonarQube Cloud for quality reporting.
 
+### GitHub Actions pinning policy
+
+This repository has a strong preference for pinning GitHub Actions to immutable commit SHAs.
+Pinned SHAs reduce supply-chain risk from mutable tags and make CI behavior easier to reproduce.
+
+Where practical, workflow `uses:` references should follow this style:
+
+```yaml
+- uses: owner/action@<40-character-commit-sha> # optional human-friendly version comment
+```
+
+In a small number of cases, we intentionally keep a trusted GitHub-maintained action on a major tag
+(for example `@v4`) instead of a SHA. When we do this, the trade-off is explicit: the repository
+chooses to trust GitHub's managed release process for that security toolchain, and to accept the
+small reduction in strict immutability in exchange for simpler maintenance.
+
 ### Project metadata
 
 The package metadata lives in `pyproject.toml`.

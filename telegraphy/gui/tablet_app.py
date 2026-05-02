@@ -258,7 +258,7 @@ class TelegraphyTablet(tk.Tk):
 
         try:
             return output.decode(preferred_encoding)
-        except UnicodeDecodeError:
+        except (UnicodeDecodeError, LookupError):
             return output.decode("utf-8", errors="replace")
 
     def _poll_worker_queue(self) -> None:

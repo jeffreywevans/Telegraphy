@@ -172,7 +172,7 @@ def data_file(filename: str) -> Path | Traversable:
     return _data_file(filename)
 
 
-def _load_json(path: Any) -> Any:
+def _load_json(path: Path | Traversable) -> Any:
     if isinstance(path, Path):
         flags = os.O_RDONLY
         if hasattr(os, "O_NOFOLLOW"):

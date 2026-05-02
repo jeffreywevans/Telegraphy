@@ -260,7 +260,7 @@ class TelegraphyTablet(tk.Tk):
         self.generate_button.configure(state="disabled")
         self.copy_button.configure(state="disabled")
         self.status.configure(text="Generating...")
-        self._set_output("The typewriter goblin is warming up...")
+        self._set_output("Kendall is warming up her sweet ass up...")
 
         worker = threading.Thread(target=self._run_cli_worker, daemon=True)
         worker.start()

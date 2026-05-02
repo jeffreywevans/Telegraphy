@@ -178,7 +178,10 @@ class TelegraphyTablet(tk.Tk):
         y2: float,
         *,
         radius: float,
-        **kwargs: object,
+        fill: str,
+        outline: str,
+        width: int,
+        tags: str,
     ) -> int:
         points = [
             x1 + radius,
@@ -206,7 +209,15 @@ class TelegraphyTablet(tk.Tk):
             x1,
             y1,
         ]
-        return self.canvas.create_polygon(points, smooth=True, splinesteps=20, **kwargs)
+        return self.canvas.create_polygon(
+            points,
+            smooth=True,
+            splinesteps=20,
+            fill=fill,
+            outline=outline,
+            width=width,
+            tags=tags,
+        )
 
     def generate_story_brief(self) -> None:
         self.generate_button.configure(state="disabled")

@@ -170,12 +170,6 @@ Run strict validation before generation:
 story-brief --validate-strict --print-only
 ```
 
-Launch the GUI and generate from a tablet-style interface:
-
-```bash
-telegraphy-gui
-```
-
 ## GUI quickstart
 
 Start the GUI:

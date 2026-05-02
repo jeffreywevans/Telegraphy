@@ -54,12 +54,12 @@ jobs:
                 repo: context.repo.repo,
               });
               const state = String(response.data?.state || '').toLowerCase();
-              const enabled = state === 'configured';
+              const enabled = state !== 'not-configured' && state !== '';
               core.setOutput('enabled', enabled ? 'true' : 'false');
               core.notice(`CodeQL default setup state: ${state || 'unknown'}`);
             } catch (error) {
-              core.warning(`Unable to determine default setup state (${error.message}). Proceeding with advanced workflow.`);
-              core.setOutput('enabled', 'false');
+              core.warning(`Unable to determine default setup state (${error.message}). Skipping advanced workflow to avoid default/advanced conflict.`);
+              core.setOutput('enabled', 'true');
             }
 
       - name: Explain skip reason when default setup is enabled

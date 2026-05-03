@@ -62,8 +62,8 @@ def test_init_and_configure_style_and_build(monkeypatch):
     monkeypatch.setattr(tablet_app.ttk, "Entry", lambda *args, **kwargs: make_widget())
 
     class FakeStringVar:
-        def __init__(self):
-            self._value = ""
+        def __init__(self, value=""):
+            self._value = value
 
         def get(self):
             return self._value
@@ -76,9 +76,11 @@ def test_init_and_configure_style_and_build(monkeypatch):
     poll_calls: list[tuple[int, object]] = []
     monkeypatch.setattr(tablet, "after", lambda delay, fn: poll_calls.append((delay, fn)))
 
-    tablet.__init__()
+    tablet.__init__(tablet_app.RunOptions(seed=123, date="2000-01-01"))
 
     assert tablet.latest_output == ""
+    assert tablet.seed_var.get() == "123"
+    assert tablet.date_var.get() == "2000-01-01"
     assert isinstance(tablet.result_queue, queue.Queue)
     style.theme_use.assert_called_once_with("clam")
     assert style.configure.call_args_list == [
@@ -141,6 +143,39 @@ def test_generate_story_brief_starts_worker(monkeypatch):
     tablet._set_output.assert_called_once_with("Kendall is warming her sweet ass up...")
     assert thread_record == {"target": tablet._run_cli_worker, "daemon": True, "started": True}
 
+
+
+
+def test_generate_story_brief_invalid_seed_does_not_start_poll_or_worker(monkeypatch):
+    tablet = _make_tablet()
+    tablet.generate_button = MagicMock()
+    tablet.copy_button = MagicMock()
+    tablet.status = MagicMock()
+    tablet.run_options = tablet_app.RunOptions()
+    tablet.result_queue = queue.Queue()
+    tablet.seed_var = SimpleNamespace(get=lambda: "bad")
+    tablet.date_var = SimpleNamespace(get=lambda: "")
+
+    poll_called: list[bool] = []
+    monkeypatch.setattr(tablet, "_poll_worker_queue", lambda: poll_called.append(True))
+
+    thread_called: list[bool] = []
+
+    class FakeThread:
+        def __init__(self, **_kwargs):
+            thread_called.append(True)
+
+        def start(self):
+            thread_called.append(True)
+
+    monkeypatch.setattr(tablet_app.threading, "Thread", FakeThread)
+
+    tablet.generate_story_brief()
+
+    assert not poll_called
+    assert not thread_called
+    tablet.status.configure.assert_called_once_with(text="Generation failed.")
+    assert tablet.result_queue.get_nowait()[0] == "error"
 
 def test_resolve_run_options_invalid_seed(monkeypatch):
     tablet = _make_tablet()

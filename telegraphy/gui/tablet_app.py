@@ -170,7 +170,9 @@ class TelegraphyTablet(tk.Tk):
             fg="#9ca3af",
             font=(self.font_family, 9),
         ).grid(row=0, column=0, sticky="w")
-        self.seed_var = tk.StringVar()
+        self.seed_var = tk.StringVar(
+            value=str(self.run_options.seed) if self.run_options.seed is not None else "",
+        )
         seed_entry = ttk.Entry(controls, width=10, textvariable=self.seed_var)
         seed_entry.grid(row=1, column=0, padx=(0, 8))
 
@@ -181,7 +183,7 @@ class TelegraphyTablet(tk.Tk):
             fg="#9ca3af",
             font=(self.font_family, 9),
         ).grid(row=0, column=1, sticky="w")
-        self.date_var = tk.StringVar()
+        self.date_var = tk.StringVar(value=self.run_options.date or "")
         date_entry = ttk.Entry(controls, width=12, textvariable=self.date_var)
         date_entry.grid(row=1, column=1)
 
@@ -345,7 +347,6 @@ class TelegraphyTablet(tk.Tk):
         resolved_options = self._resolve_run_options()
         if resolved_options is None:
             self.status.configure(text="Generation failed.")
-            self._poll_worker_queue()
             return
         self.run_options = resolved_options
         self.status.configure(text="Generating...")

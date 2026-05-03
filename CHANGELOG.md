@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-05-03
+
+Released Telegraphy 0.4.1 to synchronize package metadata, documentation, and SBOM artifacts.
+
+### Changed
+- Bumped package metadata and top-level README release/version references from 0.4.0 to 0.4.1 for build consistency.
+- Regenerated `sbom.cdx.json` so CycloneDX metadata aligns with the 0.4.1 package declaration.
+
 ## [0.4.0] - 2026-05-02
 
 Released Telegraphy 0.4.0 with a new desktop GUI experience and the supporting quality/reliability updates completed alongside it.
@@ -102,7 +110,8 @@ This release marks the transition from a single-purpose generator script into a 
 - Refactored story brief generation into focused modules (CLI, data loading, validation, linting, etc.).
 - Hardened output-path handling and filename generation.
 
-[Unreleased]: https://github.com/jeffreywevans/Telegraphy/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/jeffreywevans/Telegraphy/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/jeffreywevans/Telegraphy/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/jeffreywevans/Telegraphy/compare/v0.3.3...v0.4.0
 [0.3.3]: https://github.com/jeffreywevans/Telegraphy/compare/v0.3.2...v0.3.3
 [0.3.2]: https://github.com/jeffreywevans/Telegraphy/compare/v0.3.1...v0.3.2

@@ -111,9 +111,18 @@ class StoryData(TypedDict):
     partner_distributions: dict[str, tuple[NormalizedPartnerEra, ...]]
 
 
-def load_story_data() -> StoryData:
-    """Return an isolated copy of normalized story data."""
+def get_data() -> StoryData:
+    """Load story-brief data from the authoritative data_io cache.
+
+    Returns a deep copy of processed data to prevent cache poisoning when callers
+    mutate nested structures.
+    """
     return cast(StoryData, _data_io_module.get_normalized_story_data())
+
+
+def load_story_data() -> StoryData:
+    """Backward-compatible alias for :func:`get_data`."""
+    return get_data()
 
 
 def _clear_get_data_cache() -> None:
@@ -123,15 +132,6 @@ def _clear_get_data_cache() -> None:
 def clear_get_data_cache() -> None:
     """Clear the authoritative raw dataset cache in data_io."""
     _clear_get_data_cache()
-
-
-def get_data() -> StoryData:
-    """Load story-brief data from the authoritative data_io cache.
-
-    Returns a deep copy of processed data to prevent cache poisoning when callers
-    mutate nested structures.
-    """
-    return load_story_data()
 
 
 def pick_story_fields(

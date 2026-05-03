@@ -36,6 +36,8 @@ def main() -> int:
             sys.executable,
             "-m",
             "pytest",
+            "-p",
+            "pytest_cov",
             "--cov=telegraphy",
             f"--cov-config={coverage_config_file}",
             "--cov-branch",

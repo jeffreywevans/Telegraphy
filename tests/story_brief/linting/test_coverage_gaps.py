@@ -20,7 +20,6 @@ from telegraphy.story_brief.linting import (
     _record_partner_gaps,
     _resolve_interval_end,
 )
-from telegraphy.story_brief.partner_models import parse_partner_distribution_payload
 
 
 def test_emit_lint_report_prints_sections(capsys: pytest.CaptureFixture[str]) -> None:
@@ -98,18 +97,6 @@ def test_data_file_repo_relative_fallback_for_resource_resolution_errors(
     assert Path(data_io._data_file("titles.json")) == expected
 
 
-def _parse_payload(
-    payload: dict[str, object], character_rows: list[tuple[str, date, date]]
-) -> None:
-    parse_partner_distribution_payload(
-        payload,
-        config_start=date(2000, 1, 1),
-        config_end=date(2000, 12, 31),
-        character_rows=character_rows,
-        partner_distributions_key="partner_distributions",
-    )
-
-
 def _mutate_blank_dataset_version(payload: dict[str, object]) -> None:
     payload["dataset_version"] = "   "
 
@@ -148,12 +135,13 @@ def test_partner_payload_validation_error_cases_are_parameterized(
     message: str,
     partner_payload_factory,
     partner_character_rows,
+    parse_partner_payload: Callable[[dict[str, object], list[tuple[str, date, date]]], object],
 ) -> None:
     payload = partner_payload_factory()
     mutator(payload)
 
     with pytest.raises(ValueError, match=message):
-        _parse_payload(payload, partner_character_rows)
+        parse_partner_payload(payload, partner_character_rows)
 
 
 @pytest.mark.parametrize(

@@ -190,6 +190,18 @@ def test_resolve_run_options_invalid_seed(monkeypatch):
     assert "Invalid seed" in message
 
 
+
+
+def test_resolve_run_options_preserves_startup_seed_and_date_when_blank():
+    tablet = _make_tablet()
+    tablet.run_options = tablet_app.RunOptions(seed=7, date="2000-02-03", timeout_seconds=9.0)
+    tablet.seed_var = SimpleNamespace(get=lambda: "")
+    tablet.date_var = SimpleNamespace(get=lambda: "")
+
+    resolved = tablet._resolve_run_options()
+
+    assert resolved == tablet_app.RunOptions(seed=7, date="2000-02-03", timeout_seconds=9.0)
+
 def test_run_cli_worker_success_error_and_exception(monkeypatch):
     tablet = _make_tablet()
     tablet.result_queue = queue.Queue()

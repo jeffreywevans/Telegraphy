@@ -326,7 +326,7 @@ class TelegraphyTablet(tk.Tk):
         seed_text = self.seed_var.get().strip()
         date_text = self.date_var.get().strip()
 
-        seed_value = None
+        seed_value = self.run_options.seed
         if seed_text:
             try:
                 seed_value = int(seed_text)
@@ -334,7 +334,7 @@ class TelegraphyTablet(tk.Tk):
                 self.result_queue.put(("error", f"Invalid seed: {seed_text!r}. Enter an integer."))
                 return None
 
-        date_value = date_text or None
+        date_value = date_text or self.run_options.date
         return RunOptions(
             seed=seed_value,
             date=date_value,

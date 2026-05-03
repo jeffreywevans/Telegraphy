@@ -21,6 +21,10 @@ from telegraphy.story_brief.partner_models import (
 )
 
 _STORY_DATASET_FILES = tuple(story_brief.STORY_DATASET_FILES.values())
+PartnerPayloadParser = Callable[
+    [dict[str, object], list[tuple[str, date, date]]],
+    PartnerDistributionDataset,
+]
 
 
 @lru_cache(maxsize=1)
@@ -98,7 +102,7 @@ def partner_payload_factory() -> Callable[..., dict[str, Any]]:
 
 
 @pytest.fixture
-def parse_partner_payload() -> Callable[[dict[str, object], list[tuple[str, date, date]]], PartnerDistributionDataset]:
+def parse_partner_payload() -> PartnerPayloadParser:
     """Parse partner distribution payloads with shared test defaults."""
 
     def _parse(

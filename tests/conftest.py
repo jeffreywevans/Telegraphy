@@ -15,6 +15,7 @@ import pytest
 
 from telegraphy.story_brief import generate_story_brief as story_brief
 from telegraphy.story_brief.data_io import data_file, load_json
+from telegraphy.story_brief.partner_models import parse_partner_distribution_payload
 
 _STORY_DATASET_FILES = tuple(story_brief.STORY_DATASET_FILES.values())
 
@@ -92,6 +93,23 @@ def partner_payload_factory() -> Callable[..., dict[str, Any]]:
 
     return _build
 
+
+
+
+@pytest.fixture
+def parse_partner_payload() -> Callable[[dict[str, Any], list[tuple[str, date, date]]], Any]:
+    """Parse partner distribution payloads with shared test defaults."""
+
+    def _parse(payload: dict[str, Any], character_rows: list[tuple[str, date, date]]) -> Any:
+        return parse_partner_distribution_payload(
+            payload,
+            config_start=date(2000, 1, 1),
+            config_end=date(2000, 12, 31),
+            character_rows=character_rows,
+            partner_distributions_key="partner_distributions",
+        )
+
+    return _parse
 
 @pytest.fixture
 def source_story_data_dir() -> Path:

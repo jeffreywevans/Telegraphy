@@ -40,18 +40,6 @@ def _build_partner_payload(partner_payload_factory) -> dict[str, object]:
     )
 
 
-def _parse_payload(
-    payload: dict[str, object], partner_character_rows: list[tuple[str, date, date]]
-):
-    return parse_partner_distribution_payload(
-        payload,
-        config_start=date(2000, 1, 1),
-        config_end=date(2000, 12, 31),
-        character_rows=partner_character_rows,
-        partner_distributions_key="partner_distributions",
-    )
-
-
 def _mutate_duplicate_partners(payload: dict[str, object]) -> None:
     entries = payload["partner_distributions"]
     entries[0]["eras"][0]["partners"] = [
@@ -88,8 +76,9 @@ def _mutate_invalid_calendar_date(payload: dict[str, object]) -> None:
 def test_parse_partner_distribution_payload_returns_typed_dataset(
     partner_payload_factory,
     partner_character_rows,
+    parse_partner_payload: Callable[[dict[str, object], list[tuple[str, date, date]]], object],
 ) -> None:
-    dataset = _parse_payload(
+    dataset = parse_partner_payload(
         _build_partner_payload(partner_payload_factory), partner_character_rows
     )
 
@@ -107,8 +96,9 @@ def test_parse_partner_distribution_payload_returns_typed_dataset(
 def test_parse_partner_distribution_payload_parses_partner_eras(
     partner_payload_factory,
     partner_character_rows,
+    parse_partner_payload: Callable[[dict[str, object], list[tuple[str, date, date]]], object],
 ) -> None:
-    dataset = _parse_payload(
+    dataset = parse_partner_payload(
         _build_partner_payload(partner_payload_factory), partner_character_rows
     )
 
@@ -171,12 +161,13 @@ def test_parse_partner_distribution_payload_rejects_invalid_shapes(
     message: str,
     partner_payload_factory,
     partner_character_rows,
+    parse_partner_payload: Callable[[dict[str, object], list[tuple[str, date, date]]], object],
 ) -> None:
     payload = deepcopy(_build_partner_payload(partner_payload_factory))
     mutator(payload)
 
     with pytest.raises(ValueError, match=message):
-        _parse_payload(payload, partner_character_rows)
+        parse_partner_payload(payload, partner_character_rows)
 
 
 def _build_payload_with_eras(

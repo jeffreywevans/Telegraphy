@@ -9,10 +9,10 @@ import subprocess
 import sys
 import threading
 import tkinter as tk
+from dataclasses import dataclass
 from locale import getpreferredencoding
 from tkinter import font as tkfont
 from tkinter import ttk
-from dataclasses import dataclass
 from typing import Final
 
 APP_TITLE: Final = "Telegraphy Tablet"
@@ -38,8 +38,14 @@ def _build_cli_command(options: RunOptions) -> list[str]:
 
 
 def _build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Launch the Telegraphy desktop GUI.")
-    parser.add_argument("--seed", type=int, help="Seed forwarded to the CLI for deterministic generation.")
+    parser = argparse.ArgumentParser(
+        description="Launch the Telegraphy desktop GUI.",
+    )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        help="Seed forwarded to the CLI for deterministic generation.",
+    )
     parser.add_argument("--date", help="Date forwarded to the CLI (YYYY-MM-DD).")
     parser.add_argument(
         "--timeout",
@@ -157,12 +163,24 @@ class TelegraphyTablet(tk.Tk):
         controls = tk.Frame(toolbar, bg="#111827")
         controls.pack(side="left", padx=(12, 0))
 
-        tk.Label(controls, text="Seed", bg="#111827", fg="#9ca3af", font=(self.font_family, 9)).grid(row=0, column=0, sticky="w")
+        tk.Label(
+            controls,
+            text="Seed",
+            bg="#111827",
+            fg="#9ca3af",
+            font=(self.font_family, 9),
+        ).grid(row=0, column=0, sticky="w")
         self.seed_var = tk.StringVar()
         seed_entry = ttk.Entry(controls, width=10, textvariable=self.seed_var)
         seed_entry.grid(row=1, column=0, padx=(0, 8))
 
-        tk.Label(controls, text="Date", bg="#111827", fg="#9ca3af", font=(self.font_family, 9)).grid(row=0, column=1, sticky="w")
+        tk.Label(
+            controls,
+            text="Date",
+            bg="#111827",
+            fg="#9ca3af",
+            font=(self.font_family, 9),
+        ).grid(row=0, column=1, sticky="w")
         self.date_var = tk.StringVar()
         date_entry = ttk.Entry(controls, width=12, textvariable=self.date_var)
         date_entry.grid(row=1, column=1)
@@ -315,7 +333,11 @@ class TelegraphyTablet(tk.Tk):
                 return None
 
         date_value = date_text or None
-        return RunOptions(seed=seed_value, date=date_value, timeout_seconds=self.run_options.timeout_seconds)
+        return RunOptions(
+            seed=seed_value,
+            date=date_value,
+            timeout_seconds=self.run_options.timeout_seconds,
+        )
 
     def generate_story_brief(self) -> None:
         self.generate_button.configure(state="disabled")
@@ -343,7 +365,12 @@ class TelegraphyTablet(tk.Tk):
                 env=os.environ.copy(),
             )
         except subprocess.TimeoutExpired:
-            self.result_queue.put(("error", f"CLI worker timed out after {self.run_options.timeout_seconds:g}s."))
+            self.result_queue.put(
+                (
+                    "error",
+                    f"CLI worker timed out after {self.run_options.timeout_seconds:g}s.",
+                )
+            )
             return
         except OSError as exc:
             self.result_queue.put(("error", f"Could not run Telegraphy CLI:\n{exc}"))
@@ -415,7 +442,8 @@ def main(argv: list[str] | None = None) -> int:
         )
     except tk.TclError as exc:
         print(
-            "Unable to start Telegraphy GUI. A display environment is required (headless mode detected).",
+            "Unable to start Telegraphy GUI. "
+            "A display environment is required (headless mode detected).",
             file=sys.stderr,
         )
         print(f"Details: {exc}", file=sys.stderr)

@@ -52,8 +52,6 @@ def test_init_and_configure_style_and_build(monkeypatch):
     canvas.itemconfigure = MagicMock()
     canvas.tag_lower = MagicMock()
 
-    frame = make_widget()
-    label = make_widget()
     text = make_widget()
     text.yview = MagicMock()
     text.delete = MagicMock()

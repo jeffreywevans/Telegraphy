@@ -94,13 +94,11 @@ def partner_payload_factory() -> Callable[..., dict[str, Any]]:
     return _build
 
 
-
-
 @pytest.fixture
-def parse_partner_payload() -> Callable[[dict[str, Any], list[tuple[str, date, date]]], Any]:
+def parse_partner_payload() -> Callable[[dict[str, object], list[tuple[str, date, date]]], object]:
     """Parse partner distribution payloads with shared test defaults."""
 
-    def _parse(payload: dict[str, Any], character_rows: list[tuple[str, date, date]]) -> Any:
+    def _parse(payload: dict[str, object], character_rows: list[tuple[str, date, date]]) -> object:
         return parse_partner_distribution_payload(
             payload,
             config_start=date(2000, 1, 1),
@@ -110,6 +108,7 @@ def parse_partner_payload() -> Callable[[dict[str, Any], list[tuple[str, date, d
         )
 
     return _parse
+
 
 @pytest.fixture
 def source_story_data_dir() -> Path:

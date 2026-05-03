@@ -326,7 +326,7 @@ def test_poll_queue_and_copy_and_output_and_draw(monkeypatch):
         width=2,
         tags="t",
     )
-    assert polygon_id == 999
+    assert polygon_id is None
     tablet.canvas.create_polygon.assert_called_once()
 
 

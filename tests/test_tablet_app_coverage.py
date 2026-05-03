@@ -25,13 +25,25 @@ def test_init_and_configure_style_and_build(monkeypatch):
     style = MagicMock()
     monkeypatch.setattr(tablet_app.ttk, "Style", lambda _parent: style)
 
-    def make_widget() -> SimpleNamespace:
-        return SimpleNamespace(
-            pack=MagicMock(),
-            bind=MagicMock(),
-            configure=MagicMock(),
-            grid=MagicMock(),
-        )
+    class FakeWidget(SimpleNamespace):
+        def __init__(self):
+            super().__init__(
+                pack=MagicMock(),
+                bind=MagicMock(),
+                configure=MagicMock(),
+                grid=MagicMock(),
+                _bg=None,
+            )
+
+        def cget(self, key):
+            if key == "bg":
+                return self._bg
+            raise KeyError(key)
+
+    def make_widget(**kwargs) -> FakeWidget:
+        widget = FakeWidget()
+        widget._bg = kwargs.get("bg")
+        return widget
     canvas = make_widget()
     canvas.create_window = MagicMock(return_value=111)
     canvas.create_oval = MagicMock()
@@ -40,21 +52,20 @@ def test_init_and_configure_style_and_build(monkeypatch):
     canvas.itemconfigure = MagicMock()
     canvas.tag_lower = MagicMock()
 
-    frame = make_widget()
-    label = make_widget()
     text = make_widget()
     text.yview = MagicMock()
     text.delete = MagicMock()
     text.insert = MagicMock()
     text.see = MagicMock()
+    text._bg = None
     button = make_widget()
     status = make_widget()
     scrollbar = make_widget()
     scrollbar.set = MagicMock()
 
     monkeypatch.setattr(tablet_app.tk, "Canvas", lambda *args, **kwargs: canvas)
-    monkeypatch.setattr(tablet_app.tk, "Frame", lambda *args, **kwargs: frame)
-    monkeypatch.setattr(tablet_app.tk, "Label", lambda *args, **kwargs: label)
+    monkeypatch.setattr(tablet_app.tk, "Frame", lambda *args, **kwargs: make_widget(**kwargs))
+    monkeypatch.setattr(tablet_app.tk, "Label", lambda *args, **kwargs: make_widget(**kwargs))
     monkeypatch.setattr(tablet_app.tk, "Text", lambda *args, **kwargs: text)
     monkeypatch.setattr(tablet_app.ttk, "Button", lambda *args, **kwargs: button)
     monkeypatch.setattr(tablet_app.ttk, "Label", lambda *args, **kwargs: status)
@@ -91,7 +102,7 @@ def test_init_and_configure_style_and_build(monkeypatch):
         ),
         call(
             "Status.TLabel",
-            background="#111827",
+            background=tablet_app.TABLET_INNER_SECTION_COLOR,
             foreground="#d1d5db",
             font=(tablet.font_family, 10),
         ),

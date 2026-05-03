@@ -285,7 +285,7 @@ class TelegraphyTablet(tk.Tk):
         outline: str,
         width: int,
         tags: str,
-    ) -> int:
+    ) -> None:
         points = [
             x1 + radius,
             y1,
@@ -312,7 +312,7 @@ class TelegraphyTablet(tk.Tk):
             x1,
             y1,
         ]
-        return self.canvas.create_polygon(
+        self.canvas.create_polygon(
             points,
             smooth=True,
             splinesteps=20,

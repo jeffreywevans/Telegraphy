@@ -26,7 +26,12 @@ def test_init_and_configure_style_and_build(monkeypatch):
     monkeypatch.setattr(tablet_app.ttk, "Style", lambda _parent: style)
 
     def make_widget() -> SimpleNamespace:
-        return SimpleNamespace(pack=MagicMock(), bind=MagicMock(), configure=MagicMock())
+        return SimpleNamespace(
+            pack=MagicMock(),
+            bind=MagicMock(),
+            configure=MagicMock(),
+            grid=MagicMock(),
+        )
     canvas = make_widget()
     canvas.create_window = MagicMock(return_value=111)
     canvas.create_oval = MagicMock()
@@ -54,13 +59,28 @@ def test_init_and_configure_style_and_build(monkeypatch):
     monkeypatch.setattr(tablet_app.ttk, "Button", lambda *args, **kwargs: button)
     monkeypatch.setattr(tablet_app.ttk, "Label", lambda *args, **kwargs: status)
     monkeypatch.setattr(tablet_app.ttk, "Scrollbar", lambda *args, **kwargs: scrollbar)
+    monkeypatch.setattr(tablet_app.ttk, "Entry", lambda *args, **kwargs: make_widget())
+
+    class FakeStringVar:
+        def __init__(self, value=""):
+            self._value = value
+
+        def get(self):
+            return self._value
+
+        def set(self, value):
+            self._value = value
+
+    monkeypatch.setattr(tablet_app.tk, "StringVar", FakeStringVar)
 
     poll_calls: list[tuple[int, object]] = []
     monkeypatch.setattr(tablet, "after", lambda delay, fn: poll_calls.append((delay, fn)))
 
-    tablet.__init__()
+    tablet.__init__(tablet_app.RunOptions(seed=123, date="2000-01-01"))
 
     assert tablet.latest_output == ""
+    assert tablet.seed_var.get() == "123"
+    assert tablet.date_var.get() == "2000-01-01"
     assert isinstance(tablet.result_queue, queue.Queue)
     style.theme_use.assert_called_once_with("clam")
     assert style.configure.call_args_list == [
@@ -97,6 +117,9 @@ def test_generate_story_brief_starts_worker(monkeypatch):
     tablet.generate_button = MagicMock()
     tablet.copy_button = MagicMock()
     tablet.status = MagicMock()
+    tablet.run_options = tablet_app.RunOptions()
+    tablet.seed_var = SimpleNamespace(get=lambda: "")
+    tablet.date_var = SimpleNamespace(get=lambda: "")
 
     monkeypatch.setattr(tablet, "_set_output", MagicMock())
 
@@ -121,11 +144,71 @@ def test_generate_story_brief_starts_worker(monkeypatch):
     assert thread_record == {"target": tablet._run_cli_worker, "daemon": True, "started": True}
 
 
+
+
+def test_generate_story_brief_invalid_seed_does_not_start_poll_or_worker(monkeypatch):
+    tablet = _make_tablet()
+    tablet.generate_button = MagicMock()
+    tablet.copy_button = MagicMock()
+    tablet.status = MagicMock()
+    tablet.run_options = tablet_app.RunOptions()
+    tablet.result_queue = queue.Queue()
+    tablet.seed_var = SimpleNamespace(get=lambda: "bad")
+    tablet.date_var = SimpleNamespace(get=lambda: "")
+
+    poll_called: list[bool] = []
+    monkeypatch.setattr(tablet, "_poll_worker_queue", lambda: poll_called.append(True))
+
+    thread_called: list[bool] = []
+
+    class FakeThread:
+        def __init__(self, **_kwargs):
+            thread_called.append(True)
+
+        def start(self):
+            thread_called.append(True)
+
+    monkeypatch.setattr(tablet_app.threading, "Thread", FakeThread)
+
+    tablet.generate_story_brief()
+
+    assert not poll_called
+    assert not thread_called
+    tablet.status.configure.assert_called_once_with(text="Generation failed.")
+    assert tablet.result_queue.get_nowait()[0] == "error"
+
+def test_resolve_run_options_invalid_seed(monkeypatch):
+    tablet = _make_tablet()
+    tablet.result_queue = queue.Queue()
+    tablet.run_options = tablet_app.RunOptions()
+    tablet.seed_var = SimpleNamespace(get=lambda: "oops")
+    tablet.date_var = SimpleNamespace(get=lambda: "")
+
+    assert tablet._resolve_run_options() is None
+    status, message = tablet.result_queue.get_nowait()
+    assert status == "error"
+    assert "Invalid seed" in message
+
+
+
+
+def test_resolve_run_options_preserves_startup_seed_and_date_when_blank():
+    tablet = _make_tablet()
+    tablet.run_options = tablet_app.RunOptions(seed=7, date="2000-02-03", timeout_seconds=9.0)
+    tablet.seed_var = SimpleNamespace(get=lambda: "")
+    tablet.date_var = SimpleNamespace(get=lambda: "")
+
+    resolved = tablet._resolve_run_options()
+
+    assert resolved == tablet_app.RunOptions(seed=7, date="2000-02-03", timeout_seconds=9.0)
+
 def test_run_cli_worker_success_error_and_exception(monkeypatch):
     tablet = _make_tablet()
     tablet.result_queue = queue.Queue()
 
     monkeypatch.setattr(tablet, "_decode_output", lambda value: value.decode("utf-8"))
+
+    tablet.run_options = tablet_app.RunOptions(timeout_seconds=1.5)
 
     monkeypatch.setattr(
         tablet_app.subprocess,
@@ -159,6 +242,13 @@ def test_run_cli_worker_success_error_and_exception(monkeypatch):
     status, message = tablet.result_queue.get_nowait()
     assert status == "error"
     assert "Could not run Telegraphy CLI" in message
+
+    def _raise_timeout(*_args, **_kwargs):
+        raise tablet_app.subprocess.TimeoutExpired(cmd=["x"], timeout=1.5)
+
+    monkeypatch.setattr(tablet_app.subprocess, "run", _raise_timeout)
+    tablet._run_cli_worker()
+    assert tablet.result_queue.get_nowait() == ("error", "CLI worker timed out after 1.5s.")
 
 
 def test_poll_queue_and_copy_and_output_and_draw(monkeypatch):
@@ -281,9 +371,22 @@ def test_main_invokes_mainloop(monkeypatch):
     called: list[str] = []
 
     class FakeTablet:
+        def __init__(self, run_options):
+            called.append(str(run_options.seed))
+
         def mainloop(self):
             called.append("loop")
 
     monkeypatch.setattr(tablet_app, "TelegraphyTablet", FakeTablet)
-    tablet_app.main()
-    assert called == ["loop"]
+    assert tablet_app.main(["--seed", "7"]) == 0
+    assert called == ["7", "loop"]
+
+
+def test_main_headless_tcl_error(monkeypatch, capsys):
+    class FakeTablet:
+        def __init__(self, run_options):
+            raise tablet_app.tk.TclError("no display")
+
+    monkeypatch.setattr(tablet_app, "TelegraphyTablet", FakeTablet)
+    assert tablet_app.main([]) == 1
+    assert "headless mode detected" in capsys.readouterr().err.lower()

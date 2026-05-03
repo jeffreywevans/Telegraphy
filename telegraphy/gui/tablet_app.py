@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import argparse
+import os
 import queue
 import subprocess
 import sys
 import threading
 import tkinter as tk
+from dataclasses import dataclass
 from locale import getpreferredencoding
 from tkinter import font as tkfont
 from tkinter import ttk
@@ -15,13 +18,48 @@ from typing import Final
 APP_TITLE: Final = "Telegraphy Tablet"
 TABLET_BUTTON_STYLE: Final = "Tablet.TButton"
 DEFAULT_FONT_FAMILY: Final = "Segoe UI"
-CLI_COMMAND: Final = [sys.executable, "-m", "telegraphy.story_brief", "--print-only"]
+DEFAULT_CLI_TIMEOUT_SECONDS: Final = 30
+
+
+@dataclass(frozen=True)
+class RunOptions:
+    seed: int | None = None
+    date: str | None = None
+    timeout_seconds: float = DEFAULT_CLI_TIMEOUT_SECONDS
+
+
+def _build_cli_command(options: RunOptions) -> list[str]:
+    command = [sys.executable, "-m", "telegraphy.story_brief", "--print-only"]
+    if options.seed is not None:
+        command.extend(["--seed", str(options.seed)])
+    if options.date:
+        command.extend(["--date", options.date])
+    return command
+
+
+def _build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description="Launch the Telegraphy desktop GUI.",
+    )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        help="Seed forwarded to the CLI for deterministic generation.",
+    )
+    parser.add_argument("--date", help="Date forwarded to the CLI (YYYY-MM-DD).")
+    parser.add_argument(
+        "--timeout",
+        type=float,
+        default=DEFAULT_CLI_TIMEOUT_SECONDS,
+        help="Seconds to wait for CLI completion before showing a timeout error.",
+    )
+    return parser
 
 
 class TelegraphyTablet(tk.Tk):
     """A deliberately small tablet-shaped GUI wrapper around the CLI."""
 
-    def __init__(self) -> None:
+    def __init__(self, run_options: RunOptions | None = None) -> None:
         super().__init__()
         self.title(APP_TITLE)
         self.geometry("860x620")
@@ -29,6 +67,7 @@ class TelegraphyTablet(tk.Tk):
         self.configure(bg="#202124")
 
         self.latest_output = ""
+        self.run_options = run_options or RunOptions()
         self.result_queue: queue.Queue[tuple[str, str]] = queue.Queue()
 
         self.font_family = self._select_display_font()
@@ -120,6 +159,33 @@ class TelegraphyTablet(tk.Tk):
             command=self.generate_story_brief,
         )
         self.generate_button.pack(side="left")
+
+        controls = tk.Frame(toolbar, bg="#111827")
+        controls.pack(side="left", padx=(12, 0))
+
+        tk.Label(
+            controls,
+            text="Seed",
+            bg="#111827",
+            fg="#9ca3af",
+            font=(self.font_family, 9),
+        ).grid(row=0, column=0, sticky="w")
+        self.seed_var = tk.StringVar(
+            value=str(self.run_options.seed) if self.run_options.seed is not None else "",
+        )
+        seed_entry = ttk.Entry(controls, width=10, textvariable=self.seed_var)
+        seed_entry.grid(row=1, column=0, padx=(0, 8))
+
+        tk.Label(
+            controls,
+            text="Date",
+            bg="#111827",
+            fg="#9ca3af",
+            font=(self.font_family, 9),
+        ).grid(row=0, column=1, sticky="w")
+        self.date_var = tk.StringVar(value=self.run_options.date or "")
+        date_entry = ttk.Entry(controls, width=12, textvariable=self.date_var)
+        date_entry.grid(row=1, column=1)
 
         self.copy_button = ttk.Button(
             toolbar,
@@ -256,9 +322,33 @@ class TelegraphyTablet(tk.Tk):
             tags=tags,
         )
 
+    def _resolve_run_options(self) -> RunOptions | None:
+        seed_text = self.seed_var.get().strip()
+        date_text = self.date_var.get().strip()
+
+        seed_value = self.run_options.seed
+        if seed_text:
+            try:
+                seed_value = int(seed_text)
+            except ValueError:
+                self.result_queue.put(("error", f"Invalid seed: {seed_text!r}. Enter an integer."))
+                return None
+
+        date_value = date_text or self.run_options.date
+        return RunOptions(
+            seed=seed_value,
+            date=date_value,
+            timeout_seconds=self.run_options.timeout_seconds,
+        )
+
     def generate_story_brief(self) -> None:
         self.generate_button.configure(state="disabled")
         self.copy_button.configure(state="disabled")
+        resolved_options = self._resolve_run_options()
+        if resolved_options is None:
+            self.status.configure(text="Generation failed.")
+            return
+        self.run_options = resolved_options
         self.status.configure(text="Generating...")
         self._set_output("Kendall is warming her sweet ass up...")
 
@@ -268,11 +358,21 @@ class TelegraphyTablet(tk.Tk):
     def _run_cli_worker(self) -> None:
         try:
             completed = subprocess.run(
-                CLI_COMMAND,
+                _build_cli_command(self.run_options),
                 check=False,
                 capture_output=True,
                 text=False,
+                timeout=self.run_options.timeout_seconds,
+                env=os.environ.copy(),
             )
+        except subprocess.TimeoutExpired:
+            self.result_queue.put(
+                (
+                    "error",
+                    f"CLI worker timed out after {self.run_options.timeout_seconds:g}s.",
+                )
+            )
+            return
         except OSError as exc:
             self.result_queue.put(("error", f"Could not run Telegraphy CLI:\n{exc}"))
             return
@@ -334,10 +434,25 @@ class TelegraphyTablet(tk.Tk):
         self.output.see("1.0")
 
 
-def main() -> None:
-    app = TelegraphyTablet()
+def main(argv: list[str] | None = None) -> int:
+    parser = _build_parser()
+    args = parser.parse_args(argv)
+    try:
+        app = TelegraphyTablet(
+            RunOptions(seed=args.seed, date=args.date, timeout_seconds=args.timeout),
+        )
+    except tk.TclError as exc:
+        print(
+            "Unable to start Telegraphy GUI. "
+            "A display environment is required (headless mode detected).",
+            file=sys.stderr,
+        )
+        print(f"Details: {exc}", file=sys.stderr)
+        return 1
+
     app.mainloop()
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

@@ -104,7 +104,7 @@ python -m telegraphy.story_brief --help
 You can verify that the GUI launcher is available with:
 
 ```bash
-telegraphy-gui
+telegraphy-gui --help
 ```
 
 If you prefer module execution:
@@ -180,6 +180,8 @@ telegraphy-gui
 
 Press **GENERATE!** to run the same generator used by the CLI (`python -m telegraphy.story_brief --print-only`).
 
+Use the **Seed** and **Date** fields to forward `--seed` and `--date` to the CLI for reproducible GUI runs.
+
 Press **COPY!** to copy the most recent successful brief to your clipboard.
 
 ## Using the GUI
@@ -205,7 +207,10 @@ The 0.4.1 GUI is intentionally focused: it is a tablet-shaped desktop wrapper ar
 
 ### GUI behavior details
 
-- Uses your local Python interpreter from the current environment.
+- Uses your local Python interpreter (`sys.executable`) and inherited environment (`os.environ`) by design; this is convenient for virtualenv workflows, but also means local environment changes can alter behavior.
+- GUI CLI worker has a default 30-second timeout (override with `telegraphy-gui --timeout <seconds>`).
+- `telegraphy-gui --help` is supported without launching a window.
+- In headless environments, startup fails cleanly with a user-facing error instead of a tkinter traceback.
 - Decodes CLI output using your preferred locale encoding, then falls back to UTF-8 with replacement for robust display.
 - Never writes files directly; it always requests `--print-only` output from the CLI.
 - Clipboard copy only works after a successful generation.

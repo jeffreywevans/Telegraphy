@@ -90,10 +90,13 @@ class TelegraphyTablet(tk.Tk):
         self._poll_worker_queue()
 
     def _pixels_per_inch(self) -> int:
+        if hasattr(self, "_dpi_cache"):
+            return self._dpi_cache
         try:
-            return max(int(round(float(self.winfo_fpixels("1i")))), 1)
+            self._dpi_cache = max(int(round(float(self.winfo_fpixels("1i")))), 1)
         except (tk.TclError, ValueError, AttributeError, RecursionError):
-            return 96
+            self._dpi_cache = 96
+        return self._dpi_cache
 
     def _extra_window_width_pixels(self) -> int:
         return 2 * TABLET_EXTRA_WIDTH_INCHES_PER_SIDE * self._pixels_per_inch()

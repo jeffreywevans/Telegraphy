@@ -91,7 +91,7 @@ def test_init_and_configure_style_and_build(monkeypatch):
         ),
         call(
             "Status.TLabel",
-            background="#111827",
+            background=tablet_app.TABLET_INNER_SECTION_COLOR,
             foreground="#d1d5db",
             font=(tablet.font_family, 10),
         ),

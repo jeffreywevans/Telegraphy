@@ -20,6 +20,10 @@ TABLET_BUTTON_STYLE: Final = "Tablet.TButton"
 DEFAULT_FONT_FAMILY: Final = "Segoe UI"
 DEFAULT_CLI_TIMEOUT_SECONDS: Final = 30
 
+TABLET_OUTER_SECTION_COLOR: Final = "#D91E1E"
+TABLET_MIDDLE_SECTION_COLOR: Final = "#F2F2F2"
+TABLET_INNER_SECTION_COLOR: Final = "#0D0D0D"
+
 
 @dataclass(frozen=True)
 class RunOptions:
@@ -117,7 +121,7 @@ class TelegraphyTablet(tk.Tk):
         )
         style.configure(
             "Status.TLabel",
-            background="#111827",
+            background=TABLET_INNER_SECTION_COLOR,
             foreground="#d1d5db",
             font=(self.font_family, 10),
         )
@@ -127,13 +131,13 @@ class TelegraphyTablet(tk.Tk):
         self.canvas.pack(fill="both", expand=True, padx=22, pady=22)
         self.canvas.bind("<Configure>", self._redraw_tablet)
 
-        self.screen = tk.Frame(self.canvas, bg="#111827")
+        self.screen = tk.Frame(self.canvas, bg=TABLET_INNER_SECTION_COLOR)
         self.screen_window = self.canvas.create_window(0, 0, window=self.screen, anchor="nw")
 
         title = tk.Label(
             self.screen,
             text="TELEGRAPHY",
-            bg="#111827",
+            bg=TABLET_INNER_SECTION_COLOR,
             fg="#f9fafb",
             font=(self.font_family, 22, "bold"),
             pady=10,
@@ -143,13 +147,13 @@ class TelegraphyTablet(tk.Tk):
         subtitle = tk.Label(
             self.screen,
             text="Information Age Tablet • Story Brief Generator",
-            bg="#111827",
+            bg=TABLET_INNER_SECTION_COLOR,
             fg="#9ca3af",
             font=(self.font_family, 10),
         )
         subtitle.pack(fill="x", padx=24, pady=(0, 14))
 
-        toolbar = tk.Frame(self.screen, bg="#111827")
+        toolbar = tk.Frame(self.screen, bg=TABLET_INNER_SECTION_COLOR)
         toolbar.pack(fill="x", padx=24, pady=(0, 14))
 
         self.generate_button = ttk.Button(
@@ -160,13 +164,13 @@ class TelegraphyTablet(tk.Tk):
         )
         self.generate_button.pack(side="left")
 
-        controls = tk.Frame(toolbar, bg="#111827")
+        controls = tk.Frame(toolbar, bg=TABLET_INNER_SECTION_COLOR)
         controls.pack(side="left", padx=(12, 0))
 
         tk.Label(
             controls,
             text="Seed",
-            bg="#111827",
+            bg=TABLET_INNER_SECTION_COLOR,
             fg="#9ca3af",
             font=(self.font_family, 9),
         ).grid(row=0, column=0, sticky="w")
@@ -179,7 +183,7 @@ class TelegraphyTablet(tk.Tk):
         tk.Label(
             controls,
             text="Date",
-            bg="#111827",
+            bg=TABLET_INNER_SECTION_COLOR,
             fg="#9ca3af",
             font=(self.font_family, 9),
         ).grid(row=0, column=1, sticky="w")
@@ -238,7 +242,7 @@ class TelegraphyTablet(tk.Tk):
             width - margin,
             height - margin,
             radius=42,
-            fill="#050505",
+            fill=TABLET_OUTER_SECTION_COLOR,
             outline="#3f3f46",
             width=3,
             tags="tablet",
@@ -249,7 +253,7 @@ class TelegraphyTablet(tk.Tk):
             width - margin - bezel,
             height - margin - bezel,
             radius=22,
-            fill="#111827",
+            fill=TABLET_MIDDLE_SECTION_COLOR,
             outline="#1f2937",
             width=2,
             tags="tablet",

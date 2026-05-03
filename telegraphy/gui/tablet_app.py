@@ -19,6 +19,12 @@ APP_TITLE: Final = "Telegraphy Tablet"
 TABLET_BUTTON_STYLE: Final = "Tablet.TButton"
 DEFAULT_FONT_FAMILY: Final = "Segoe UI"
 DEFAULT_CLI_TIMEOUT_SECONDS: Final = 30
+TABLET_EXTRA_WIDTH_INCHES_PER_SIDE: Final = 2
+TABLET_BASE_WIDTH_PIXELS: Final = 860
+TABLET_BASE_HEIGHT_PIXELS: Final = 620
+TABLET_BASE_MIN_WIDTH_PIXELS: Final = 720
+TABLET_BASE_MIN_HEIGHT_PIXELS: Final = 520
+CLI_TEXT_WIDTH_CHARACTERS: Final = 100
 
 TABLET_OUTER_SECTION_COLOR: Final = "#D91E1E"
 TABLET_MIDDLE_SECTION_COLOR: Final = "#F2F2F2"
@@ -68,8 +74,9 @@ class TelegraphyTablet(tk.Tk):
     def __init__(self, run_options: RunOptions | None = None) -> None:
         super().__init__()
         self.title(APP_TITLE)
-        self.geometry("860x620")
-        self.minsize(720, 520)
+        width = self._default_window_width()
+        self.geometry(f"{width}x{TABLET_BASE_HEIGHT_PIXELS}")
+        self.minsize(self._minimum_window_width(), TABLET_BASE_MIN_HEIGHT_PIXELS)
         self.configure(bg="#202124")
 
         self.latest_output = ""
@@ -81,6 +88,24 @@ class TelegraphyTablet(tk.Tk):
         self._configure_styles()
         self._build_shell()
         self._poll_worker_queue()
+
+    def _pixels_per_inch(self) -> int:
+        if hasattr(self, "_dpi_cache"):
+            return self._dpi_cache
+        try:
+            self._dpi_cache = max(int(round(float(self.winfo_fpixels("1i")))), 1)
+        except (tk.TclError, ValueError, AttributeError, RecursionError):
+            self._dpi_cache = 96
+        return self._dpi_cache
+
+    def _extra_window_width_pixels(self) -> int:
+        return 2 * TABLET_EXTRA_WIDTH_INCHES_PER_SIDE * self._pixels_per_inch()
+
+    def _default_window_width(self) -> int:
+        return TABLET_BASE_WIDTH_PIXELS + self._extra_window_width_pixels()
+
+    def _minimum_window_width(self) -> int:
+        return TABLET_BASE_MIN_WIDTH_PIXELS + self._extra_window_width_pixels()
 
     def _select_display_font(self) -> str:
         available_fonts = {name.lower() for name in tkfont.families(self)}
@@ -211,6 +236,7 @@ class TelegraphyTablet(tk.Tk):
 
         self.output = tk.Text(
             output_frame,
+            width=CLI_TEXT_WIDTH_CHARACTERS,
             wrap="word",
             bg=output_frame.cget("bg"),
             fg="#e5e7eb",

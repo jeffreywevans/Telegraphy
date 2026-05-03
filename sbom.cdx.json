@@ -2,15 +2,15 @@
   "$schema": "https://cyclonedx.org/schema/bom-1.6.schema.json",
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:db47916b-67dd-5d96-8618-d4d687888069",
+  "serialNumber": "urn:uuid:a14ce4cb-00af-53df-95a6-d6848f357a61",
   "version": 1,
   "metadata": {
     "component": {
-      "bom-ref": "pkg:pypi/telegraphy@0.2.2",
+      "bom-ref": "pkg:pypi/telegraphy@0.4.1",
       "type": "application",
       "name": "telegraphy",
-      "version": "0.2.2",
-      "purl": "pkg:pypi/telegraphy@0.2.2",
+      "version": "0.4.1",
+      "purl": "pkg:pypi/telegraphy@0.4.1",
       "licenses": [
         {
           "license": {
@@ -32,7 +32,7 @@
   ],
   "dependencies": [
     {
-      "ref": "pkg:pypi/telegraphy@0.2.2",
+      "ref": "pkg:pypi/telegraphy@0.4.1",
       "dependsOn": [
         "pkg:pypi/pyyaml@6.0.3"
       ]

@@ -184,7 +184,7 @@ Press **COPY!** to copy the most recent successful brief to your clipboard.
 
 ## Using the GUI
 
-The 0.4.0 GUI is intentionally focused: it is a tablet-shaped desktop wrapper around the existing `story-brief` engine.
+The 0.4.1 GUI is intentionally focused: it is a tablet-shaped desktop wrapper around the existing `story-brief` engine.
 
 ### What happens when you click GENERATE!
 
@@ -557,7 +557,7 @@ Current package facts:
 | Field | Value |
 | --- | --- |
 | Package | `telegraphy` |
-| Current version | `0.3.3` |
+| Current version | `0.4.1` |
 | Python | `>=3.12` |
 | Runtime dependency | `PyYAML>=6.0.3` |
 | Console script | `story-brief = telegraphy.story_brief.cli:main` |
@@ -580,9 +580,9 @@ For generation changes, preserve deterministic seeded behavior unless the PR exp
 
 ## Release notes and status
 
-Current status: `0.3.3`.
+Current status: `0.4.1`.
 
-This release establishes the 0.3.3 line, reflecting path-handling hardening, CI security workflow improvements, and stronger entrypoint/data-path coverage.
+This release establishes the 0.4.1 line, reflecting the GUI launch plus follow-up build consistency updates across metadata, docs, and SBOM artifacts.
 
 Highlights:
 

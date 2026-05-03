@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [0.4.1] - 2026-05-03
 
+Released Telegraphy 0.4.1 to synchronize package metadata, documentation, and SBOM artifacts.
+
 ### Changed
 - Bumped package metadata and top-level README release/version references from 0.4.0 to 0.4.1 for build consistency.
 - Regenerated `sbom.cdx.json` so CycloneDX metadata aligns with the 0.4.1 package declaration.

@@ -586,10 +586,9 @@ This release establishes the 0.4.1 line, reflecting the GUI launch plus follow-u
 
 Highlights:
 
-- streamlined README onboarding and project status narrative;
-- improved maintainer-document index and documentation cross-linking;
-- added a lightweight project-facing `GREETINGS.md` document;
-- tightened top-level documentation consistency.
+- launched the desktop `telegraphy-gui` command with a tablet-style interface backed by the existing CLI engine;
+- strengthened GUI reliability with threaded generation flow, robust subprocess decode fallback, and expanded GUI unit coverage;
+- kept package metadata, changelog references, README status text, and SBOM artifact versioning aligned for build consistency.
 
 See [CHANGELOG.md](https://github.com/jeffreywevans/Telegraphy/blob/HEAD/CHANGELOG.md) for release notes.
 

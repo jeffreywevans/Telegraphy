@@ -404,7 +404,7 @@ class TelegraphyTablet(tk.Tk):
 
         self.generate_button.configure(state="normal")
 
-        if status == "success":
+        if status == "success" and message:
             self.copy_button.configure(state="normal")
             self.latest_output = message
             self._set_output(message)
@@ -413,7 +413,7 @@ class TelegraphyTablet(tk.Tk):
             self.copy_button.configure(state="disabled")
             self.latest_output = ""
             self._set_output(message)
-            self.status.configure(text="Generation failed.")
+            self.status.configure(text="Generation failed." if status != "success" else "No output generated.")
 
         self.after(100, self._poll_worker_queue)
 

@@ -277,12 +277,14 @@ def test_poll_queue_and_copy_and_output_and_draw(monkeypatch):
     assert tablet.latest_output == "hello world"
     assert output_messages[-1] == "hello world"
     tablet.status.configure.assert_called_with(text="Generated. Ready to copy.")
+    assert tablet.copy_button.configure.call_args_list[-1] == call(state="normal")
 
     tablet.result_queue.put(("error", "bad"))
     tablet._poll_worker_queue()
     assert tablet.latest_output == ""
     assert output_messages[-1] == "bad"
     tablet.status.configure.assert_called_with(text="Generation failed.")
+    assert tablet.copy_button.configure.call_args_list[-1] == call(state="disabled")
 
     tablet.copy_latest_output()
     tablet.status.configure.assert_called_with(text="Nothing to copy yet.")

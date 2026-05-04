@@ -223,6 +223,12 @@ def test_build_cli_command_handles_optional_seed_and_date_arguments():
     assert seeded_command[-2:] == ["--seed", "0"]
     assert "--date" not in seeded_command
 
+    full_command = tablet_app._build_cli_command(
+        tablet_app.RunOptions(seed=42, date="2025-01-01"),
+    )
+    assert full_command[-4:] == ["--seed", "42", "--date", "2025-01-01"]
+
+
 def test_run_cli_worker_success_error_and_exception(monkeypatch):
     tablet = _make_tablet()
     tablet.result_queue = queue.Queue()

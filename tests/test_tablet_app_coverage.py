@@ -213,6 +213,22 @@ def test_resolve_run_options_preserves_startup_seed_and_date_when_blank():
 
     assert resolved == tablet_app.RunOptions(seed=7, date="2000-02-03", timeout_seconds=9.0)
 
+
+def test_build_cli_command_handles_optional_seed_and_date_arguments():
+    base_command = tablet_app._build_cli_command(tablet_app.RunOptions(seed=None, date=None))
+    assert "--seed" not in base_command
+    assert "--date" not in base_command
+
+    seeded_command = tablet_app._build_cli_command(tablet_app.RunOptions(seed=0, date=""))
+    assert seeded_command[-2:] == ["--seed", "0"]
+    assert "--date" not in seeded_command
+
+    full_command = tablet_app._build_cli_command(
+        tablet_app.RunOptions(seed=42, date="2025-01-01"),
+    )
+    assert full_command[-4:] == ["--seed", "42", "--date", "2025-01-01"]
+
+
 def test_run_cli_worker_success_error_and_exception(monkeypatch):
     tablet = _make_tablet()
     tablet.result_queue = queue.Queue()

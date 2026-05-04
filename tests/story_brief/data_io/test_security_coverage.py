@@ -19,6 +19,11 @@ class _FakeTraversable:
         return f"resource://{filename}"
 
 
+class _NameAsObjectTraversable:
+    def __init__(self, name: object) -> None:
+        self.name = name
+
+
 def test_expand_home_marker_accepts_bare_home() -> None:
     assert data_io._expand_home_marker("~") == str(Path.home())
 
@@ -175,3 +180,28 @@ def test_load_json_closes_fd_when_fdopen_fails(
 
     assert "fd" in recorded
     assert recorded.get("closed_fd") == recorded["fd"]
+
+
+def test_validated_load_path_rejects_nul_bytes_for_traversable_name() -> None:
+    traversable = _NameAsObjectTraversable("titles\x00.json")
+
+    with pytest.raises(ValueError, match="NUL bytes"):
+        data_io._validated_load_path(traversable)
+
+
+def test_validated_load_path_rejects_parent_traversal_for_traversable_name() -> None:
+    traversable = _NameAsObjectTraversable("../titles.json")
+
+    with pytest.raises(ValueError, match="parent-directory traversal"):
+        data_io._validated_load_path(traversable)
+
+
+def test_validated_load_path_rejects_non_absolute_path_instance() -> None:
+    with pytest.raises(ValueError, match="non-absolute filesystem path"):
+        data_io._validated_load_path(Path("relative.json"))
+
+
+def test_validated_load_path_coerces_non_string_name_attribute() -> None:
+    traversable = _NameAsObjectTraversable(12345)
+
+    assert data_io._validated_load_path(traversable) is traversable

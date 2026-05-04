@@ -461,7 +461,9 @@ def test_module_entrypoint_raises_system_exit(monkeypatch) -> None:
         tablet_app.tk.Tk,
         "__init__",
         MagicMock(side_effect=tablet_app.tk.TclError("headless")),
-    )
+def test_module_entrypoint_raises_system_exit(monkeypatch) -> None:
+    # Force a TclError to ensure the test is deterministic and doesn't hang on GUI systems.
+    monkeypatch.setattr(tablet_app.tk.Tk, "__init__", MagicMock(side_effect=tablet_app.tk.TclError("headless")))
     monkeypatch.setattr(tablet_app.sys, "argv", [str(tablet_app.__file__)])
 
     with pytest.raises(SystemExit) as exc_info:

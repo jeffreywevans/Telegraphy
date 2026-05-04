@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import queue
+import runpy
 from types import SimpleNamespace
 from unittest.mock import MagicMock, call
+
+import pytest
 
 from telegraphy.gui import tablet_app
 
@@ -451,3 +454,19 @@ def test_main_headless_tcl_error(monkeypatch, capsys):
     monkeypatch.setattr(tablet_app, "TelegraphyTablet", FakeTablet)
     assert tablet_app.main([]) == 1
     assert "headless mode detected" in capsys.readouterr().err.lower()
+
+
+def test_module_entrypoint_raises_system_exit(monkeypatch) -> None:
+    monkeypatch.setattr(
+        tablet_app.tk.Tk,
+        "__init__",
+        MagicMock(side_effect=tablet_app.tk.TclError("headless")),
+def test_module_entrypoint_raises_system_exit(monkeypatch) -> None:
+    # Force a TclError to ensure the test is deterministic and doesn't hang on GUI systems.
+    monkeypatch.setattr(tablet_app.tk.Tk, "__init__", MagicMock(side_effect=tablet_app.tk.TclError("headless")))
+    monkeypatch.setattr(tablet_app.sys, "argv", [str(tablet_app.__file__)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        runpy.run_path(str(tablet_app.__file__), run_name="__main__")
+
+    assert exc_info.value.code == 1

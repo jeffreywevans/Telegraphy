@@ -318,6 +318,34 @@ def test_poll_queue_and_copy_and_output_and_draw(monkeypatch):
     tablet.update_idletasks.assert_called_once_with()
     tablet.status.configure.assert_called_with(text="Copied to clipboard.")
 
+
+def test_display_font_selection_and_dpi_fallback(monkeypatch):
+    tablet = _make_tablet()
+    tablet.output = MagicMock()
+    tablet.canvas = MagicMock()
+    tablet.screen_window = 7
+
+    monkeypatch.setattr(tablet_app.tkfont, "families", lambda _parent: ["SF Pro Text"])
+    monkeypatch.setattr(tablet_app.sys, "platform", "darwin")
+    assert tablet._select_display_font() == "SF Pro Text"
+
+    monkeypatch.setattr(tablet_app.sys, "platform", "plan9")
+    assert tablet._select_display_font() == tablet_app.DEFAULT_FONT_FAMILY
+
+    assert (
+        tablet._pick_first_available_font(tuple(), set())
+        == tablet_app.DEFAULT_FONT_FAMILY
+    )
+
+    tablet._dpi_cache = None
+
+    def _raise_tcl_error(_value):
+        raise tablet_app.tk.TclError("boom")
+
+    monkeypatch.setattr(tablet, "winfo_fpixels", _raise_tcl_error)
+    assert tablet._pixels_per_inch() == tablet_app.DEFAULT_DPI
+    assert tablet._pixels_per_inch() == tablet_app.DEFAULT_DPI
+
     tablet_app.TelegraphyTablet._set_output(tablet, "render")
     assert tablet.output.configure.call_args_list[:1] == [call(state="normal")]
     tablet.output.delete.assert_called_once_with("1.0", "end")

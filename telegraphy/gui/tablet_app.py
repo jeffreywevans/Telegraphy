@@ -107,10 +107,10 @@ class TelegraphyTablet(tk.Tk):
         return 2 * TABLET_EXTRA_WIDTH_INCHES_PER_SIDE * self._pixels_per_inch()
 
     def _default_window_width(self) -> int:
-        return TABLET_BASE_WIDTH_PIXELS + self._extra_window_width_pixels()
+        return self._scaled_pixels(TABLET_BASE_WIDTH_PIXELS) + self._extra_window_width_pixels()
 
     def _minimum_window_width(self) -> int:
-        return TABLET_BASE_MIN_WIDTH_PIXELS + self._extra_window_width_pixels()
+        return self._scaled_pixels(TABLET_BASE_MIN_WIDTH_PIXELS) + self._extra_window_width_pixels()
 
     def _default_window_height(self) -> int:
         return self._scaled_pixels(TABLET_BASE_HEIGHT_PIXELS)

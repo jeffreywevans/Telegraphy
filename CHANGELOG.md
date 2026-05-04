@@ -114,7 +114,8 @@ This release marks the transition from a single-purpose generator script into a 
 - Hardened output-path handling and filename generation.
 
 [Unreleased]: https://github.com/jeffreywevans/Telegraphy/compare/v0.4.2...HEAD
-[0.4.2]: https://github.com/jeffreywevans/Telegraphy/compare/v0.4.0...v0.4.2
+[0.4.2]: https://github.com/jeffreywevans/Telegraphy/compare/v0.4.1...v0.4.2
+[0.4.1]: https://github.com/jeffreywevans/Telegraphy/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/jeffreywevans/Telegraphy/compare/v0.3.3...v0.4.0
 [0.3.3]: https://github.com/jeffreywevans/Telegraphy/compare/v0.3.2...v0.3.3
 [0.3.2]: https://github.com/jeffreywevans/Telegraphy/compare/v0.3.1...v0.3.2

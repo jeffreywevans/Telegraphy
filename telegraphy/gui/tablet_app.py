@@ -25,6 +25,7 @@ TABLET_BASE_HEIGHT_PIXELS: Final = 620
 TABLET_BASE_MIN_WIDTH_PIXELS: Final = 720
 TABLET_BASE_MIN_HEIGHT_PIXELS: Final = 520
 CLI_TEXT_WIDTH_CHARACTERS: Final = 100
+DEFAULT_DPI: Final = 96
 
 TABLET_OUTER_SECTION_COLOR: Final = "#D91E1E"
 TABLET_MIDDLE_SECTION_COLOR: Final = "#F2F2F2"
@@ -76,8 +77,8 @@ class TelegraphyTablet(tk.Tk):
         self._dpi_cache: int | None = None
         self.title(APP_TITLE)
         width = self._default_window_width()
-        self.geometry(f"{width}x{TABLET_BASE_HEIGHT_PIXELS}")
-        self.minsize(self._minimum_window_width(), TABLET_BASE_MIN_HEIGHT_PIXELS)
+        self.geometry(f"{width}x{self._default_window_height()}")
+        self.minsize(self._minimum_window_width(), self._minimum_window_height())
         self.configure(bg="#202124")
 
         self.latest_output = ""
@@ -96,8 +97,11 @@ class TelegraphyTablet(tk.Tk):
         try:
             self._dpi_cache = max(int(round(float(self.winfo_fpixels("1i")))), 1)
         except (tk.TclError, ValueError, AttributeError, RecursionError):
-            self._dpi_cache = 96
+            self._dpi_cache = DEFAULT_DPI
         return self._dpi_cache
+
+    def _scaled_pixels(self, base_pixels: int) -> int:
+        return max(int(round(base_pixels * (self._pixels_per_inch() / DEFAULT_DPI))), 1)
 
     def _extra_window_width_pixels(self) -> int:
         return 2 * TABLET_EXTRA_WIDTH_INCHES_PER_SIDE * self._pixels_per_inch()
@@ -107,6 +111,12 @@ class TelegraphyTablet(tk.Tk):
 
     def _minimum_window_width(self) -> int:
         return TABLET_BASE_MIN_WIDTH_PIXELS + self._extra_window_width_pixels()
+
+    def _default_window_height(self) -> int:
+        return self._scaled_pixels(TABLET_BASE_HEIGHT_PIXELS)
+
+    def _minimum_window_height(self) -> int:
+        return self._scaled_pixels(TABLET_BASE_MIN_HEIGHT_PIXELS)
 
     def _select_display_font(self) -> str:
         available_fonts = {name.lower() for name in tkfont.families(self)}

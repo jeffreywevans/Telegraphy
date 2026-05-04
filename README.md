@@ -1,7 +1,20 @@
 # Telegraphy
 
 [![Build](https://github.com/jeffreywevans/Telegraphy/actions/workflows/build.yml/badge.svg)](https://github.com/jeffreywevans/Telegraphy/actions/workflows/build.yml)
-[![SonarQube Cloud](https://sonarcloud.io/images/project_badges/sonarcloud-light.svg)](https://sonarcloud.io/summary/new_code?id=jeffreywevans_Telegraphy)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=jeffreywevans_Telegraphy&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=jeffreywevans_Telegraphy)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=jeffreywevans_Telegraphy&metric=bugs)](https://sonarcloud.io/summary/new_code?id=jeffreywevans_Telegraphy)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=jeffreywevans_Telegraphy&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=jeffreywevans_Telegraphy)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=jeffreywevans_Telegraphy&metric=coverage)](https://sonarcloud.io/summary/new_code?id=jeffreywevans_Telegraphy)
+[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=jeffreywevans_Telegraphy&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=jeffreywevans_Telegraphy)
+[![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=jeffreywevans_Telegraphy&metric=sqale_index)](https://sonarcloud.io/summary/new_code?id=jeffreywevans_Telegraphy)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=jeffreywevans_Telegraphy&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=jeffreywevans_Telegraphy)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=jeffreywevans_Telegraphy&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=jeffreywevans_Telegraphy)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=jeffreywevans_Telegraphy&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=jeffreywevans_Telegraphy)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=jeffreywevans_Telegraphy&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=jeffreywevans_Telegraphy)
+[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=jeffreywevans_Telegraphy&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=jeffreywevans_Telegraphy)
+
+
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/jeffreywevans/Telegraphy/license)
 
 Telegraphy is a Python package and command-line tool for generating structured story briefs from a versioned, data-driven canon dataset.

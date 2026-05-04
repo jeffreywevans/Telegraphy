@@ -318,12 +318,33 @@ def test_poll_queue_and_copy_and_output_and_draw(monkeypatch):
     tablet.update_idletasks.assert_called_once_with()
     tablet.status.configure.assert_called_with(text="Copied to clipboard.")
 
+
+def test_pixels_per_inch_falls_back_and_caches_after_tcl_error(monkeypatch):
+    tablet = _make_tablet()
+    tablet._dpi_cache = None
+
+    mock_fpixels = MagicMock(side_effect=tablet_app.tk.TclError("boom"))
+    monkeypatch.setattr(tablet, "winfo_fpixels", mock_fpixels)
+    assert tablet._pixels_per_inch() == tablet_app.DEFAULT_DPI
+    assert tablet._pixels_per_inch() == tablet_app.DEFAULT_DPI
+    mock_fpixels.assert_called_once_with("1i")
+
+
+def test_set_output_updates_text_widget_state():
+    tablet = _make_tablet()
+    tablet.output = MagicMock()
+
     tablet_app.TelegraphyTablet._set_output(tablet, "render")
     assert tablet.output.configure.call_args_list[:1] == [call(state="normal")]
     tablet.output.delete.assert_called_once_with("1.0", "end")
     tablet.output.insert.assert_called_once_with("1.0", "render")
     assert tablet.output.configure.call_args_list[-1] == call(state="disabled")
     tablet.output.see.assert_called_once_with("1.0")
+
+def test_redraw_tablet_updates_canvas_geometry(monkeypatch):
+    tablet = _make_tablet()
+    tablet.canvas = MagicMock()
+    tablet.screen_window = 7
 
     evt = SimpleNamespace(width=500, height=300)
     rr_calls: list[tuple[float, ...]] = []
@@ -333,6 +354,10 @@ def test_poll_queue_and_copy_and_output_and_draw(monkeypatch):
     tablet.canvas.delete.assert_called_once_with("tablet")
     tablet.canvas.coords.assert_called_once_with(7, 40, 40)
     tablet.canvas.itemconfigure.assert_called_once_with(7, width=420, height=220)
+
+def test_rounded_rectangle_creates_polygon():
+    tablet = _make_tablet()
+    tablet.canvas = MagicMock()
 
     polygon_id = tablet_app.TelegraphyTablet._rounded_rectangle(
         tablet,

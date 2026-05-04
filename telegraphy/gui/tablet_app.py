@@ -82,6 +82,7 @@ class TelegraphyTablet(tk.Tk):
         self.latest_output = ""
         self.run_options = run_options or RunOptions()
         self.result_queue: queue.Queue[tuple[str, str]] = queue.Queue()
+        self._dpi_cache: int | None = None
 
         self.font_family = self._select_display_font()
 
@@ -90,7 +91,7 @@ class TelegraphyTablet(tk.Tk):
         self._poll_worker_queue()
 
     def _pixels_per_inch(self) -> int:
-        if hasattr(self, "_dpi_cache"):
+        if self._dpi_cache is not None:
             return self._dpi_cache
         try:
             self._dpi_cache = max(int(round(float(self.winfo_fpixels("1i")))), 1)

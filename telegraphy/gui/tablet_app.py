@@ -73,6 +73,7 @@ class TelegraphyTablet(tk.Tk):
 
     def __init__(self, run_options: RunOptions | None = None) -> None:
         super().__init__()
+        self._dpi_cache: int | None = None
         self.title(APP_TITLE)
         width = self._default_window_width()
         self.geometry(f"{width}x{TABLET_BASE_HEIGHT_PIXELS}")
@@ -82,7 +83,6 @@ class TelegraphyTablet(tk.Tk):
         self.latest_output = ""
         self.run_options = run_options or RunOptions()
         self.result_queue: queue.Queue[tuple[str, str]] = queue.Queue()
-        self._dpi_cache: int | None = None
 
         self.font_family = self._select_display_font()
 

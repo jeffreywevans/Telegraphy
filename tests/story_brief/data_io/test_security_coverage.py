@@ -24,6 +24,16 @@ class _NameAsObjectTraversable:
         self.name = name
 
 
+class _JsonTextTraversable:
+    def __init__(self, payload: str, name: str = "resource.json") -> None:
+        self._payload = payload
+        self.name = name
+
+    def read_text(self, encoding: str = "utf-8") -> str:
+        assert encoding == "utf-8"
+        return self._payload
+
+
 def test_expand_home_marker_accepts_bare_home() -> None:
     assert data_io._expand_home_marker("~") == str(Path.home())
 
@@ -180,6 +190,32 @@ def test_load_json_closes_fd_when_fdopen_fails(
 
     assert "fd" in recorded
     assert recorded.get("closed_fd") == recorded["fd"]
+
+
+def test_load_json_without_o_nofollow_uses_readonly_only(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    payload_path = tmp_path / "payload.json"
+    payload_path.write_text("{}", encoding="utf-8")
+
+    observed_flags: dict[str, int] = {}
+    real_open = os.open
+
+    def recording_open(path: str | os.PathLike[str], flags: int, mode: int = 0o777) -> int:
+        observed_flags["flags"] = flags
+        return real_open(path, flags, mode)
+
+    monkeypatch.delattr(data_io.os, "O_NOFOLLOW", raising=False)
+    monkeypatch.setattr(data_io.os, "open", recording_open)
+
+    assert data_io._load_json(payload_path) == {}
+    assert observed_flags["flags"] == os.O_RDONLY
+
+
+def test_load_json_reads_from_traversable_text_payload() -> None:
+    traversable = _JsonTextTraversable('{"answer": 42}')
+
+    assert data_io._load_json(traversable) == {"answer": 42}
 
 
 def test_validated_load_path_rejects_nul_bytes_for_traversable_name() -> None:

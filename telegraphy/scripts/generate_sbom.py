@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import tomllib
 import uuid
 from pathlib import Path
@@ -9,6 +10,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 PYPROJECT_PATH = REPO_ROOT / "pyproject.toml"
 SBOM_PATH = REPO_ROOT / "sbom.cdx.json"
 SCHEMA = "https://cyclonedx.org/schema/bom-1.6.schema.json"
+PYPI_NORMALIZATION_PATTERN = re.compile(r"[-_.]+")
 
 
 def _load_project_metadata(pyproject_path: Path) -> tuple[str, str, str]:
@@ -24,8 +26,12 @@ def _load_project_metadata(pyproject_path: Path) -> tuple[str, str, str]:
     return name, version, f"{dep_name}=={dep_version}"
 
 
+def _normalize_pypi_name(name: str) -> str:
+    return PYPI_NORMALIZATION_PATTERN.sub("-", name).lower()
+
+
 def _package_url(name: str, version: str) -> str:
-    return f"pkg:pypi/{name.lower()}@{version}"
+    return f"pkg:pypi/{_normalize_pypi_name(name)}@{version}"
 
 
 def build_sbom() -> dict[str, object]:

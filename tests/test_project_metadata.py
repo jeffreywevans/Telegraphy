@@ -24,6 +24,7 @@ def test_project_metadata_declares_release_metadata() -> None:
     assert project["readme"] == {"file": "README.md", "content-type": "text/markdown"}
     assert project["license"] == "MIT"
     assert project["license-files"] == ["LICENSE"]
+    assert "License :: OSI Approved :: MIT License" not in project["classifiers"]
     assert project["requires-python"] == ">=3.12"
     assert project["dependencies"] == ["PyYAML>=6.0.3"]
     assert project["urls"]["Repository"] == "https://github.com/jeffreywevans/Telegraphy.git"

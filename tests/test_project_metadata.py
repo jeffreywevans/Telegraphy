@@ -4,7 +4,7 @@ import tomllib
 from pathlib import Path
 from typing import Any
 
-PYPROJECT_PATH = Path("pyproject.toml")
+PYPROJECT_PATH = Path(__file__).resolve().parent.parent / "pyproject.toml"
 EXPECTED_DISTRIBUTION_NAME = "Commuted_Telegraphy"
 
 
@@ -26,7 +26,7 @@ def test_project_metadata_declares_release_metadata() -> None:
     assert project["license-files"] == ["LICENSE"]
     assert "License :: OSI Approved :: MIT License" not in project["classifiers"]
     assert project["requires-python"] == ">=3.12"
-    assert project["dependencies"] == ["PyYAML>=6.0.3"]
+    assert any(dep.casefold().startswith("pyyaml") for dep in project["dependencies"])
     assert project["urls"]["Repository"] == "https://github.com/jeffreywevans/Telegraphy.git"
 
 

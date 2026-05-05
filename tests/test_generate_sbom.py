@@ -10,6 +10,13 @@ import pytest
 from telegraphy.scripts import generate_sbom
 
 
+def test_package_url_normalizes_project_names_for_pypi_purls() -> None:
+    assert (
+        generate_sbom._package_url("Commuted_Telegraphy", "0.4.3")
+        == "pkg:pypi/commuted-telegraphy@0.4.3"
+    )
+
+
 def test_build_sbom_includes_component_bom_refs() -> None:
     sbom = generate_sbom.build_sbom()
 

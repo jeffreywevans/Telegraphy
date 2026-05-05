@@ -3,13 +3,46 @@ requires = ["setuptools>=82.0.1"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "telegraphy"
+name = "Commuted_Telegraphy"
 version = "0.4.3"
-description = "Telegraphy story brief generator"
-license = { file = "LICENSE" }
-readme = "README.md"
+description = "A data-driven story brief generator for the Commuted fiction universe."
+readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.12"
-dependencies = ["PyYAML>=6.0.3"]
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+    { name = "Commuted", email = "jeffrey.w.evans@gmail.com" },
+]
+maintainers = [
+    { name = "Commuted", email = "commuted.convicted@gmail.com" },
+]
+keywords = [
+    "commuted",
+    "creative-writing",
+    "fiction",
+    "story-brief",
+    "writing-tools",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Environment :: X11 Applications",
+    "Intended Audience :: End Users/Desktop",
+    "Intended Audience :: Developers",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Artistic Software",
+    "Topic :: Text Processing :: Markup :: Markdown",
+    "Topic :: Utilities",
+    "Typing :: Typed",
+]
+dependencies = [
+    "PyYAML>=6.0.3",
+]
 
 [project.optional-dependencies]
 dev = [
@@ -20,18 +53,31 @@ dev = [
     "types-PyYAML>=6.0.12.20260408",
 ]
 
+[project.urls]
+Homepage = "https://github.com/jeffreywevans/Telegraphy"
+Repository = "https://github.com/jeffreywevans/Telegraphy.git"
+Issues = "https://github.com/jeffreywevans/Telegraphy/issues"
+Changelog = "https://github.com/jeffreywevans/Telegraphy/blob/HEAD/CHANGELOG.md"
+Documentation = "https://github.com/jeffreywevans/Telegraphy#readme"
+Security = "https://github.com/jeffreywevans/Telegraphy/blob/HEAD/SECURITY.md"
+
 [project.scripts]
 story-brief = "telegraphy.story_brief.cli:main"
 telegraphy-gui = "telegraphy.gui.tablet_app:main"
 
+[tool.setuptools]
+include-package-data = true
+
 [tool.setuptools.packages.find]
 include = ["telegraphy*"]
+namespaces = false
 
 [tool.setuptools.package-data]
 "telegraphy.story_brief.data" = ["*.json"]
 
 [tool.ruff]
 line-length = 100
+target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B"]
@@ -42,7 +88,7 @@ strict = true
 [[tool.mypy.overrides]]
 module = ["yaml"]
 ignore_missing_imports = true
+
 [[tool.mypy.overrides]]
 module = ["coverage", "coverage.*"]
 ignore_missing_imports = true
-

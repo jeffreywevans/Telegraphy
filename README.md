@@ -600,7 +600,7 @@ For generation changes, preserve deterministic seeded behavior unless the PR exp
 
 Current status: `0.4.3`.
 
-This release establishes the 0.4.3 line, reflecting the GUI launch plus follow-up build consistency updates across metadata, docs, and SBOM artifacts.
+This release establishes the 0.4.3 line, preparing for PyPI Trusted Publishing plus follow-up build consistency updates across metadata, docs, and SBOM artifacts.
 
 Highlights:
 

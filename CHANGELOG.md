@@ -17,6 +17,17 @@ Released Telegraphy 0.4.3 to prepare the package metadata and release artifacts 
 ### Known Issues
 - GUI smoke testing remains environment-dependent in headless shells and should be verified on a desktop session before public release.
 
+## [0.4.2] - 2026-05-04
+
+Released Telegraphy 0.4.2 to synchronize package metadata, documentation, and SBOM artifacts.
+
+### Changed
+- Bumped package metadata and top-level README release/version references from 0.4.1 to 0.4.2 for build consistency.
+- Regenerated `sbom.cdx.json` so CycloneDX metadata aligns with the 0.4.2 package declaration.
+
+### Known Issues
+- GUI smoke testing remains environment-dependent in headless shells and should be verified on a desktop session before public release.
+
 ## [0.4.0] - 2026-05-02
 
 Released Telegraphy 0.4.0 with a new desktop GUI experience and the supporting quality/reliability updates completed alongside it.

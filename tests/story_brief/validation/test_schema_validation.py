@@ -69,6 +69,18 @@ def test_schema_validation_accepts_current_data(story_dataset_payloads) -> None:
             "prompts.weather contains duplicate value",
         ),
         (
+            lambda t, e, p, c: p.update({"weather_comment": "   "}),
+            "prompts.weather_comment must be a non-empty string when provided",
+        ),
+        (
+            lambda t, e, p, c: p.update({"weather_comment": ["sunny"]}),
+            "prompts.weather_comment must be a non-empty string when provided",
+        ),
+        (
+            lambda t, e, p, c: p.update({"unexpected_prompt_key": ["oops"]}),
+            "prompts: unexpected keys: unexpected_prompt_key",
+        ),
+        (
             lambda t, e, p, c: e.update(
                 {
                     "character_availability": e["character_availability"]

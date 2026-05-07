@@ -254,10 +254,11 @@ def pick_sexual_scene_tags(
         tag_count_options,
         tag_count_weights,
     )
+    required_set = set(required_tag_groups)
     optional_groups = [
         group_name
         for group_name in candidate_tag_groups
-        if group_name not in required_tag_groups
+        if group_name not in required_set
     ]
     optional_needed = selected_tag_count - len(required_tag_groups)
     selected_tag_groups = [

@@ -39,9 +39,9 @@ Out of scope for this inventory:
      - Coupling rejection and defaults in one helper: **Potential simplification target**.
 
 2. `telegraphy/story_brief/generation.py`
-   - No active lookups for legacy keys `sexual_content_options` or `sexual_content_weights` were found in the current module.
-   - The previously noted legacy fallback path appears to have been removed after this inventory was first drafted.
-   - **Classification**: **Completed cleanup (historical note retained for traceability)**.
+   - Cleanup: Lookups for legacy keys `sexual_content_options` and `sexual_content_weights` have been removed.
+   - Remaining legacy compatibility fallbacks (unsorted data paths): `_sexual_scene_tag_group_names` and `_sorted_tags_for_group` still provide lazy sorting for non-normalized data maps.
+   - **Classification**: **Potential dead/legacy compatibility path**.
 
 3. `telegraphy/story_brief/normalization.py`
    - Canonical field usage only (`sexual_scene_tag_count_weights_by_presence`).

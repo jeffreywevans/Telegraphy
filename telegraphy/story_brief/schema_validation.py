@@ -392,7 +392,9 @@ def _normalize_config(config: dict[str, Any]) -> dict[str, Any]:
     """Return a normalized config without mutating caller input."""
     normalized = dict(config)
 
-    present_unsupported_aliases = [key for key in UNSUPPORTED_CONFIG_ALIAS_KEYS if key in normalized]
+    present_unsupported_aliases = [
+        key for key in UNSUPPORTED_CONFIG_ALIAS_KEYS if key in normalized
+    ]
     if present_unsupported_aliases:
         joined = ", ".join(sorted(present_unsupported_aliases))
         raise ValueError(f"{UNSUPPORTED_CONFIG_ALIAS_ERROR_PREFIX}{joined}")

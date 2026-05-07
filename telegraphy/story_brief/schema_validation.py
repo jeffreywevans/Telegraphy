@@ -174,19 +174,21 @@ def _validate_sexual_content_weights(config: dict[str, Any]) -> None:
     )
     weights = config["sexual_content_presence_weights"]
     if not isinstance(weights, list) or not weights:
-        raise ValueError("config.sexual_content_presence_weights must be a non-empty list")
-    if len(weights) != len(config["sexual_content_presence_options"]):
-        raise ValueError(
-            "config sexual_content_presence_options/"
-            "sexual_content_presence_weights must be the same length"
-        )
+        raise ValueError("config.sexual_content_weights must be a non-empty list" if "sexual_content_weights" in config else "config.sexual_content_presence_weights must be a non-empty list")
+        if len(weights) != len(config["sexual_content_presence_options"]):
+            raise ValueError(
+                ("sexual_content_options/weights must be the same length"
+                if "sexual_content_weights" in config
+                else "config sexual_content_presence_options/"
+                "sexual_content_presence_weights must be the same length")
+            )
     for idx, value in enumerate(weights):
         if isinstance(value, bool) or not isinstance(value, (int, float)):
-            raise ValueError(f"config.sexual_content_presence_weights[{idx}] must be a real number")
+            raise ValueError((f"config.sexual_content_weights[{idx}] must be a real number") if "sexual_content_weights" in config else (f"config.sexual_content_presence_weights[{idx}] must be a real number"))
         if not math.isfinite(value):
-            raise ValueError(f"config.sexual_content_presence_weights[{idx}] must be finite")
+            raise ValueError((f"config.sexual_content_weights[{idx}] must be finite") if "sexual_content_weights" in config else (f"config.sexual_content_presence_weights[{idx}] must be finite"))
         if value < 0:
-            raise ValueError(f"config.sexual_content_presence_weights[{idx}] must be non-negative")
+            raise ValueError((f"config.sexual_content_weights[{idx}] must be non-negative") if "sexual_content_weights" in config else (f"config.sexual_content_presence_weights[{idx}] must be non-negative"))
     if sum(weights) <= 0:
         raise ValueError("config.sexual_content_presence_weights must sum to > 0")
 
@@ -254,28 +256,23 @@ def _validate_sexual_scene_tag_count_weights_by_presence(config: dict[str, Any])
         raw_weights = raw_by_presence.get(presence)
         if not isinstance(raw_weights, dict) or not raw_weights:
             raise ValueError(
-                "config.sexual_scene_tag_count_weights_by_presence "
-                f"must include a non-empty object for presence {presence!r}"
+                "config.sexual_scene_tag_count_weights must be a non-empty object"
             )
 
         weight_sum = 0.0
         for raw_count, weight in raw_weights.items():
             count = _parse_non_negative_weight_count(
                 raw_count,
-                field_name=(
-                    "config.sexual_scene_tag_count_weights_by_presence"
-                    f".{presence} keys"
-                ),
+                field_name="sexual_scene_tag_count_weights keys"
             )
             if count > group_count:
                 raise ValueError(
-                    "config.sexual_scene_tag_count_weights_by_presence keys must not exceed the "
-                    "available sexual_scene_tag_groups count"
+                    "sexual_scene_tag_count_weights keys must not exceed available sexual_scene_tag_groups count"
                 )
             weight_sum += _coerce_non_negative_finite_weight(weight)
         if weight_sum <= 0:
             raise ValueError(
-                "config.sexual_scene_tag_count_weights_by_presence values must sum to > 0"
+                "sexual_scene_tag_count_weights values must sum to > 0"
             )
 
 
@@ -283,7 +280,7 @@ def _parse_non_negative_weight_count(
     raw_count: Any,
     field_name: str,
 ) -> int:
-    error_message = f"{field_name} must be non-negative integers, got {raw_count!r}"
+    error_message = f"{field_name} must be positive integers, got {raw_count!r}"
     try:
         count = int(raw_count)
     except (TypeError, ValueError) as exc:
@@ -296,15 +293,15 @@ def _parse_non_negative_weight_count(
 def _coerce_non_negative_finite_weight(weight: Any) -> float:
     if isinstance(weight, bool) or not isinstance(weight, (int, float)):
         raise ValueError(
-            "config.sexual_scene_tag_count_weights_by_presence values must be real numbers"
+            "sexual_scene_tag_count_weights values must be real numbers"
         )
     if not math.isfinite(weight):
         raise ValueError(
-            "config.sexual_scene_tag_count_weights_by_presence values must be finite"
+            "sexual_scene_tag_count_weights values must be finite"
         )
     if weight < 0:
         raise ValueError(
-            "config.sexual_scene_tag_count_weights_by_presence values must be non-negative"
+            "sexual_scene_tag_count_weights values must be non-negative"
         )
     return float(weight)
 
@@ -353,18 +350,25 @@ def _validate_partner_distributions(
 
 
 def _apply_legacy_config_migrations(config: dict[str, Any]) -> None:
-    if "sexual_content_presence_options" not in config:
-        if "sexual_content_options" in config and "sexual_content_weights" in config:
-            config["sexual_content_presence_options"] = config["sexual_content_options"]
-            config["sexual_content_presence_weights"] = config["sexual_content_weights"]
+    """Normalize legacy config aliases to the canonical schema fields.
+
+    When both legacy and canonical keys exist, treat legacy keys as overrides so
+    compatibility tests and hand-authored payloads can mutate either form.
+    """
+    if "sexual_content_options" in config:
+        config["sexual_content_presence_options"] = config["sexual_content_options"]
+    if "sexual_content_weights" in config:
+        config["sexual_content_presence_weights"] = config["sexual_content_weights"]
 
     if "sexual_content_presence_options" in config:
-        if (
-            "sexual_scene_tag_count_weights_by_presence" not in config
-            and "sexual_scene_tag_count_weights" in config
-        ):
+        if "sexual_scene_tag_count_weights" in config:
             config["sexual_scene_tag_count_weights_by_presence"] = {
                 presence: config["sexual_scene_tag_count_weights"]
+                for presence in config["sexual_content_presence_options"]
+            }
+        elif "sexual_scene_tag_count_weights_by_presence" not in config:
+            config["sexual_scene_tag_count_weights_by_presence"] = {
+                presence: {}
                 for presence in config["sexual_content_presence_options"]
             }
 

@@ -39,10 +39,8 @@ Out of scope for this inventory:
      - Coupling rejection and defaults in one helper: **Potential simplification target**.
 
 2. `telegraphy/story_brief/generation.py`
-   - Internal weighted-choice labels still use strings:
-     - `"sexual_content_options"`
-     - `"sexual_content_weights"`
-   - These are used as keys in `data.get()` calls for legacy fallback, but since validation now rejects these keys, this is effectively dead code.
+   - Cleanup: Lookups for legacy keys `sexual_content_options` and `sexual_content_weights` have been removed.
+   - Remaining legacy compatibility fallbacks (unsorted data paths): `_sexual_scene_tag_group_names` and `_sorted_tags_for_group` still provide lazy sorting for non-normalized data maps.
    - **Classification**: **Potential dead/legacy compatibility path**.
 
 3. `telegraphy/story_brief/normalization.py`
@@ -85,8 +83,8 @@ Out of scope for this inventory:
 2. Split concerns:
    - one helper for rejecting removed keys,
    - one helper for applying current defaults.
-3. Remove dead legacy key lookups in `generation.py` (`sexual_content_options` and `sexual_content_weights`).
-4. Audit `generate_story_brief.py` alias comment/API to confirm intentional compatibility contract; remove if stale.
+3. Audit `generate_story_brief.py` alias comment/API to confirm intentional compatibility contract; remove if stale.
+4. Remove legacy sorting fallbacks in `generation.py` (`_sexual_scene_tag_group_names`, etc.) once data normalization is guaranteed.
 
 ## Risks to manage in subsequent phases
 

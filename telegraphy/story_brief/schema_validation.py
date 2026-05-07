@@ -43,6 +43,15 @@ EXPECTED_GENERATED_FIELD_KEYS = {
     "word_count_target",
 }
 MAX_SEXUAL_SCENE_TAG_GROUPS = 10
+UNSUPPORTED_CONFIG_ALIAS_KEYS = (
+    "sexual_content_options",
+    "sexual_content_weights",
+    "sexual_scene_tag_count_weights",
+)
+UNSUPPORTED_CONFIG_ALIAS_ERROR_PREFIX = (
+    "The following config keys are no longer supported; "
+    "use canonical fields instead: "
+)
 PROMPT_LIST_KEYS_SET = frozenset(PROMPT_LIST_KEYS)
 OPTIONAL_PROMPT_KEYS = frozenset({"weather_comment"})
 ENTITY_AVAILABILITY_KEYS = frozenset({CHARACTER_AVAILABILITY_KEY, SETTING_AVAILABILITY_KEY})
@@ -375,18 +384,10 @@ def _validate_partner_distributions(
 
 def _enforce_supported_config_keys_and_defaults(config: dict[str, Any]) -> None:
     """Reject unsupported config aliases and apply supported defaults."""
-    unsupported_alias_keys = (
-        "sexual_content_options",
-        "sexual_content_weights",
-        "sexual_scene_tag_count_weights",
-    )
-    present_unsupported_aliases = [key for key in unsupported_alias_keys if key in config]
+    present_unsupported_aliases = [key for key in UNSUPPORTED_CONFIG_ALIAS_KEYS if key in config]
     if present_unsupported_aliases:
         joined = ", ".join(sorted(present_unsupported_aliases))
-        raise ValueError(
-            "The following config keys are no longer supported; "
-            f"use canonical fields instead: {joined}"
-        )
+        raise ValueError(f"{UNSUPPORTED_CONFIG_ALIAS_ERROR_PREFIX}{joined}")
 
     if "sexual_content_story_role_options" not in config:
         config["sexual_content_story_role_options"] = ["incidental"]

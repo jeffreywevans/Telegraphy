@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
-import sys
+from typing import NoReturn
 
 from .cli import main
 
+
+def _run() -> NoReturn:
+    """Execute the CLI and exit the interpreter with its return code."""
+    raise SystemExit(main())
+
+
 if __name__ == "__main__":  # pragma: no cover
-    # Use sys.exit to ensure the exit code from `main` is passed to the shell
-    # and avoid an extra wrapper function.
-    sys.exit(main())
+    _run()

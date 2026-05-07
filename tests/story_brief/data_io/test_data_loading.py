@@ -114,7 +114,7 @@ def test_env_override_loads_dataset_from_custom_directory(
     assert loaded["titles"] == ("A Night in @setting",)
 
 
-def test_load_story_data_normalizes_sexual_scene_tag_count_weights(
+def test_load_story_data_normalizes_sexual_scene_tag_count_weights_by_presence(
     override_data_dir: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     _write_payload(
@@ -145,50 +145,7 @@ def test_load_story_data_normalizes_sexual_scene_tag_count_weights(
 
     loaded = story_brief.load_story_data()
 
-    assert loaded["sexual_scene_tag_count_options"] == (1, 2)
-    assert loaded["sexual_scene_tag_count_weights"] == (0.7, 0.3)
-
-
-
-def test_load_story_data_legacy_tag_count_defaults_use_non_none_presence(
-    override_data_dir: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    _write_payload(
-        override_data_dir / "config.json",
-        {
-            "schema_version": 1,
-            "dataset_version": "test",
-            "date_start": "2000-01-01",
-            "date_end": "2005-12-31",
-            "sexual_content_presence_options": ["none", "implied"],
-            "sexual_content_presence_weights": [0.5, 0.5],
-            "sexual_content_story_role_options": ["incidental"],
-            "sexual_content_story_role_weights": [1.0],
-            "sexual_scene_tag_groups": {
-                "tone": ["tender"],
-                "partner": ["married"],
-            },
-            "sexual_scene_tag_count_weights_by_presence": {
-                "none": {"0": 1.0},
-                "implied": {"1": 0.7, "2": 0.3},
-            },
-            "sexual_scene_required_tag_groups_by_presence": {
-                "none": [],
-                "implied": ["tone"],
-            },
-            "sexual_scene_optional_tag_groups": [],
-            "word_count_targets": [1200],
-            "ordered_keys": sorted(story_brief.EXPECTED_GENERATED_FIELD_KEYS),
-            "writing_preamble": "Write.",
-        },
-    )
-    monkeypatch.setenv("TELEGRAPHY_DATA_DIR", str(override_data_dir))
-    story_brief.clear_get_data_cache()
-
-    loaded = story_brief.load_story_data()
-
-    assert loaded["sexual_scene_tag_count_options"] == (1, 2)
-    assert loaded["sexual_scene_tag_count_weights"] == (0.7, 0.3)
+    assert loaded["sexual_scene_tag_count_weights_by_presence"] == {"none": {1: 0.7, 2: 0.3}}
 
 
 def test_env_override_rejects_unresolved_title_token(

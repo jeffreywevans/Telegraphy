@@ -36,11 +36,11 @@ When adding a new generated story-brief field, treat this as a **three-part coor
 
 `schema_validation` intentionally enforces parity between `ordered_keys` and `EXPECTED_GENERATED_FIELD_KEYS`; if you touch only one side, tests will fail. Include this checklist in extension PRs to make the required change set explicit for new maintainers.
 
-### Practical migration checklist
+### Practical compatibility cleanup checklist
 
 1. Move constants into `telegraphy/story_brief/data/*.json`.
 2. Keep loader validation centralized.
-3. Preserve compatibility aliases during transitional refactors.
+3. Preserve compatibility aliases only when they are explicit API commitments; do not imply runtime migration where none exists.
 4. Keep smoke tests for loading + seeded generation.
 5. Remove legacy in-code tables only after parity verification.
 

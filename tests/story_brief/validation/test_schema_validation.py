@@ -212,6 +212,29 @@ def test_schema_validation_rejects_too_many_sexual_scene_tag_groups(story_datase
         validate_story_data(titles, entities, prompts, config, partner_distributions)
 
 
+@pytest.mark.parametrize(
+    "legacy_key",
+    [
+        "sexual_content_options",
+        "sexual_content_weights",
+        "sexual_scene_tag_count_weights",
+    ],
+)
+def test_schema_validation_rejects_legacy_tag_config_keys(
+    legacy_key: str,
+    story_dataset_payloads,
+) -> None:
+    titles = story_dataset_payloads["titles"]
+    entities = story_dataset_payloads["entities"]
+    prompts = story_dataset_payloads["prompts"]
+    config = story_dataset_payloads["config"]
+    partner_distributions = story_dataset_payloads["partner_distributions"]
+    config[legacy_key] = ["legacy"]
+
+    with pytest.raises(ValueError, match=rf"canonical fields instead: .*{legacy_key}"):
+        validate_story_data(titles, entities, prompts, config, partner_distributions)
+
+
 def test_schema_validation_rejects_invalid_sexual_scene_tag_count_weight_key(
     story_dataset_payloads,
 ) -> None:
@@ -736,4 +759,3 @@ def test_schema_validation_rejects_uncovered_branch_conditions(
     expected_message: str,
 ) -> None:
     _assert_schema_rejects(story_dataset_payloads, mutator, expected_message)
-

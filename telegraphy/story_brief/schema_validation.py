@@ -44,6 +44,7 @@ EXPECTED_GENERATED_FIELD_KEYS = {
 }
 MAX_SEXUAL_SCENE_TAG_GROUPS = 10
 PROMPT_LIST_KEYS_SET = frozenset(PROMPT_LIST_KEYS)
+OPTIONAL_PROMPT_KEYS = frozenset({"weather_comment"})
 ENTITY_AVAILABILITY_KEYS = frozenset({CHARACTER_AVAILABILITY_KEY, SETTING_AVAILABILITY_KEY})
 
 
@@ -96,9 +97,16 @@ def _validate_title_tokens(values: list[str]) -> None:
 
 def _validate_prompt_lists(prompts: dict[str, Any]) -> None:
     require_keys("prompts", prompts, PROMPT_LIST_KEYS_SET)
+    unexpected = sorted(set(prompts) - (PROMPT_LIST_KEYS_SET | OPTIONAL_PROMPT_KEYS))
+    if unexpected:
+        raise ValueError(f"prompts: unexpected keys: {', '.join(unexpected)}")
     for key in PROMPT_LIST_KEYS:
         _validate_string_list("prompts", key, prompts[key])
         _validate_no_duplicate_strings("prompts", key, prompts[key])
+    if "weather_comment" in prompts and (
+        not isinstance(prompts["weather_comment"], str) or not prompts["weather_comment"].strip()
+    ):
+        raise ValueError("prompts.weather_comment must be a non-empty string when provided")
 
 
 def _validate_titles(titles: dict[str, Any]) -> None:

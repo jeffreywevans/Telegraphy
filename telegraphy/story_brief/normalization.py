@@ -47,6 +47,7 @@ def _build_story_data(dataset_payloads: dict[str, Any]) -> dict[str, Any]:
         "character_availability": tuple(validated.character_availability),
         "setting_availability": tuple(validated.setting_availability),
         **prompt_lists,
+        "weather_comment": str(prompts.get("weather_comment", "")),
         **sorted_prompt_lists,
         "date_start": validated.date_start,
         "date_end": validated.date_end,

@@ -396,7 +396,7 @@ def _apply_legacy_config_migrations(config: dict[str, Any]) -> None:
             "sexual_scene_required_tag_groups_by_presence" not in config
             and "sexual_scene_tag_groups" in config
         ):
-            tag_group_keys = config["sexual_scene_tag_groups"].keys()
+            tag_group_keys = list(config["sexual_scene_tag_groups"])
             config["sexual_scene_required_tag_groups_by_presence"] = {
                 presence: list(tag_group_keys)
                 for presence in config["sexual_content_presence_options"]

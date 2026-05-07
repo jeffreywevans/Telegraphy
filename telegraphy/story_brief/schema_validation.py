@@ -203,6 +203,8 @@ def _validate_sexual_content_weights(config: dict[str, Any]) -> None:
                 f"config.sexual_content_presence_weights[{idx}] must be non-negative"
             )
     if sum(weights) <= 0:
+        if has_legacy_weights:
+            raise ValueError("config.sexual_content_weights must sum to > 0")
         raise ValueError("config.sexual_content_presence_weights must sum to > 0")
 
     role_weights = config["sexual_content_story_role_weights"]
@@ -297,7 +299,8 @@ def _parse_non_negative_weight_count(
     field_name: str,
     min_count: int = 0,
 ) -> int:
-    error_message = f"{field_name} must be positive integers, got {raw_count!r}"
+    minimum_label = "positive" if min_count > 0 else "non-negative"
+    error_message = f"{field_name} must be {minimum_label} integers, got {raw_count!r}"
     try:
         count = int(raw_count)
     except (TypeError, ValueError) as exc:

@@ -96,7 +96,10 @@ def _validate_title_tokens(values: list[str]) -> None:
 
 
 def _validate_prompt_lists(prompts: dict[str, Any]) -> None:
-    require_keys("prompts", prompts, PROMPT_LIST_KEYS_SET | OPTIONAL_PROMPT_KEYS)
+    require_keys("prompts", prompts, PROMPT_LIST_KEYS_SET)
+    unexpected = sorted(set(prompts) - (PROMPT_LIST_KEYS_SET | OPTIONAL_PROMPT_KEYS))
+    if unexpected:
+        raise ValueError(f"prompts: unexpected keys: {', '.join(unexpected)}")
     for key in PROMPT_LIST_KEYS:
         _validate_string_list("prompts", key, prompts[key])
         _validate_no_duplicate_strings("prompts", key, prompts[key])

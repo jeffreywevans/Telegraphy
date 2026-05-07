@@ -370,7 +370,7 @@ def build_sexual_scene_tag_count_distribution(
 
     tag_count_options: list[int] = []
     tag_count_weights: list[float] = []
-    max_tag_count = min(len(tag_group_names), 5)
+    max_tag_count = len(tag_group_names)
     for count, weight in configured_tag_count_pairs:
         if minimum_count <= count <= max_tag_count:
             tag_count_options.append(count)
@@ -380,7 +380,7 @@ def build_sexual_scene_tag_count_distribution(
         tag_count_options = [
             count
             for count in DEFAULT_SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION
-            if count <= max_tag_count
+            if minimum_count <= count <= max_tag_count
         ]
         tag_count_weights = [
             DEFAULT_SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION[count] for count in tag_count_options

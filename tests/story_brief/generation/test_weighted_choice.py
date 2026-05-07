@@ -186,3 +186,21 @@ def test_pick_sexual_scene_tags_enforces_required_groups_and_optional_pool() -> 
     selected_tags = pick_sexual_scene_tags(rng, "on_page_full", data)
 
     assert set(selected_tags) == {"loc", "tone", "after", "pace", "phys"}
+
+
+def test_build_sexual_scene_tag_count_distribution_presence_fallback_respects_minimum_count() -> None:
+    data = {
+        "sexual_scene_tag_count_weights_by_presence": {
+            "on_page_full": {1: 1.0}
+        }
+    }
+
+    options, weights = build_sexual_scene_tag_count_distribution(
+        ("a", "b", "c", "d", "e"),
+        data,
+        sexual_content_presence="off_page",
+        minimum_count=4,
+    )
+
+    assert options == [4, 5]
+    assert weights == [0.1, 0.1]

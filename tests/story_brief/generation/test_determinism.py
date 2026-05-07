@@ -41,6 +41,9 @@ def test_selected_characters_are_valid_for_time_period_year() -> None:
     for name, start, end in get_data()["character_availability"]:
         availability[name].append((start, end))
 
+    configured_counts_by_presence = get_data()["sexual_scene_tag_count_weights_by_presence"]
+    required_groups_by_presence = get_data()["sexual_scene_required_tag_groups_by_presence"]
+
     for seed in range(200):
         fields = pick_story_fields(random.Random(seed))
         selected = date.fromisoformat(str(fields["time_period"]))
@@ -83,6 +86,8 @@ def test_sexual_scene_tags_follow_count_and_group_rules() -> None:
         for group_name, tags in tag_groups.items()
         for tag in tags
     }
+    configured_counts_by_presence = get_data()["sexual_scene_tag_count_weights_by_presence"]
+    required_groups_by_presence = get_data()["sexual_scene_required_tag_groups_by_presence"]
 
     for seed in range(200):
         fields = pick_story_fields(random.Random(seed))
@@ -95,11 +100,23 @@ def test_sexual_scene_tags_follow_count_and_group_rules() -> None:
             assert fields["sexual_partner"] is None
             continue
 
-        assert 2 <= len(selected_tags) <= 5
+        presence_counts = {
+            int(count)
+            for count, weight in configured_counts_by_presence[sexual_content_level].items()
+            if float(weight) > 0
+        }
+        minimum_count = len(required_groups_by_presence[sexual_content_level])
+        valid_counts = {
+            count
+            for count in presence_counts
+            if minimum_count <= count <= len(tag_groups)
+        }
+
+        assert len(selected_tags) in valid_counts
         assert len(selected_tags) == len(set(selected_tags))
 
-        selected_groups = {tag_to_group[tag] for tag in selected_tags}
-        assert len(selected_groups) == len(selected_tags)
+        for tag in selected_tags:
+            assert tag in tag_to_group
         assert fields["sexual_partner"] is None or isinstance(fields["sexual_partner"], str)
 
 

@@ -15,7 +15,21 @@ from telegraphy.story_brief.validation import (
     validate_story_data_strict,
 )
 
+DEFAULT_TAG_COUNT_WEIGHTS_BY_PRESENCE = {
+    "suggestive": {"1": 1.0},
+    "explicit": {"1": 1.0},
+    "implied": {"1": 1.0},
+    "fade_to_black": {"1": 1.0},
+}
 
+
+def _tag_count_weights_with_none_entry(
+    none_weights: dict[str, Any],
+) -> dict[str, dict[str, Any]]:
+    return {
+        "none": none_weights,
+        **DEFAULT_TAG_COUNT_WEIGHTS_BY_PRESENCE,
+    }
 def test_schema_validation_accepts_current_data(story_dataset_payloads) -> None:
     titles = story_dataset_payloads["titles"]
     entities = story_dataset_payloads["entities"]
@@ -591,7 +605,10 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
             lambda _titles, _entities, _prompts, config: config.update(
                 {"sexual_content_presence_weights": [1.0]}
             ),
-            r"config sexual_content_presence_options/sexual_content_presence_weights must be the same length",
+            (
+                r"config sexual_content_presence_options/"
+                r"sexual_content_presence_weights must be the same length"
+            ),
         ),
         (
             lambda _titles, _entities, _prompts, config: config.update(
@@ -637,31 +654,51 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
         ),
         (
             lambda _titles, _entities, _prompts, config: config.update(
-                {"sexual_scene_tag_count_weights_by_presence": {"none": {"abc": 1.0}, "suggestive": {"1": 1.0}, "explicit": {"1": 1.0}, "implied": {"1": 1.0}, "fade_to_black": {"1": 1.0}}}
+                {
+                    "sexual_scene_tag_count_weights_by_presence": (
+                        _tag_count_weights_with_none_entry({"abc": 1.0})
+                    )
+                }
             ),
             r"sexual_scene_tag_count_weights keys must be non-negative integers",
         ),
         (
             lambda _titles, _entities, _prompts, config: config.update(
-                {"sexual_scene_tag_count_weights_by_presence": {"none": {"1": 0.0, "2": 0.0}, "suggestive": {"1": 1.0}, "explicit": {"1": 1.0}, "implied": {"1": 1.0}, "fade_to_black": {"1": 1.0}}}
+                {
+                    "sexual_scene_tag_count_weights_by_presence": (
+                        _tag_count_weights_with_none_entry({"1": 0.0, "2": 0.0})
+                    )
+                }
             ),
             r"sexual_scene_tag_count_weights values must sum to > 0",
         ),
         (
             lambda _titles, _entities, _prompts, config: config.update(
-                {"sexual_scene_tag_count_weights_by_presence": {"none": {"1": True}, "suggestive": {"1": 1.0}, "explicit": {"1": 1.0}, "implied": {"1": 1.0}, "fade_to_black": {"1": 1.0}}}
+                {
+                    "sexual_scene_tag_count_weights_by_presence": (
+                        _tag_count_weights_with_none_entry({"1": True})
+                    )
+                }
             ),
             r"sexual_scene_tag_count_weights values must be real numbers",
         ),
         (
             lambda _titles, _entities, _prompts, config: config.update(
-                {"sexual_scene_tag_count_weights_by_presence": {"none": {"1": math.inf}, "suggestive": {"1": 1.0}, "explicit": {"1": 1.0}, "implied": {"1": 1.0}, "fade_to_black": {"1": 1.0}}}
+                {
+                    "sexual_scene_tag_count_weights_by_presence": (
+                        _tag_count_weights_with_none_entry({"1": math.inf})
+                    )
+                }
             ),
             r"sexual_scene_tag_count_weights values must be finite",
         ),
         (
             lambda _titles, _entities, _prompts, config: config.update(
-                {"sexual_scene_tag_count_weights_by_presence": {"none": {"1": -1.0}, "suggestive": {"1": 1.0}, "explicit": {"1": 1.0}, "implied": {"1": 1.0}, "fade_to_black": {"1": 1.0}}}
+                {
+                    "sexual_scene_tag_count_weights_by_presence": (
+                        _tag_count_weights_with_none_entry({"1": -1.0})
+                    )
+                }
             ),
             r"sexual_scene_tag_count_weights values must be non-negative",
         ),
@@ -699,5 +736,4 @@ def test_schema_validation_rejects_uncovered_branch_conditions(
     expected_message: str,
 ) -> None:
     _assert_schema_rejects(story_dataset_payloads, mutator, expected_message)
-
 

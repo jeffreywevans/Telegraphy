@@ -212,7 +212,9 @@ def _validate_sexual_content_weights(config: dict[str, Any]) -> None:
     )
 
     presence_options = config["sexual_content_presence_options"]
-    list_error, length_error, item_field_prefix, sum_error = _resolve_presence_weight_error_messages()
+    list_error, length_error, item_field_prefix, sum_error = (
+        _resolve_presence_weight_error_messages()
+    )
     _validate_non_negative_real_weights(
         config["sexual_content_presence_weights"],
         presence_options,

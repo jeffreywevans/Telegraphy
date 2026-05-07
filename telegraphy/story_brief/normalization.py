@@ -28,17 +28,18 @@ def _build_story_data(dataset_payloads: dict[str, Any]) -> dict[str, Any]:
         str(group_name): tuple(str(tag) for tag in tags)
         for group_name, tags in config["sexual_scene_tag_groups"].items()
     }
-    sorted_items = sorted(
-        config["sexual_scene_tag_count_weights"].items(),
-        key=lambda item: int(item[0]),
+    sexual_scene_tag_count_weights_by_presence = {
+        str(presence): {
+            int(option_raw): float(weight_raw)
+            for option_raw, weight_raw in sorted(weights.items(), key=lambda item: int(item[0]))
+        }
+        for presence, weights in config["sexual_scene_tag_count_weights_by_presence"].items()
+    }
+    legacy_default_presence = next(iter(sexual_scene_tag_count_weights_by_presence))
+    legacy_sorted_items = sorted(
+        sexual_scene_tag_count_weights_by_presence[legacy_default_presence].items(),
+        key=lambda item: item[0],
     )
-    sexual_scene_tag_count_options_list: list[int] = []
-    sexual_scene_tag_count_weights_list: list[float] = []
-    for option_raw, weight_raw in sorted_items:
-        sexual_scene_tag_count_options_list.append(int(option_raw))
-        sexual_scene_tag_count_weights_list.append(float(weight_raw))
-    sexual_scene_tag_count_options = tuple(sexual_scene_tag_count_options_list)
-    sexual_scene_tag_count_weights = tuple(sexual_scene_tag_count_weights_list)
     word_count_targets = tuple(int(value) for value in config["word_count_targets"])
 
     return {
@@ -51,16 +52,34 @@ def _build_story_data(dataset_payloads: dict[str, Any]) -> dict[str, Any]:
         **sorted_prompt_lists,
         "date_start": validated.date_start,
         "date_end": validated.date_end,
-        "sexual_content_options": tuple(str(v) for v in config["sexual_content_options"]),
-        "sexual_content_weights": tuple(float(v) for v in config["sexual_content_weights"]),
+        "sexual_content_presence_options": tuple(
+            str(v) for v in config["sexual_content_presence_options"]
+        ),
+        "sexual_content_presence_weights": tuple(
+            float(v) for v in config["sexual_content_presence_weights"]
+        ),
+        "sexual_content_story_role_options": tuple(
+            str(v) for v in config["sexual_content_story_role_options"]
+        ),
+        "sexual_content_story_role_weights": tuple(
+            float(v) for v in config["sexual_content_story_role_weights"]
+        ),
         "sexual_scene_tag_groups": sexual_scene_tag_groups,
         "sexual_scene_tag_group_names_sorted": tuple(stable_sorted_pool(sexual_scene_tag_groups)),
         "sexual_scene_tag_groups_sorted": {
             group_name: tuple(stable_sorted_pool(tags))
             for group_name, tags in sexual_scene_tag_groups.items()
         },
-        "sexual_scene_tag_count_options": sexual_scene_tag_count_options,
-        "sexual_scene_tag_count_weights": sexual_scene_tag_count_weights,
+        "sexual_scene_tag_count_weights_by_presence": sexual_scene_tag_count_weights_by_presence,
+        "sexual_scene_tag_count_options": tuple(option for option, _ in legacy_sorted_items),
+        "sexual_scene_tag_count_weights": tuple(weight for _, weight in legacy_sorted_items),
+        "sexual_scene_required_tag_groups_by_presence": {
+            str(presence): tuple(str(group_name) for group_name in groups)
+            for presence, groups in config["sexual_scene_required_tag_groups_by_presence"].items()
+        },
+        "sexual_scene_optional_tag_groups": tuple(
+            str(group_name) for group_name in config["sexual_scene_optional_tag_groups"]
+        ),
         "word_count_targets": word_count_targets,
         "word_count_targets_sorted": tuple(stable_sorted_pool(word_count_targets)),
         "ordered_keys": tuple(str(v) for v in config["ordered_keys"]),

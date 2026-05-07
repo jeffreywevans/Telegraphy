@@ -164,21 +164,55 @@ def _validate_config_date_overlap(
 
 
 def _validate_sexual_content_weights(config: dict[str, Any]) -> None:
-    _validate_string_list("config", "sexual_content_options", config["sexual_content_options"])
-    weights = config["sexual_content_weights"]
+    if "sexual_content_presence_options" not in config:
+        config["sexual_content_presence_options"] = config["sexual_content_options"]
+        config["sexual_content_presence_weights"] = config["sexual_content_weights"]
+    if "sexual_content_story_role_options" not in config:
+        config["sexual_content_story_role_options"] = ["incidental"]
+        config["sexual_content_story_role_weights"] = [1.0]
+    _validate_string_list(
+        "config", "sexual_content_presence_options", config["sexual_content_presence_options"]
+    )
+    _validate_string_list(
+        "config",
+        "sexual_content_story_role_options",
+        config["sexual_content_story_role_options"],
+    )
+    weights = config["sexual_content_presence_weights"]
     if not isinstance(weights, list) or not weights:
-        raise ValueError("config.sexual_content_weights must be a non-empty list")
-    if len(weights) != len(config["sexual_content_options"]):
-        raise ValueError("config sexual_content_options/weights must be the same length")
+        raise ValueError("config.sexual_content_presence_weights must be a non-empty list")
+    if len(weights) != len(config["sexual_content_presence_options"]):
+        raise ValueError(
+            "config sexual_content_presence_options/sexual_content_presence_weights must be the same length"
+        )
     for idx, value in enumerate(weights):
         if isinstance(value, bool) or not isinstance(value, (int, float)):
-            raise ValueError(f"config.sexual_content_weights[{idx}] must be a real number")
+            raise ValueError(f"config.sexual_content_presence_weights[{idx}] must be a real number")
         if not math.isfinite(value):
-            raise ValueError(f"config.sexual_content_weights[{idx}] must be finite")
+            raise ValueError(f"config.sexual_content_presence_weights[{idx}] must be finite")
         if value < 0:
-            raise ValueError(f"config.sexual_content_weights[{idx}] must be non-negative")
+            raise ValueError(f"config.sexual_content_presence_weights[{idx}] must be non-negative")
     if sum(weights) <= 0:
-        raise ValueError("config.sexual_content_weights must sum to > 0")
+        raise ValueError("config.sexual_content_presence_weights must sum to > 0")
+
+    role_weights = config["sexual_content_story_role_weights"]
+    if not isinstance(role_weights, list) or not role_weights:
+        raise ValueError("config.sexual_content_story_role_weights must be a non-empty list")
+    if len(role_weights) != len(config["sexual_content_story_role_options"]):
+        raise ValueError(
+            "config sexual_content_story_role_options/sexual_content_story_role_weights must be the same length"
+        )
+    for idx, value in enumerate(role_weights):
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise ValueError(f"config.sexual_content_story_role_weights[{idx}] must be a real number")
+        if not math.isfinite(value):
+            raise ValueError(f"config.sexual_content_story_role_weights[{idx}] must be finite")
+        if value < 0:
+            raise ValueError(
+                f"config.sexual_content_story_role_weights[{idx}] must be non-negative"
+            )
+    if sum(role_weights) <= 0:
+        raise ValueError("config.sexual_content_story_role_weights must sum to > 0")
 
 
 def _validate_word_count_targets(config: dict[str, Any]) -> None:
@@ -209,49 +243,82 @@ def _validate_sexual_scene_tag_groups(config: dict[str, Any]) -> None:
         _validate_no_duplicate_strings("config", f"sexual_scene_tag_groups.{group_name}", tags)
 
 
-def _validate_sexual_scene_tag_count_weights(config: dict[str, Any]) -> None:
-    raw_weights = config["sexual_scene_tag_count_weights"]
-    if not isinstance(raw_weights, dict) or not raw_weights:
-        raise ValueError("config.sexual_scene_tag_count_weights must be a non-empty object")
+def _validate_sexual_scene_tag_count_weights_by_presence(config: dict[str, Any]) -> None:
+    if "sexual_scene_tag_count_weights_by_presence" not in config:
+        legacy = config["sexual_scene_tag_count_weights"]
+        config["sexual_scene_tag_count_weights_by_presence"] = {
+            presence: legacy for presence in config["sexual_content_presence_options"]
+        }
+    if "sexual_scene_required_tag_groups_by_presence" not in config:
+        groups = list(config["sexual_scene_tag_groups"].keys())
+        config["sexual_scene_required_tag_groups_by_presence"] = {
+            presence: groups for presence in config["sexual_content_presence_options"]
+        }
+    if "sexual_scene_optional_tag_groups" not in config:
+        config["sexual_scene_optional_tag_groups"] = []
+    raw_by_presence = config["sexual_scene_tag_count_weights_by_presence"]
+    if not isinstance(raw_by_presence, dict) or not raw_by_presence:
+        raise ValueError(
+            "config.sexual_scene_tag_count_weights_by_presence must be a non-empty object"
+        )
 
     group_count = len(config["sexual_scene_tag_groups"])
-    weight_sum = 0.0
-    for raw_count, weight in raw_weights.items():
-        count = _parse_positive_weight_count(
-            raw_count, field_name="config.sexual_scene_tag_count_weights keys"
-        )
-        if count > group_count:
+    for presence in config["sexual_content_presence_options"]:
+        raw_weights = raw_by_presence.get(presence)
+        if not isinstance(raw_weights, dict) or not raw_weights:
             raise ValueError(
-                "config.sexual_scene_tag_count_weights keys must not exceed the "
-                "available sexual_scene_tag_groups count"
+                "config.sexual_scene_tag_count_weights_by_presence "
+                f"must include a non-empty object for presence {presence!r}"
             )
-        weight_sum += _coerce_non_negative_finite_weight(weight)
 
-    if weight_sum <= 0:
-        raise ValueError("config.sexual_scene_tag_count_weights values must sum to > 0")
+        weight_sum = 0.0
+        for raw_count, weight in raw_weights.items():
+            count = _parse_positive_weight_count(
+                raw_count,
+                field_name=(
+                    "config.sexual_scene_tag_count_weights_by_presence"
+                    f".{presence} keys"
+                ),
+            )
+            if count < 0 or count > group_count:
+                raise ValueError(
+                    "config.sexual_scene_tag_count_weights_by_presence keys must not exceed the "
+                    "available sexual_scene_tag_groups count"
+                )
+            weight_sum += _coerce_non_negative_finite_weight(weight)
+        if weight_sum <= 0:
+            raise ValueError(
+                "config.sexual_scene_tag_count_weights_by_presence values must sum to > 0"
+            )
 
 
 def _parse_positive_weight_count(
     raw_count: Any,
     field_name: str,
 ) -> int:
-    error_message = f"{field_name} must be positive integers, got {raw_count!r}"
+    error_message = f"{field_name} must be non-negative integers, got {raw_count!r}"
     try:
         count = int(raw_count)
     except (TypeError, ValueError) as exc:
         raise ValueError(error_message) from exc
-    if str(count) != str(raw_count) or count <= 0:
+    if str(count) != str(raw_count) or count < 0:
         raise ValueError(error_message)
     return count
 
 
 def _coerce_non_negative_finite_weight(weight: Any) -> float:
     if isinstance(weight, bool) or not isinstance(weight, (int, float)):
-        raise ValueError("config.sexual_scene_tag_count_weights values must be real numbers")
+        raise ValueError(
+            "config.sexual_scene_tag_count_weights_by_presence values must be real numbers"
+        )
     if not math.isfinite(weight):
-        raise ValueError("config.sexual_scene_tag_count_weights values must be finite")
+        raise ValueError(
+            "config.sexual_scene_tag_count_weights_by_presence values must be finite"
+        )
     if weight < 0:
-        raise ValueError("config.sexual_scene_tag_count_weights values must be non-negative")
+        raise ValueError(
+            "config.sexual_scene_tag_count_weights_by_presence values must be non-negative"
+        )
     return float(weight)
 
 
@@ -311,6 +378,25 @@ def validate_story_data(
 
     _validate_prompt_lists(prompts)
 
+    if "sexual_content_presence_options" not in config and "sexual_content_options" in config:
+        config["sexual_content_presence_options"] = config["sexual_content_options"]
+        config["sexual_content_presence_weights"] = config["sexual_content_weights"]
+    if "sexual_scene_tag_count_weights_by_presence" not in config and "sexual_scene_tag_count_weights" in config:
+        config["sexual_scene_tag_count_weights_by_presence"] = {
+            presence: config["sexual_scene_tag_count_weights"]
+            for presence in config["sexual_content_presence_options"]
+        }
+    if "sexual_content_story_role_options" not in config:
+        config["sexual_content_story_role_options"] = ["incidental"]
+        config["sexual_content_story_role_weights"] = [1.0]
+    if "sexual_scene_required_tag_groups_by_presence" not in config:
+        config["sexual_scene_required_tag_groups_by_presence"] = {
+            presence: list(config["sexual_scene_tag_groups"].keys())
+            for presence in config["sexual_content_presence_options"]
+        }
+    if "sexual_scene_optional_tag_groups" not in config:
+        config["sexual_scene_optional_tag_groups"] = []
+
     require_keys(
         "config",
         config,
@@ -319,10 +405,14 @@ def validate_story_data(
             "dataset_version",
             "date_start",
             "date_end",
-            "sexual_content_options",
-            "sexual_content_weights",
+            "sexual_content_presence_options",
+            "sexual_content_presence_weights",
+            "sexual_content_story_role_options",
+            "sexual_content_story_role_weights",
             "sexual_scene_tag_groups",
-            "sexual_scene_tag_count_weights",
+            "sexual_scene_tag_count_weights_by_presence",
+            "sexual_scene_required_tag_groups_by_presence",
+            "sexual_scene_optional_tag_groups",
             "word_count_targets",
             "ordered_keys",
             "writing_preamble",
@@ -333,7 +423,7 @@ def validate_story_data(
     _validate_config_date_overlap(character_rows, setting_rows, start, end)
     _validate_sexual_content_weights(config)
     _validate_sexual_scene_tag_groups(config)
-    _validate_sexual_scene_tag_count_weights(config)
+    _validate_sexual_scene_tag_count_weights_by_presence(config)
     _validate_word_count_targets(config)
     _validate_ordered_keys(config)
     _validate_writing_preamble(config)

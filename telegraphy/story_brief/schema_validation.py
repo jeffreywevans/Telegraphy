@@ -163,6 +163,51 @@ def _validate_config_date_overlap(
         )
 
 
+def _resolve_presence_weight_error_messages(config: dict[str, Any]) -> tuple[str, str, str, str]:
+    if "sexual_content_weights" in config:
+        return (
+            "config.sexual_content_weights must be a non-empty list",
+            "sexual_content_options/weights must be the same length",
+            "config.sexual_content_weights",
+            "config.sexual_content_weights must sum to > 0",
+        )
+    return (
+        "config.sexual_content_presence_weights must be a non-empty list",
+        (
+            "config sexual_content_presence_options/"
+            "sexual_content_presence_weights must be the same length"
+        ),
+        "config.sexual_content_presence_weights",
+        "config.sexual_content_presence_weights must sum to > 0",
+    )
+
+
+def _validate_non_negative_real_weights(
+    weights: Any,
+    options: list[str],
+    *,
+    list_error: str,
+    length_error: str,
+    item_field_prefix: str,
+    sum_error: str,
+) -> None:
+    if not isinstance(weights, list) or not weights:
+        raise ValueError(list_error)
+    if len(weights) != len(options):
+        raise ValueError(length_error)
+
+    for idx, value in enumerate(weights):
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise ValueError(f"{item_field_prefix}[{idx}] must be a real number")
+        if not math.isfinite(value):
+            raise ValueError(f"{item_field_prefix}[{idx}] must be finite")
+        if value < 0:
+            raise ValueError(f"{item_field_prefix}[{idx}] must be non-negative")
+
+    if sum(weights) <= 0:
+        raise ValueError(sum_error)
+
+
 def _validate_sexual_content_weights(config: dict[str, Any]) -> None:
     _validate_string_list(
         "config", "sexual_content_presence_options", config["sexual_content_presence_options"]
@@ -172,63 +217,31 @@ def _validate_sexual_content_weights(config: dict[str, Any]) -> None:
         "sexual_content_story_role_options",
         config["sexual_content_story_role_options"],
     )
-    weights = config["sexual_content_presence_weights"]
-    has_legacy_weights = "sexual_content_weights" in config
-    if not isinstance(weights, list) or not weights:
-        if has_legacy_weights:
-            raise ValueError("config.sexual_content_weights must be a non-empty list")
-        raise ValueError("config.sexual_content_presence_weights must be a non-empty list")
-    if len(weights) != len(config["sexual_content_presence_options"]):
-        if has_legacy_weights:
-            raise ValueError("sexual_content_options/weights must be the same length")
-        raise ValueError(
-            "config sexual_content_presence_options/"
-            "sexual_content_presence_weights must be the same length"
-        )
-    for idx, value in enumerate(weights):
-        if isinstance(value, bool) or not isinstance(value, (int, float)):
-            if has_legacy_weights:
-                raise ValueError(f"config.sexual_content_weights[{idx}] must be a real number")
-            raise ValueError(
-                f"config.sexual_content_presence_weights[{idx}] must be a real number"
-            )
-        if not math.isfinite(value):
-            if has_legacy_weights:
-                raise ValueError(f"config.sexual_content_weights[{idx}] must be finite")
-            raise ValueError(f"config.sexual_content_presence_weights[{idx}] must be finite")
-        if value < 0:
-            if has_legacy_weights:
-                raise ValueError(f"config.sexual_content_weights[{idx}] must be non-negative")
-            raise ValueError(
-                f"config.sexual_content_presence_weights[{idx}] must be non-negative"
-            )
-    if sum(weights) <= 0:
-        if has_legacy_weights:
-            raise ValueError("config.sexual_content_weights must sum to > 0")
-        raise ValueError("config.sexual_content_presence_weights must sum to > 0")
 
-    role_weights = config["sexual_content_story_role_weights"]
-    if not isinstance(role_weights, list) or not role_weights:
-        raise ValueError("config.sexual_content_story_role_weights must be a non-empty list")
-    if len(role_weights) != len(config["sexual_content_story_role_options"]):
-        raise ValueError(
+    presence_options = config["sexual_content_presence_options"]
+    list_error, length_error, item_field_prefix, sum_error = (
+        _resolve_presence_weight_error_messages(config)
+    )
+    _validate_non_negative_real_weights(
+        config["sexual_content_presence_weights"],
+        presence_options,
+        list_error=list_error,
+        length_error=length_error,
+        item_field_prefix=item_field_prefix,
+        sum_error=sum_error,
+    )
+
+    _validate_non_negative_real_weights(
+        config["sexual_content_story_role_weights"],
+        config["sexual_content_story_role_options"],
+        list_error="config.sexual_content_story_role_weights must be a non-empty list",
+        length_error=(
             "config sexual_content_story_role_options/"
             "sexual_content_story_role_weights must be the same length"
-        )
-    for idx, value in enumerate(role_weights):
-        if isinstance(value, bool) or not isinstance(value, (int, float)):
-            raise ValueError(
-                f"config.sexual_content_story_role_weights[{idx}] "
-                "must be a real number"
-            )
-        if not math.isfinite(value):
-            raise ValueError(f"config.sexual_content_story_role_weights[{idx}] must be finite")
-        if value < 0:
-            raise ValueError(
-                f"config.sexual_content_story_role_weights[{idx}] must be non-negative"
-            )
-    if sum(role_weights) <= 0:
-        raise ValueError("config.sexual_content_story_role_weights must sum to > 0")
+        ),
+        item_field_prefix="config.sexual_content_story_role_weights",
+        sum_error="config.sexual_content_story_role_weights must sum to > 0",
+    )
 
 
 def _validate_word_count_targets(config: dict[str, Any]) -> None:

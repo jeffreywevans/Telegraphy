@@ -352,6 +352,40 @@ def _validate_partner_distributions(
     return dataset
 
 
+def _apply_legacy_config_migrations(config: dict[str, Any]) -> None:
+    if "sexual_content_presence_options" not in config:
+        if "sexual_content_options" in config and "sexual_content_weights" in config:
+            config["sexual_content_presence_options"] = config["sexual_content_options"]
+            config["sexual_content_presence_weights"] = config["sexual_content_weights"]
+
+    if "sexual_content_presence_options" in config:
+        if (
+            "sexual_scene_tag_count_weights_by_presence" not in config
+            and "sexual_scene_tag_count_weights" in config
+        ):
+            config["sexual_scene_tag_count_weights_by_presence"] = {
+                presence: config["sexual_scene_tag_count_weights"]
+                for presence in config["sexual_content_presence_options"]
+            }
+
+        if (
+            "sexual_scene_required_tag_groups_by_presence" not in config
+            and "sexual_scene_tag_groups" in config
+        ):
+            tag_group_keys = list(config["sexual_scene_tag_groups"].keys())
+            config["sexual_scene_required_tag_groups_by_presence"] = {
+                presence: list(tag_group_keys)
+                for presence in config["sexual_content_presence_options"]
+            }
+
+    if "sexual_content_story_role_options" not in config:
+        config["sexual_content_story_role_options"] = ["incidental"]
+        config["sexual_content_story_role_weights"] = [1.0]
+
+    if "sexual_scene_optional_tag_groups" not in config:
+        config["sexual_scene_optional_tag_groups"] = []
+
+
 def validate_story_data(
     titles: dict[str, Any],
     entities: dict[str, Any],
@@ -364,28 +398,7 @@ def validate_story_data(
     character_rows, setting_rows = _validate_entities(entities)
 
     _validate_prompt_lists(prompts)
-
-    if "sexual_content_presence_options" not in config and "sexual_content_options" in config:
-        config["sexual_content_presence_options"] = config["sexual_content_options"]
-        config["sexual_content_presence_weights"] = config["sexual_content_weights"]
-    if (
-        "sexual_scene_tag_count_weights_by_presence" not in config
-        and "sexual_scene_tag_count_weights" in config
-    ):
-        config["sexual_scene_tag_count_weights_by_presence"] = {
-            presence: config["sexual_scene_tag_count_weights"]
-            for presence in config["sexual_content_presence_options"]
-        }
-    if "sexual_content_story_role_options" not in config:
-        config["sexual_content_story_role_options"] = ["incidental"]
-        config["sexual_content_story_role_weights"] = [1.0]
-    if "sexual_scene_required_tag_groups_by_presence" not in config:
-        config["sexual_scene_required_tag_groups_by_presence"] = {
-            presence: list(config["sexual_scene_tag_groups"].keys())
-            for presence in config["sexual_content_presence_options"]
-        }
-    if "sexual_scene_optional_tag_groups" not in config:
-        config["sexual_scene_optional_tag_groups"] = []
+    _apply_legacy_config_migrations(config)
 
     require_keys(
         "config",

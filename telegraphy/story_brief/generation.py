@@ -272,10 +272,7 @@ def _required_sexual_scene_tag_groups(
         Mapping[str, Sequence[str]],
         data.get("sexual_scene_required_tag_groups_by_presence", {}),
     )
-    required_groups = [
-        group_name
-        for group_name in required_groups_by_presence.get(sexual_content_level, ())
-    ]
+    required_groups = list(required_groups_by_presence.get(sexual_content_level, ()))
     if not required_groups:
         return []
 

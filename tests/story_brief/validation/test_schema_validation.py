@@ -1,4 +1,5 @@
 import math
+import re
 from collections.abc import Callable
 from datetime import timedelta
 from typing import Any
@@ -227,7 +228,7 @@ def test_schema_validation_rejects_removed_config_alias_keys(
     _assert_schema_rejects(
         story_dataset_payloads,
         lambda t, e, p, c: c.update({unsupported_alias_key: ["legacy"]}),
-        rf"{UNSUPPORTED_CONFIG_ALIAS_ERROR_PREFIX}.*{unsupported_alias_key}",
+        rf"{re.escape(UNSUPPORTED_CONFIG_ALIAS_ERROR_PREFIX)}.*{unsupported_alias_key}",
     )
 
 

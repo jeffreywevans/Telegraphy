@@ -84,6 +84,7 @@ Out of scope for this inventory:
    - one helper for rejecting removed keys,
    - one helper for applying current defaults.
 3. Audit `generate_story_brief.py` alias comment/API to confirm intentional compatibility contract; remove if stale.
+4. Remove legacy sorting fallbacks in `generation.py` (`_sexual_scene_tag_group_names`, etc.) once data normalization is guaranteed.
 
 ## Risks to manage in subsequent phases
 

@@ -70,7 +70,7 @@ def test_symmetric_peak_weights_rejects_non_positive_lengths() -> None:
             symmetric_peak_weights(length)
 
 
-def test_count_distribution_presence_fallback_respects_minimum_count_off_page() -> None:
+def test_count_distribution_raises_when_no_options_valid() -> None:
     data = {
         "sexual_scene_tag_count_options": (3, 4),
         "sexual_scene_tag_count_weights": (0.5, 0.5),

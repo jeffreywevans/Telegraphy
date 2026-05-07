@@ -3,81 +3,215 @@
   "dataset_version": "2026.04.26",
   "date_start": "1989-12-04",
   "date_end": "2032-07-23",
-  "sexual_content_options": [
+  "sexual_content_presence_options": [
     "none",
-    "if_creatively_merited",
     "implied",
-    "required",
-    "central"
+    "off_page",
+    "on_page_brief",
+    "on_page_full"
   ],
-  "sexual_content_weights": [
+  "sexual_content_presence_weights": [
     0.6,
+    0.16,
     0.1,
-    0.1,
-    0.1,
-    0.1
+    0.09,
+    0.05
   ],
-  "sexual_scene_tag_count_weights": {
-    "2": 0.7,
-    "3": 0.1,
-    "4": 0.1,
-    "5": 0.1
+  "sexual_content_story_role_options": [
+    "incidental",
+    "character_revealing",
+    "plot_bearing",
+    "relationship_defining",
+    "structural_centerpiece"
+  ],
+  "sexual_content_story_role_weights": [
+    0.15,
+    0.35,
+    0.25,
+    0.2,
+    0.05
+  ],
+  "sexual_scene_tag_count_weights_by_presence": {
+    "none": {
+      "0": 1.0
+    },
+    "implied": {
+      "2": 0.65,
+      "3": 0.25,
+      "4": 0.1
+    },
+    "off_page": {
+      "2": 0.45,
+      "3": 0.35,
+      "4": 0.2
+    },
+    "on_page_brief": {
+      "4": 0.45,
+      "5": 0.35,
+      "6": 0.2
+    },
+    "on_page_full": {
+      "5": 0.25,
+      "6": 0.4,
+      "7": 0.25,
+      "8": 0.1
+    }
   },
+  "sexual_scene_required_tag_groups_by_presence": {
+    "none": [],
+    "implied": [
+      "dramatic_function",
+      "aftermath"
+    ],
+    "off_page": [
+      "pacing",
+      "dramatic_function",
+      "aftermath"
+    ],
+    "on_page_brief": [
+      "location",
+      "pacing",
+      "tone",
+      "dramatic_function",
+      "aftermath"
+    ],
+    "on_page_full": [
+      "location",
+      "pacing",
+      "tone",
+      "dramatic_function",
+      "aftermath",
+      "physicality"
+    ]
+  },
+  "sexual_scene_optional_tag_groups": [
+    "privacy_risk",
+    "physicality",
+    "sensory_anchor",
+    "archive_status"
+  ],
   "sexual_scene_tag_groups": {
     "location": [
       "backstage",
       "bedroom",
       "closet",
-      "green-room",
-      "hotel-room",
-      "no-tell-motel",
-      "semi-public",
+      "green_room",
+      "hotel_room",
+      "no_tell_motel",
+      "semi_public",
       "shower",
-      "tour-bus",
+      "studio",
+      "tour_bus",
       "waterfront"
     ],
     "pacing": [
       "interrupted",
       "languid",
       "marathon",
-      "morning-after",
-      "post-show",
-      "quickie",
+      "morning_after",
+      "post_fight",
+      "post_show",
+      "quick",
       "rushed",
-      "slow-burn"
-    ],
-    "partner": [
-      "band-mate",
-      "ex",
-      "fan",
-      "groupie",
-      "married",
-      "mutual",
-      "roadie",
-      "voyeuristic"
+      "slow_burn",
+      "spiraling"
     ],
     "tone": [
+      "aching",
+      "awkward",
+      "defiant",
       "detached",
-      "dominating",
+      "emotionally_absent",
       "enthusiastic",
       "guilty",
+      "hungry",
       "playful",
-      "power-exchange",
-      "talkative",
+      "reverent",
       "taunting",
-      "teasing",
-      "uninterested",
+      "tender",
+      "volatile",
       "worshipful"
     ],
-    "type": [
+    "dramatic_function": [
+      "avoidance",
+      "betrayal",
+      "comfort",
+      "control",
+      "ego_repair",
+      "grief_response",
+      "jealousy",
+      "power_struggle",
+      "reconciliation",
+      "relapse",
+      "revenge",
+      "self_sabotage",
+      "truth_telling"
+    ],
+    "aftermath": [
+      "awkward_morning",
+      "deepened_bond",
+      "delight",
+      "emotional_hangover",
+      "press_risk",
+      "private_shame",
+      "relationship_damage",
+      "secret_kept",
+      "secret_leaked",
+      "tour_fallout",
+      "unwanted_clarity"
+    ],
+    "privacy_risk": [
+      "almost_discovered",
+      "band_member_overhears",
+      "door_unlocked",
+      "hotel_staff_nearby",
+      "interrupted",
+      "paper_thin_walls",
+      "press_nearby",
+      "recorded_accidentally",
+      "semi_public",
+      "tour_party_adjacent",
+      "witness_nearby"
+    ],
+    "physicality": [
       "anal",
       "awkward",
       "clumsy",
       "fun",
-      "mutual-masturbation",
-      "non-penetrative",
-      "oral-only",
-      "raw"
+      "messy",
+      "mutual_masturbation",
+      "non_penetrative",
+      "oral_only",
+      "raw",
+      "tender_contact",
+      "urgent"
+    ],
+    "sensory_anchor": [
+      "aftershave",
+      "amp_hum",
+      "beer_on_breath",
+      "cigarette_smoke",
+      "clean_skin",
+      "fabric_against_skin",
+      "floor_vibration",
+      "laundry_detergent",
+      "lipstick_smear",
+      "makeup_transfer",
+      "perfume",
+      "ringing_ears",
+      "soap_on_skin",
+      "stage_sweat",
+      "vocal_roughness"
+    ],
+    "archive_status": [
+      "deliberately_suppressed",
+      "diary_only",
+      "later_mythologized",
+      "legally_dangerous",
+      "misremembered",
+      "off_record",
+      "press_leaked",
+      "witnessed_by_kendall"
     ]
   },
   "word_count_targets": [

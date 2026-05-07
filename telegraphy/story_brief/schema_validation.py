@@ -163,14 +163,7 @@ def _validate_config_date_overlap(
         )
 
 
-def _resolve_presence_weight_error_messages(config: dict[str, Any]) -> tuple[str, str, str, str]:
-    if "sexual_content_weights" in config:
-        return (
-            "config.sexual_content_weights must be a non-empty list",
-            "sexual_content_options/weights must be the same length",
-            "config.sexual_content_weights",
-            "config.sexual_content_weights must sum to > 0",
-        )
+def _resolve_presence_weight_error_messages() -> tuple[str, str, str, str]:
     return (
         "config.sexual_content_presence_weights must be a non-empty list",
         (
@@ -220,7 +213,7 @@ def _validate_sexual_content_weights(config: dict[str, Any]) -> None:
 
     presence_options = config["sexual_content_presence_options"]
     list_error, length_error, item_field_prefix, sum_error = (
-        _resolve_presence_weight_error_messages(config)
+        _resolve_presence_weight_error_messages()
     )
     _validate_non_negative_real_weights(
         config["sexual_content_presence_weights"],
@@ -280,7 +273,7 @@ def _validate_sexual_scene_tag_count_weights_by_presence(config: dict[str, Any])
         )
 
     group_count = len(config["sexual_scene_tag_groups"])
-    min_count = 1 if "sexual_scene_tag_count_weights" in config else 0
+    min_count = 0
     for presence in config["sexual_content_presence_options"]:
         raw_weights = raw_by_presence.get(presence)
         if not isinstance(raw_weights, dict) or not raw_weights:
@@ -383,37 +376,19 @@ def _validate_partner_distributions(
 
 
 def _apply_legacy_config_migrations(config: dict[str, Any]) -> None:
-    """Normalize legacy config aliases to the canonical schema fields.
-
-    When both legacy and canonical keys exist, treat legacy keys as overrides so
-    compatibility tests and hand-authored payloads can mutate either form.
-    """
-    if "sexual_content_options" in config:
-        config["sexual_content_presence_options"] = config["sexual_content_options"]
-    if "sexual_content_weights" in config:
-        config["sexual_content_presence_weights"] = config["sexual_content_weights"]
-
-    if "sexual_content_presence_options" in config:
-        if "sexual_scene_tag_count_weights" in config:
-            config["sexual_scene_tag_count_weights_by_presence"] = {
-                presence: config["sexual_scene_tag_count_weights"]
-                for presence in config["sexual_content_presence_options"]
-            }
-        elif "sexual_scene_tag_count_weights_by_presence" not in config:
-            config["sexual_scene_tag_count_weights_by_presence"] = {
-                presence: {}
-                for presence in config["sexual_content_presence_options"]
-            }
-
-        if (
-            "sexual_scene_required_tag_groups_by_presence" not in config
-            and "sexual_scene_tag_groups" in config
-        ):
-            tag_group_keys = list(config["sexual_scene_tag_groups"])
-            config["sexual_scene_required_tag_groups_by_presence"] = {
-                presence: list(tag_group_keys)
-                for presence in config["sexual_content_presence_options"]
-            }
+    """Reject removed legacy config aliases and apply supported defaults."""
+    legacy_keys = (
+        "sexual_content_options",
+        "sexual_content_weights",
+        "sexual_scene_tag_count_weights",
+    )
+    present_legacy_keys = [key for key in legacy_keys if key in config]
+    if present_legacy_keys:
+        joined = ", ".join(sorted(present_legacy_keys))
+        raise ValueError(
+            "Legacy config keys are no longer supported; "
+            f"use canonical fields instead: {joined}"
+        )
 
     if "sexual_content_story_role_options" not in config:
         config["sexual_content_story_role_options"] = ["incidental"]

@@ -173,7 +173,10 @@ def _resolve_presence_weight_error_messages(config: dict[str, Any]) -> tuple[str
         )
     return (
         "config.sexual_content_presence_weights must be a non-empty list",
-        "config sexual_content_presence_options/sexual_content_presence_weights must be the same length",
+        (
+            "config sexual_content_presence_options/"
+            "sexual_content_presence_weights must be the same length"
+        ),
         "config.sexual_content_presence_weights",
         "config.sexual_content_presence_weights must sum to > 0",
     )

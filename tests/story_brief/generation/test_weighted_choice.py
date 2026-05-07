@@ -137,3 +137,52 @@ def test_build_sexual_scene_tag_count_distribution_empty_mapping_falls_back_to_d
 
     assert options == [2, 3]
     assert weights == [0.7, 0.1]
+
+
+def test_build_sexual_scene_tag_count_distribution_filters_below_minimum_count() -> None:
+    data = {
+        "sexual_scene_tag_count_options": (2, 3, 4),
+        "sexual_scene_tag_count_weights": (0.5, 0.3, 0.2),
+    }
+
+    options, weights = build_sexual_scene_tag_count_distribution(
+        ("tone", "location", "pacing", "aftermath"),
+        data,
+        minimum_count=3,
+    )
+
+    assert options == [3, 4]
+    assert weights == [0.3, 0.2]
+
+
+def test_pick_sexual_scene_tags_enforces_required_groups_and_optional_pool() -> None:
+    from telegraphy.story_brief.generation import pick_sexual_scene_tags
+
+    rng = random.Random(7)
+    data = {
+        "sexual_scene_tag_group_names_sorted": (
+            "aftermath",
+            "location",
+            "physicality",
+            "pacing",
+            "tone",
+        ),
+        "sexual_scene_tag_groups_sorted": {
+            "aftermath": ("after",),
+            "location": ("loc",),
+            "physicality": ("phys",),
+            "pacing": ("pace",),
+            "tone": ("tone",),
+        },
+        "sexual_scene_tag_count_weights_by_presence": {
+            "on_page_full": {5: 1.0}
+        },
+        "sexual_scene_required_tag_groups_by_presence": {
+            "on_page_full": ("location", "tone", "aftermath"),
+        },
+        "sexual_scene_optional_tag_groups": ("pacing", "physicality"),
+    }
+
+    selected_tags = pick_sexual_scene_tags(rng, "on_page_full", data)
+
+    assert set(selected_tags) == {"loc", "tone", "after", "pace", "phys"}

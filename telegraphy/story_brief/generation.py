@@ -330,7 +330,7 @@ def build_sexual_scene_tag_count_distribution(
         Mapping[str, Mapping[str, Any]],
         data.get("sexual_scene_tag_count_weights_by_presence", {}),
     )
-    configured_tag_count_pairs = _configured_sexual_scene_tag_count_pairs(
+    configured_tag_count_pairs = _presence_specific_tag_count_pairs(
         raw_by_presence=raw_by_presence,
         sexual_content_presence=sexual_content_presence,
     )
@@ -343,7 +343,7 @@ def build_sexual_scene_tag_count_distribution(
             tag_count_options.append(count)
             tag_count_weights.append(weight)
 
-    if not tag_count_options and raw_by_presence:
+    if not tag_count_options:
         tag_count_options = [
             count
             for count in DEFAULT_SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION
@@ -361,14 +361,6 @@ def build_sexual_scene_tag_count_distribution(
         )
 
     return tag_count_options, tag_count_weights
-
-
-def _configured_sexual_scene_tag_count_pairs(
-    raw_by_presence: Mapping[str, Mapping[str, Any]],
-    sexual_content_presence: str | None,
-) -> Iterable[tuple[int, float]]:
-    """Build configured count/weight pairs from presence-specific tag count weights."""
-    return _presence_specific_tag_count_pairs(raw_by_presence, sexual_content_presence)
 
 
 def _presence_specific_tag_count_pairs(

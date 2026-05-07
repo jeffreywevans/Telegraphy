@@ -42,8 +42,8 @@ Out of scope for this inventory:
    - Internal weighted-choice labels still use strings:
      - `"sexual_content_options"`
      - `"sexual_content_weights"`
-   - These are labels for diagnostics/validation context, not config keys.
-   - **Classification**: **Naming debt** (can confuse with removed legacy config keys).
+   - These are used as keys in `data.get()` calls for legacy fallback, but since validation now rejects these keys, this is effectively dead code.
+   - **Classification**: **Potential dead/legacy compatibility path**.
 
 3. `telegraphy/story_brief/normalization.py`
    - Canonical field usage only (`sexual_scene_tag_count_weights_by_presence`).

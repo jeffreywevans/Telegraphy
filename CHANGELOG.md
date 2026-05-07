@@ -7,7 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Changed
-- Added explicit README migration guidance for legacy sexual-scene tag-count schema removal, including removed fields, replacement field, and a before/after JSON example.
+- Clarified README compatibility guidance for legacy sexual-scene tag-count schema removal, including removed fields, replacement field, and a before/after JSON example without implying runtime migration.
 
 ## [0.4.3] - 2026-05-05
 

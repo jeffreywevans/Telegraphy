@@ -1,14 +1,13 @@
-"""Enable `python -m telegraphy.story_brief` execution."""
+"""Run ``telegraphy.story_brief`` as a module."""
 
-from typing import NoReturn
+from __future__ import annotations
+
+import sys
 
 from .cli import main
 
 
-def _run() -> NoReturn:
-    """Execute the CLI entrypoint and terminate with its exit code."""
-    raise SystemExit(main())
-
-
 if __name__ == "__main__":  # pragma: no cover
-    _run()
+    # Use sys.exit to normalize supported return types from `main`
+    # (`None`, `int`, or `str`) and avoid an extra wrapper function.
+    sys.exit(main())

@@ -11,6 +11,8 @@ from telegraphy.story_brief.generate_story_brief import (
 from telegraphy.story_brief.linting import lint_story_data
 from telegraphy.story_brief.validation import (
     MAX_SEXUAL_SCENE_TAG_GROUPS,
+    UNSUPPORTED_CONFIG_ALIAS_ERROR_PREFIX,
+    UNSUPPORTED_CONFIG_ALIAS_KEYS,
     validate_story_data,
     validate_story_data_strict,
 )
@@ -30,6 +32,8 @@ def _tag_count_weights_with_none_entry(
         "none": none_weights,
         **DEFAULT_TAG_COUNT_WEIGHTS_BY_PRESENCE,
     }
+
+
 def test_schema_validation_accepts_current_data(story_dataset_payloads) -> None:
     titles = story_dataset_payloads["titles"]
     entities = story_dataset_payloads["entities"]
@@ -214,11 +218,7 @@ def test_schema_validation_rejects_too_many_sexual_scene_tag_groups(story_datase
 
 @pytest.mark.parametrize(
     "unsupported_alias_key",
-    [
-        "sexual_content_options",
-        "sexual_content_weights",
-        "sexual_scene_tag_count_weights",
-    ],
+    UNSUPPORTED_CONFIG_ALIAS_KEYS,
 )
 def test_schema_validation_rejects_removed_config_alias_keys(
     unsupported_alias_key: str,
@@ -227,7 +227,7 @@ def test_schema_validation_rejects_removed_config_alias_keys(
     _assert_schema_rejects(
         story_dataset_payloads,
         lambda t, e, p, c: c.update({unsupported_alias_key: ["legacy"]}),
-        rf"canonical fields instead: .*{unsupported_alias_key}",
+        rf"{UNSUPPORTED_CONFIG_ALIAS_ERROR_PREFIX}.*{unsupported_alias_key}",
     )
 
 

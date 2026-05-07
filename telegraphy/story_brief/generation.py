@@ -140,16 +140,10 @@ def pick_story_fields(
     title_template: str = rng.choice(
         cast(Sequence[str], sorted_pool_from_data(data, "titles"))
     )
-    sexual_presence_options = data.get(
-        "sexual_content_options", data["sexual_content_presence_options"]
-    )
-    sexual_presence_weights = data.get(
-        "sexual_content_weights", data["sexual_content_presence_weights"]
-    )
     sexual_content_level = weighted_choice(
         rng,
-        sexual_presence_options,
-        sexual_presence_weights,
+        data["sexual_content_presence_options"],
+        data["sexual_content_presence_weights"],
     )
     sexual_scene_tags = pick_sexual_scene_tags(rng, sexual_content_level, data)
     sexual_partner = pick_sexual_partner(

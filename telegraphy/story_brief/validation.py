@@ -10,6 +10,8 @@ from .generation_invariants import validate_story_data_strict
 from .schema_validation import (
     EXPECTED_GENERATED_FIELD_KEYS,
     MAX_SEXUAL_SCENE_TAG_GROUPS,
+    UNSUPPORTED_CONFIG_ALIAS_ERROR_PREFIX,
+    UNSUPPORTED_CONFIG_ALIAS_KEYS,
     ValidatedStoryData,
     validate_story_data,
 )
@@ -17,6 +19,8 @@ from .schema_validation import (
 __all__ = [
     "EXPECTED_GENERATED_FIELD_KEYS",
     "MAX_SEXUAL_SCENE_TAG_GROUPS",
+    "UNSUPPORTED_CONFIG_ALIAS_ERROR_PREFIX",
+    "UNSUPPORTED_CONFIG_ALIAS_KEYS",
     "ValidatedStoryData",
     "validate_story_data",
     "validate_story_data_strict",

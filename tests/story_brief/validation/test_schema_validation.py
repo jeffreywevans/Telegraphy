@@ -212,6 +212,25 @@ def test_schema_validation_rejects_too_many_sexual_scene_tag_groups(story_datase
         validate_story_data(titles, entities, prompts, config, partner_distributions)
 
 
+@pytest.mark.parametrize(
+    "legacy_key",
+    [
+        "sexual_content_options",
+        "sexual_content_weights",
+        "sexual_scene_tag_count_weights",
+    ],
+)
+def test_schema_validation_rejects_legacy_tag_config_keys(
+    legacy_key: str,
+    story_dataset_payloads: dict[str, dict[str, Any]],
+) -> None:
+    _assert_schema_rejects(
+        story_dataset_payloads,
+        lambda t, e, p, c: c.update({legacy_key: ["legacy"]}),
+        rf"canonical fields instead: .*{legacy_key}",
+    )
+
+
 def test_schema_validation_rejects_invalid_sexual_scene_tag_count_weight_key(
     story_dataset_payloads,
 ) -> None:
@@ -736,4 +755,3 @@ def test_schema_validation_rejects_uncovered_branch_conditions(
     expected_message: str,
 ) -> None:
     _assert_schema_rejects(story_dataset_payloads, mutator, expected_message)
-

@@ -130,8 +130,8 @@ def test_non_none_sexual_content_with_positive_partner_weight_requires_partner_s
         ("Jordan", selected_date, selected_date),
     ]
     data["setting_availability"] = [("Seattle", selected_date, selected_date)]
-    data["sexual_content_options"] = ["none", "suggestive"]
-    data["sexual_content_weights"] = [0.0, 1.0]
+    data["sexual_content_presence_options"] = ["none", "suggestive"]
+    data["sexual_content_presence_weights"] = [0.0, 1.0]
     data[story_brief.PARTNER_DISTRIBUTIONS_KEY][protagonist] = [
         {
             "date_start": selected_date,
@@ -222,8 +222,8 @@ def test_pick_story_fields_handles_partner_distribution_gap_year(
         ("Jordan", selected_date, selected_date),
     ]
     data["setting_availability"] = [("Seattle", selected_date, selected_date)]
-    data["sexual_content_options"] = ["suggestive"]
-    data["sexual_content_weights"] = [1.0]
+    data["sexual_content_presence_options"] = ["suggestive"]
+    data["sexual_content_presence_weights"] = [1.0]
     gap_eras = [
         {
             "date_start": date(1999, 1, 1),
@@ -258,8 +258,8 @@ def test_pick_story_fields_handles_missing_partner_distribution_for_protagonist(
         ("Jordan", selected_date, selected_date),
     ]
     data["setting_availability"] = [("Seattle", selected_date, selected_date)]
-    data["sexual_content_options"] = ["suggestive"]
-    data["sexual_content_weights"] = [1.0]
+    data["sexual_content_presence_options"] = ["suggestive"]
+    data["sexual_content_presence_weights"] = [1.0]
     data[story_brief.PARTNER_DISTRIBUTIONS_KEY].pop("Alex", None)
     data[story_brief.PARTNER_DISTRIBUTIONS_KEY].pop("Jordan", None)
 

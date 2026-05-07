@@ -368,7 +368,11 @@ def _presence_specific_tag_count_pairs(
     sexual_content_presence: str | None,
 ) -> Iterable[tuple[int, float]]:
     """Build count/weight pairs from presence-specific tag count weights."""
-    presence_weights = raw_by_presence.get(cast(str, sexual_content_presence), {})
+    presence_weights = (
+        raw_by_presence.get(sexual_content_presence, {})
+        if sexual_content_presence is not None
+        else {}
+    )
     return ((int(count), float(weight)) for count, weight in presence_weights.items())
 
 

@@ -70,69 +70,81 @@ def test_symmetric_peak_weights_rejects_non_positive_lengths() -> None:
             symmetric_peak_weights(length)
 
 
-def test_build_sexual_scene_tag_count_distribution_raises_when_no_options_valid() -> None:
+def test_build_sexual_scene_tag_count_distribution_falls_back_to_defaults_when_filtered_out() -> None:
     data = {
-        "sexual_scene_tag_count_options": (3, 4),
-        "sexual_scene_tag_count_weights": (0.5, 0.5),
+        "sexual_scene_tag_count_weights_by_presence": {
+            "on_page_full": {3: 0.5, 4: 0.5}
+        }
     }
 
-    with pytest.raises(
-        ValueError,
-        match="No valid sexual scene tag count options remain",
-    ):
-        build_sexual_scene_tag_count_distribution(("tone", "location"), data)
+    options, weights = build_sexual_scene_tag_count_distribution(
+        ("tone", "location"),
+        data,
+        sexual_content_presence="on_page_full",
+    )
+
+    assert options == [2]
+    assert weights == [0.7]
 
 
 def test_build_sexual_scene_tag_count_distribution_supports_mapping_weights() -> None:
     data = {
-        "sexual_scene_tag_count_options": (2, 1),
-        "sexual_scene_tag_count_weights": {"1": 0.75, "2": 0.25},
+        "sexual_scene_tag_count_weights_by_presence": {
+            "on_page_full": {"2": 0.25, "1": 0.75}
+        }
     }
 
     options, weights = build_sexual_scene_tag_count_distribution(
-        ("tone", "location"), data
+        ("tone", "location"), data, sexual_content_presence="on_page_full"
     )
 
     assert options == [2, 1]
     assert weights == [0.25, 0.75]
 
 
-def test_build_sexual_scene_tag_count_distribution_mapping_missing_key_defaults_zero() -> None:
+def test_build_sexual_scene_tag_count_distribution_missing_presence_falls_back_to_defaults() -> None:
     data = {
-        "sexual_scene_tag_count_options": (1, 2),
-        "sexual_scene_tag_count_weights": {"1": 1.0},
+        "sexual_scene_tag_count_weights_by_presence": {
+            "on_page_full": {1: 1.0}
+        }
     }
 
     options, weights = build_sexual_scene_tag_count_distribution(
-        ("tone", "location"), data
+        ("tone", "location"),
+        data,
+        sexual_content_presence="off_page",
     )
 
-    assert options == [1, 2]
-    assert weights == [1.0, 0.0]
+    assert options == [2]
+    assert weights == [0.7]
 
 
-def test_build_sexual_scene_tag_count_distribution_mapping_null_value_defaults_zero() -> None:
+def test_build_sexual_scene_tag_count_distribution_none_presence_uses_defaults() -> None:
     data = {
-        "sexual_scene_tag_count_options": (1, 2),
-        "sexual_scene_tag_count_weights": {"1": 1.0, "2": None},
+        "sexual_scene_tag_count_weights_by_presence": {
+            "on_page_full": {1: 1.0, 2: 0.0}
+        }
     }
 
     options, weights = build_sexual_scene_tag_count_distribution(
-        ("tone", "location"), data
+        ("tone", "location", "pacing"),
+        data,
+        sexual_content_presence=None,
     )
 
-    assert options == [1, 2]
-    assert weights == [1.0, 0.0]
+    assert options == [2, 3]
+    assert weights == [0.7, 0.1]
 
 
 def test_build_sexual_scene_tag_count_distribution_empty_mapping_falls_back_to_defaults() -> None:
     data = {
-        "sexual_scene_tag_count_options": (2, 3),
-        "sexual_scene_tag_count_weights": {},
+        "sexual_scene_tag_count_weights_by_presence": {
+            "on_page_full": {}
+        }
     }
 
     options, weights = build_sexual_scene_tag_count_distribution(
-        ("tone", "location", "dynamic"), data
+        ("tone", "location", "dynamic"), data, sexual_content_presence="on_page_full"
     )
 
     assert options == [2, 3]
@@ -141,13 +153,15 @@ def test_build_sexual_scene_tag_count_distribution_empty_mapping_falls_back_to_d
 
 def test_build_sexual_scene_tag_count_distribution_filters_below_minimum_count() -> None:
     data = {
-        "sexual_scene_tag_count_options": (2, 3, 4),
-        "sexual_scene_tag_count_weights": (0.5, 0.3, 0.2),
+        "sexual_scene_tag_count_weights_by_presence": {
+            "on_page_full": {2: 0.5, 3: 0.3, 4: 0.2}
+        }
     }
 
     options, weights = build_sexual_scene_tag_count_distribution(
         ("tone", "location", "pacing", "aftermath"),
         data,
+        sexual_content_presence="on_page_full",
         minimum_count=3,
     )
 

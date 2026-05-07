@@ -164,12 +164,6 @@ def _validate_config_date_overlap(
 
 
 def _validate_sexual_content_weights(config: dict[str, Any]) -> None:
-    if "sexual_content_presence_options" not in config:
-        config["sexual_content_presence_options"] = config["sexual_content_options"]
-        config["sexual_content_presence_weights"] = config["sexual_content_weights"]
-    if "sexual_content_story_role_options" not in config:
-        config["sexual_content_story_role_options"] = ["incidental"]
-        config["sexual_content_story_role_weights"] = [1.0]
     _validate_string_list(
         "config", "sexual_content_presence_options", config["sexual_content_presence_options"]
     )
@@ -273,7 +267,7 @@ def _validate_sexual_scene_tag_count_weights_by_presence(config: dict[str, Any])
                     f".{presence} keys"
                 ),
             )
-            if count < 0 or count > group_count:
+            if count > group_count:
                 raise ValueError(
                     "config.sexual_scene_tag_count_weights_by_presence keys must not exceed the "
                     "available sexual_scene_tag_groups count"

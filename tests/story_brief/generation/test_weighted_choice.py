@@ -70,7 +70,7 @@ def test_symmetric_peak_weights_rejects_non_positive_lengths() -> None:
             symmetric_peak_weights(length)
 
 
-def test_build_sexual_scene_tag_count_distribution_falls_back_to_defaults_when_filtered_out() -> None:
+def test_tag_count_distribution_falls_back_to_defaults_when_filtered_out() -> None:
     data = {
         "sexual_scene_tag_count_weights_by_presence": {
             "on_page_full": {3: 0.5, 4: 0.5}
@@ -102,7 +102,7 @@ def test_build_sexual_scene_tag_count_distribution_supports_mapping_weights() ->
     assert weights == [0.25, 0.75]
 
 
-def test_build_sexual_scene_tag_count_distribution_missing_presence_falls_back_to_defaults() -> None:
+def test_tag_count_distribution_missing_presence_falls_back_to_defaults() -> None:
     data = {
         "sexual_scene_tag_count_weights_by_presence": {
             "on_page_full": {1: 1.0}

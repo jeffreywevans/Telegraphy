@@ -249,18 +249,6 @@ def _validate_sexual_scene_tag_groups(config: dict[str, Any]) -> None:
 
 
 def _validate_sexual_scene_tag_count_weights_by_presence(config: dict[str, Any]) -> None:
-    if "sexual_scene_tag_count_weights_by_presence" not in config:
-        legacy = config["sexual_scene_tag_count_weights"]
-        config["sexual_scene_tag_count_weights_by_presence"] = {
-            presence: legacy for presence in config["sexual_content_presence_options"]
-        }
-    if "sexual_scene_required_tag_groups_by_presence" not in config:
-        groups = list(config["sexual_scene_tag_groups"].keys())
-        config["sexual_scene_required_tag_groups_by_presence"] = {
-            presence: groups for presence in config["sexual_content_presence_options"]
-        }
-    if "sexual_scene_optional_tag_groups" not in config:
-        config["sexual_scene_optional_tag_groups"] = []
     raw_by_presence = config["sexual_scene_tag_count_weights_by_presence"]
     if not isinstance(raw_by_presence, dict) or not raw_by_presence:
         raise ValueError(
@@ -278,7 +266,7 @@ def _validate_sexual_scene_tag_count_weights_by_presence(config: dict[str, Any])
 
         weight_sum = 0.0
         for raw_count, weight in raw_weights.items():
-            count = _parse_positive_weight_count(
+            count = _parse_non_negative_weight_count(
                 raw_count,
                 field_name=(
                     "config.sexual_scene_tag_count_weights_by_presence"
@@ -297,7 +285,7 @@ def _validate_sexual_scene_tag_count_weights_by_presence(config: dict[str, Any])
             )
 
 
-def _parse_positive_weight_count(
+def _parse_non_negative_weight_count(
     raw_count: Any,
     field_name: str,
 ) -> int:

@@ -35,7 +35,9 @@ def _build_story_data(dataset_payloads: dict[str, Any]) -> dict[str, Any]:
         }
         for presence, weights in config["sexual_scene_tag_count_weights_by_presence"].items()
     }
-    sexual_content_presence_options = tuple(str(v) for v in config["sexual_content_presence_options"])
+    sexual_content_presence_options = tuple(
+        str(v) for v in config["sexual_content_presence_options"]
+    )
     legacy_default_presence = next(
         (
             presence

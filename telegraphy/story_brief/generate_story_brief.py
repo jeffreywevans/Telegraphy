@@ -88,6 +88,7 @@ class StoryData(TypedDict):
     inciting_pressures: tuple[str, ...]
     ending_types: tuple[str, ...]
     style_guidance: tuple[str, ...]
+    weather_comment: str
     weather: tuple[str, ...]
     central_conflicts_sorted: tuple[str, ...]
     inciting_pressures_sorted: tuple[str, ...]

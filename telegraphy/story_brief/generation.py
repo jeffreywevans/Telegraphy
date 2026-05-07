@@ -323,7 +323,11 @@ def build_sexual_scene_tag_count_distribution(
             tag_count_weights.append(weight)
 
     if not tag_count_options:
-        tag_count_options = [count for count in DEFAULT_SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION if count <= max_tag_count]
+        tag_count_options = [
+            count
+            for count in DEFAULT_SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION
+            if count <= max_tag_count
+        ]
         tag_count_weights = [
             DEFAULT_SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION[count] for count in tag_count_options
         ]

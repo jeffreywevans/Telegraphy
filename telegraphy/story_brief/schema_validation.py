@@ -173,22 +173,35 @@ def _validate_sexual_content_weights(config: dict[str, Any]) -> None:
         config["sexual_content_story_role_options"],
     )
     weights = config["sexual_content_presence_weights"]
+    has_legacy_weights = "sexual_content_weights" in config
     if not isinstance(weights, list) or not weights:
-        raise ValueError("config.sexual_content_weights must be a non-empty list" if "sexual_content_weights" in config else "config.sexual_content_presence_weights must be a non-empty list")
-        if len(weights) != len(config["sexual_content_presence_options"]):
-            raise ValueError(
-                ("sexual_content_options/weights must be the same length"
-                if "sexual_content_weights" in config
-                else "config sexual_content_presence_options/"
-                "sexual_content_presence_weights must be the same length")
-            )
+        if has_legacy_weights:
+            raise ValueError("config.sexual_content_weights must be a non-empty list")
+        raise ValueError("config.sexual_content_presence_weights must be a non-empty list")
+    if len(weights) != len(config["sexual_content_presence_options"]):
+        if has_legacy_weights:
+            raise ValueError("sexual_content_options/weights must be the same length")
+        raise ValueError(
+            "config sexual_content_presence_options/"
+            "sexual_content_presence_weights must be the same length"
+        )
     for idx, value in enumerate(weights):
         if isinstance(value, bool) or not isinstance(value, (int, float)):
-            raise ValueError((f"config.sexual_content_weights[{idx}] must be a real number") if "sexual_content_weights" in config else (f"config.sexual_content_presence_weights[{idx}] must be a real number"))
+            if has_legacy_weights:
+                raise ValueError(f"config.sexual_content_weights[{idx}] must be a real number")
+            raise ValueError(
+                f"config.sexual_content_presence_weights[{idx}] must be a real number"
+            )
         if not math.isfinite(value):
-            raise ValueError((f"config.sexual_content_weights[{idx}] must be finite") if "sexual_content_weights" in config else (f"config.sexual_content_presence_weights[{idx}] must be finite"))
+            if has_legacy_weights:
+                raise ValueError(f"config.sexual_content_weights[{idx}] must be finite")
+            raise ValueError(f"config.sexual_content_presence_weights[{idx}] must be finite")
         if value < 0:
-            raise ValueError((f"config.sexual_content_weights[{idx}] must be non-negative") if "sexual_content_weights" in config else (f"config.sexual_content_presence_weights[{idx}] must be non-negative"))
+            if has_legacy_weights:
+                raise ValueError(f"config.sexual_content_weights[{idx}] must be non-negative")
+            raise ValueError(
+                f"config.sexual_content_presence_weights[{idx}] must be non-negative"
+            )
     if sum(weights) <= 0:
         raise ValueError("config.sexual_content_presence_weights must sum to > 0")
 
@@ -267,7 +280,8 @@ def _validate_sexual_scene_tag_count_weights_by_presence(config: dict[str, Any])
             )
             if count > group_count:
                 raise ValueError(
-                    "sexual_scene_tag_count_weights keys must not exceed available sexual_scene_tag_groups count"
+                    "sexual_scene_tag_count_weights keys must not exceed "
+                    "available sexual_scene_tag_groups count"
                 )
             weight_sum += _coerce_non_negative_finite_weight(weight)
         if weight_sum <= 0:

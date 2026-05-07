@@ -44,7 +44,7 @@ def _build_story_data(dataset_payloads: dict[str, Any]) -> dict[str, Any]:
             for presence in sexual_content_presence_options
             if presence != "none" and presence in sexual_scene_tag_count_weights_by_presence
         ),
-        sexual_content_presence_options[0],
+        next(iter(sexual_scene_tag_count_weights_by_presence)),
     )
     legacy_sorted_items = sorted(
         sexual_scene_tag_count_weights_by_presence[legacy_default_presence].items(),

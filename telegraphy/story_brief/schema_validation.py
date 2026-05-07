@@ -26,6 +26,24 @@ _ALLOWED_TITLE_TOKENS = frozenset({"protagonist", "setting", "time_period"})
 _MISSING_TITLE_AT_PATTERN = re.compile(
     rf"(?<!@)\b(?P<key>{'|'.join(re.escape(t) for t in sorted(_ALLOWED_TITLE_TOKENS))})\b"
 )
+CONFIG_REQUIRED_KEYS = frozenset({
+    "schema_version",
+    "dataset_version",
+    "date_start",
+    "date_end",
+    "sexual_content_presence_options",
+    "sexual_content_presence_weights",
+    "sexual_content_story_role_options",
+    "sexual_content_story_role_weights",
+    "sexual_scene_tag_groups",
+    "sexual_scene_tag_count_weights_by_presence",
+    "sexual_scene_required_tag_groups_by_presence",
+    "sexual_scene_optional_tag_groups",
+    "word_count_targets",
+    "ordered_keys",
+    "writing_preamble",
+})
+
 EXPECTED_GENERATED_FIELD_KEYS = {
     "title",
     "protagonist",
@@ -62,6 +80,7 @@ class ValidatedStoryData(NamedTuple):
     setting_availability: list[tuple[str, date, date]]
     date_start: date
     date_end: date
+    normalized_config: dict[str, Any]
     partner_distributions: PartnerDistributionDataset
 
 
@@ -172,18 +191,6 @@ def _validate_config_date_overlap(
         )
 
 
-def _resolve_presence_weight_error_messages() -> tuple[str, str, str, str]:
-    return (
-        "config.sexual_content_presence_weights must be a non-empty list",
-        (
-            "config sexual_content_presence_options/"
-            "sexual_content_presence_weights must be the same length"
-        ),
-        "config.sexual_content_presence_weights",
-        "config.sexual_content_presence_weights must sum to > 0",
-    )
-
-
 def _validate_non_negative_real_weights(
     weights: Any,
     options: list[str],
@@ -221,16 +228,16 @@ def _validate_sexual_content_weights(config: dict[str, Any]) -> None:
     )
 
     presence_options = config["sexual_content_presence_options"]
-    list_error, length_error, item_field_prefix, sum_error = (
-        _resolve_presence_weight_error_messages()
-    )
     _validate_non_negative_real_weights(
         config["sexual_content_presence_weights"],
         presence_options,
-        list_error=list_error,
-        length_error=length_error,
-        item_field_prefix=item_field_prefix,
-        sum_error=sum_error,
+        list_error="config.sexual_content_presence_weights must be a non-empty list",
+        length_error=(
+            "config sexual_content_presence_options/"
+            "sexual_content_presence_weights must be the same length"
+        ),
+        item_field_prefix="config.sexual_content_presence_weights",
+        sum_error="config.sexual_content_presence_weights must sum to > 0",
     )
 
     _validate_non_negative_real_weights(
@@ -382,19 +389,22 @@ def _validate_partner_distributions(
     return dataset
 
 
-def _enforce_supported_config_keys_and_defaults(config: dict[str, Any]) -> None:
-    """Reject unsupported config aliases and apply supported defaults."""
-    present_unsupported_aliases = [key for key in UNSUPPORTED_CONFIG_ALIAS_KEYS if key in config]
+def _normalize_config(config: dict[str, Any]) -> dict[str, Any]:
+    """Return a normalized config without mutating caller input."""
+    normalized = dict(config)
+
+    present_unsupported_aliases = [
+        key for key in UNSUPPORTED_CONFIG_ALIAS_KEYS if key in normalized
+    ]
     if present_unsupported_aliases:
         joined = ", ".join(sorted(present_unsupported_aliases))
         raise ValueError(f"{UNSUPPORTED_CONFIG_ALIAS_ERROR_PREFIX}{joined}")
 
-    if "sexual_content_story_role_options" not in config:
-        config["sexual_content_story_role_options"] = ["incidental"]
-        config["sexual_content_story_role_weights"] = [1.0]
-
-    if "sexual_scene_optional_tag_groups" not in config:
-        config["sexual_scene_optional_tag_groups"] = []
+    if "sexual_content_story_role_options" not in normalized:
+        normalized["sexual_content_story_role_options"] = ["incidental"]
+        normalized["sexual_content_story_role_weights"] = [1.0]
+    normalized.setdefault("sexual_scene_optional_tag_groups", [])
+    return normalized
 
 
 def validate_story_data(
@@ -409,38 +419,18 @@ def validate_story_data(
     character_rows, setting_rows = _validate_entities(entities)
 
     _validate_prompt_lists(prompts)
-    _enforce_supported_config_keys_and_defaults(config)
+    normalized_config = _normalize_config(config)
 
-    require_keys(
-        "config",
-        config,
-        {
-            "schema_version",
-            "dataset_version",
-            "date_start",
-            "date_end",
-            "sexual_content_presence_options",
-            "sexual_content_presence_weights",
-            "sexual_content_story_role_options",
-            "sexual_content_story_role_weights",
-            "sexual_scene_tag_groups",
-            "sexual_scene_tag_count_weights_by_presence",
-            "sexual_scene_required_tag_groups_by_presence",
-            "sexual_scene_optional_tag_groups",
-            "word_count_targets",
-            "ordered_keys",
-            "writing_preamble",
-        },
-    )
-    _validate_config_versions(config)
-    start, end = _parse_and_validate_config_dates(config)
+    require_keys("config", normalized_config, CONFIG_REQUIRED_KEYS)
+    _validate_config_versions(normalized_config)
+    start, end = _parse_and_validate_config_dates(normalized_config)
     _validate_config_date_overlap(character_rows, setting_rows, start, end)
-    _validate_sexual_content_weights(config)
-    _validate_sexual_scene_tag_groups(config)
-    _validate_sexual_scene_tag_count_weights_by_presence(config)
-    _validate_word_count_targets(config)
-    _validate_ordered_keys(config)
-    _validate_writing_preamble(config)
+    _validate_sexual_content_weights(normalized_config)
+    _validate_sexual_scene_tag_groups(normalized_config)
+    _validate_sexual_scene_tag_count_weights_by_presence(normalized_config)
+    _validate_word_count_targets(normalized_config)
+    _validate_ordered_keys(normalized_config)
+    _validate_writing_preamble(normalized_config)
     partner_distribution_index = _validate_partner_distributions(
         partner_distributions,
         config_start=start,
@@ -453,5 +443,6 @@ def validate_story_data(
         setting_availability=setting_rows,
         date_start=start,
         date_end=end,
+        normalized_config=normalized_config,
         partner_distributions=partner_distribution_index,
     )

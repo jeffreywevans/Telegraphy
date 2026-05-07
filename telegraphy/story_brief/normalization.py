@@ -16,6 +16,7 @@ def _build_story_data(dataset_payloads: dict[str, Any]) -> dict[str, Any]:
     partner_distributions = dataset_payloads["partner_distributions"]
 
     validated = validate_story_data(titles, entities, prompts, config, partner_distributions)
+    normalized_config = validated.normalized_config
 
     normalized_titles = tuple(str(value) for value in titles["titles"])
     prompt_lists = {key: tuple(str(value) for value in prompts[key]) for key in PROMPT_LIST_KEYS}
@@ -26,19 +27,21 @@ def _build_story_data(dataset_payloads: dict[str, Any]) -> dict[str, Any]:
 
     sexual_scene_tag_groups = {
         str(group_name): tuple(str(tag) for tag in tags)
-        for group_name, tags in config["sexual_scene_tag_groups"].items()
+        for group_name, tags in normalized_config["sexual_scene_tag_groups"].items()
     }
     sexual_scene_tag_count_weights_by_presence = {
         str(presence): {
             int(option_raw): float(weight_raw)
             for option_raw, weight_raw in sorted(weights.items(), key=lambda item: int(item[0]))
         }
-        for presence, weights in config["sexual_scene_tag_count_weights_by_presence"].items()
+        for presence, weights in normalized_config[
+            "sexual_scene_tag_count_weights_by_presence"
+        ].items()
     }
     sexual_content_presence_options = tuple(
-        str(v) for v in config["sexual_content_presence_options"]
+        str(v) for v in normalized_config["sexual_content_presence_options"]
     )
-    word_count_targets = tuple(int(value) for value in config["word_count_targets"])
+    word_count_targets = tuple(int(value) for value in normalized_config["word_count_targets"])
 
     return {
         "titles": normalized_titles,
@@ -52,13 +55,13 @@ def _build_story_data(dataset_payloads: dict[str, Any]) -> dict[str, Any]:
         "date_end": validated.date_end,
         "sexual_content_presence_options": sexual_content_presence_options,
         "sexual_content_presence_weights": tuple(
-            float(v) for v in config["sexual_content_presence_weights"]
+            float(v) for v in normalized_config["sexual_content_presence_weights"]
         ),
         "sexual_content_story_role_options": tuple(
-            str(v) for v in config["sexual_content_story_role_options"]
+            str(v) for v in normalized_config["sexual_content_story_role_options"]
         ),
         "sexual_content_story_role_weights": tuple(
-            float(v) for v in config["sexual_content_story_role_weights"]
+            float(v) for v in normalized_config["sexual_content_story_role_weights"]
         ),
         "sexual_scene_tag_groups": sexual_scene_tag_groups,
         "sexual_scene_tag_group_names_sorted": tuple(stable_sorted_pool(sexual_scene_tag_groups)),
@@ -69,16 +72,18 @@ def _build_story_data(dataset_payloads: dict[str, Any]) -> dict[str, Any]:
         "sexual_scene_tag_count_weights_by_presence": sexual_scene_tag_count_weights_by_presence,
         "sexual_scene_required_tag_groups_by_presence": {
             str(presence): tuple(str(group_name) for group_name in groups)
-            for presence, groups in config["sexual_scene_required_tag_groups_by_presence"].items()
+            for presence, groups in normalized_config[
+                "sexual_scene_required_tag_groups_by_presence"
+            ].items()
         },
         "sexual_scene_optional_tag_groups": tuple(
-            str(group_name) for group_name in config["sexual_scene_optional_tag_groups"]
+            str(group_name) for group_name in normalized_config["sexual_scene_optional_tag_groups"]
         ),
         "word_count_targets": word_count_targets,
         "word_count_targets_sorted": tuple(stable_sorted_pool(word_count_targets)),
-        "ordered_keys": tuple(str(v) for v in config["ordered_keys"]),
-        "writing_preamble": str(config["writing_preamble"]),
-        "dataset_version": str(config["dataset_version"]),
+        "ordered_keys": tuple(str(v) for v in normalized_config["ordered_keys"]),
+        "writing_preamble": str(normalized_config["writing_preamble"]),
+        "dataset_version": str(normalized_config["dataset_version"]),
         "partner_distributions": {
             protagonist: tuple(
                 {

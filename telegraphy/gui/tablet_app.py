@@ -84,12 +84,12 @@ class TelegraphyTablet(tk.Tk):
         self.latest_output = ""
         self.run_options = run_options or RunOptions()
         self.result_queue: queue.Queue[tuple[str, str]] = queue.Queue()
+        self._worker_active = False
 
         self.font_family = self._select_display_font()
 
         self._configure_styles()
         self._build_shell()
-        self._poll_worker_queue()
 
     def _pixels_per_inch(self) -> int:
         if self._dpi_cache is not None:
@@ -389,9 +389,11 @@ class TelegraphyTablet(tk.Tk):
     def generate_story_brief(self) -> None:
         self.generate_button.configure(state="disabled")
         self.copy_button.configure(state="disabled")
+        self._worker_active = True
+        self._poll_worker_queue()
+
         resolved_options = self._resolve_run_options()
         if resolved_options is None:
-            self.status.configure(text="Generation failed.")
             return
         self.run_options = resolved_options
         self.status.configure(text="Generating...")
@@ -441,11 +443,16 @@ class TelegraphyTablet(tk.Tk):
             return output.decode("utf-8", errors="replace")
 
     def _poll_worker_queue(self) -> None:
+        if not self._worker_active:
+            return
+
         try:
             status, message = self.result_queue.get_nowait()
         except queue.Empty:
             self.after(100, self._poll_worker_queue)
             return
+
+        self._worker_active = False
 
         self.generate_button.configure(state="normal")
 
@@ -460,8 +467,6 @@ class TelegraphyTablet(tk.Tk):
             self._set_output(message)
             status_text = "Generation failed." if status != "success" else "No output generated."
             self.status.configure(text=status_text)
-
-        self.after(100, self._poll_worker_queue)
 
     def copy_latest_output(self) -> None:
         if not self.latest_output:

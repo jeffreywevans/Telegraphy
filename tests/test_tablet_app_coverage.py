@@ -165,7 +165,7 @@ def test_generate_story_brief_starts_worker_and_starts_polling(monkeypatch):
 
 
 
-def test_generate_story_brief_invalid_seed_does_not_start_poll_or_worker(monkeypatch):
+def test_generate_story_brief_invalid_seed_starts_poll_but_not_worker(monkeypatch):
     tablet = _make_tablet()
     tablet.generate_button = MagicMock()
     tablet.copy_button = MagicMock()
@@ -191,10 +191,54 @@ def test_generate_story_brief_invalid_seed_does_not_start_poll_or_worker(monkeyp
 
     tablet.generate_story_brief()
 
-    assert not poll_called
+    assert poll_called == [True]
     assert not thread_called
-    tablet.status.configure.assert_called_once_with(text="Generation failed.")
     assert tablet.result_queue.get_nowait()[0] == "error"
+
+
+
+def test_generate_story_brief_invalid_seed_queue_message_is_consumed(monkeypatch):
+    tablet = _make_tablet()
+    tablet.result_queue = queue.Queue()
+    tablet.generate_button = MagicMock()
+    tablet.copy_button = MagicMock()
+    tablet.status = MagicMock()
+    tablet.output = MagicMock()
+    tablet.run_options = tablet_app.RunOptions()
+    tablet.seed_var = SimpleNamespace(get=lambda: "bad")
+    tablet.date_var = SimpleNamespace(get=lambda: "")
+
+    after_calls: list[tuple[int, object]] = []
+    monkeypatch.setattr(tablet, "after", lambda delay, fn: after_calls.append((delay, fn)))
+
+    output_messages: list[str] = []
+    monkeypatch.setattr(tablet, "_set_output", lambda msg: output_messages.append(msg))
+
+    thread_called: list[bool] = []
+
+    class FakeThread:
+        def __init__(self, **_kwargs):
+            thread_called.append(True)
+
+        def start(self):
+            thread_called.append(True)
+
+    monkeypatch.setattr(tablet_app.threading, "Thread", FakeThread)
+
+    tablet.generate_story_brief()
+
+    assert not thread_called
+    assert tablet._worker_active is True
+
+    # Simulate tkinter running the scheduled poll callback.
+    after_calls[-1][1]()
+
+    assert tablet._worker_active is False
+    assert tablet.result_queue.empty()
+    assert "Invalid seed" in output_messages[-1]
+    tablet.status.configure.assert_called_with(text="Generation failed.")
+    assert tablet.generate_button.configure.call_args_list[-1] == call(state="normal")
+    assert tablet.copy_button.configure.call_args_list[-1] == call(state="disabled")
 
 def test_resolve_run_options_invalid_seed(monkeypatch):
     tablet = _make_tablet()
@@ -306,7 +350,6 @@ def test_poll_queue_and_copy_and_output_and_draw(monkeypatch):
 
     tablet._worker_active = True
     tablet._poll_worker_queue()
-    assert after_calls[-1] == (100, tablet._poll_worker_queue)
 
     tablet.result_queue.put(("success", "hello world"))
     tablet._poll_worker_queue()

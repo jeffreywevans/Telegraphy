@@ -389,18 +389,18 @@ class TelegraphyTablet(tk.Tk):
     def generate_story_brief(self) -> None:
         self.generate_button.configure(state="disabled")
         self.copy_button.configure(state="disabled")
+        self._worker_active = True
+        self._poll_worker_queue()
+
         resolved_options = self._resolve_run_options()
         if resolved_options is None:
-            self.status.configure(text="Generation failed.")
             return
         self.run_options = resolved_options
         self.status.configure(text="Generating...")
         self._set_output("Kendall is warming her sweet ass up...")
 
-        self._worker_active = True
         worker = threading.Thread(target=self._run_cli_worker, daemon=True)
         worker.start()
-        self._poll_worker_queue()
 
     def _run_cli_worker(self) -> None:
         try:

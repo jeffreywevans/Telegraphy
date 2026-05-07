@@ -244,18 +244,72 @@ def pick_sexual_scene_tags(
     if sexual_content_level == "none":
         return []
 
-    tag_group_names = _sexual_scene_tag_group_names(data)
+    required_tag_groups = _required_sexual_scene_tag_groups(sexual_content_level, data)
+    candidate_tag_groups = _candidate_sexual_scene_tag_groups(required_tag_groups, data)
     tag_count_options, tag_count_weights = build_sexual_scene_tag_count_distribution(
-        tag_group_names, data, sexual_content_level
+        candidate_tag_groups, data, sexual_content_level, minimum_count=len(required_tag_groups)
     )
     selected_tag_count = weighted_choice(
         rng,
         tag_count_options,
         tag_count_weights,
     )
-    selected_tag_groups = rng.sample(tag_group_names, selected_tag_count)
+    required_set = set(required_tag_groups)
+    optional_groups = [
+        group_name
+        for group_name in candidate_tag_groups
+        if group_name not in required_set
+    ]
+    optional_needed = selected_tag_count - len(required_tag_groups)
+    selected_tag_groups = [
+        *required_tag_groups,
+        *rng.sample(optional_groups, optional_needed),
+    ]
     return pick_tags_from_selected_groups(rng, selected_tag_groups, data)
 
+
+
+def _required_sexual_scene_tag_groups(
+    sexual_content_level: str,
+    data: Mapping[str, Any],
+) -> list[str]:
+    """Return required sexual-scene tag groups for this sexual-content level."""
+    required_groups_by_presence = cast(
+        Mapping[str, Sequence[str]],
+        data.get("sexual_scene_required_tag_groups_by_presence", {}),
+    )
+    required_groups = [
+        group_name
+        for group_name in required_groups_by_presence.get(sexual_content_level, ())
+    ]
+    if not required_groups:
+        return []
+
+    available_groups = set(_sexual_scene_tag_group_names(data))
+    missing_required_groups = [
+        group_name for group_name in required_groups if group_name not in available_groups
+    ]
+    if missing_required_groups:
+        raise ValueError(
+            "Required sexual scene tag groups are missing from configured groups: "
+            f"{', '.join(missing_required_groups)}"
+        )
+
+    return required_groups
+
+
+def _candidate_sexual_scene_tag_groups(
+    required_tag_groups: Sequence[str],
+    data: Mapping[str, Any],
+) -> list[str]:
+    """Return ordered candidate sexual-scene tag groups for sampling."""
+    all_group_names = list(_sexual_scene_tag_group_names(data))
+    optional_group_names = set(
+        cast(Sequence[str], data.get("sexual_scene_optional_tag_groups", all_group_names))
+    )
+    allowed_group_names = optional_group_names | set(required_tag_groups)
+
+    return [group_name for group_name in all_group_names if group_name in allowed_group_names]
 
 def _sexual_scene_tag_group_names(data: Mapping[str, Any]) -> Sequence[str]:
     """Return deterministic sexual-scene tag group names."""
@@ -269,6 +323,7 @@ def build_sexual_scene_tag_count_distribution(
     tag_group_names: Sequence[str],
     data: Mapping[str, Any],
     sexual_content_presence: str | None = None,
+    minimum_count: int = 1,
 ) -> tuple[list[int], list[float]]:
     """Build valid sexual scene tag count options and weights."""
     raw_by_presence = cast(
@@ -316,9 +371,9 @@ def build_sexual_scene_tag_count_distribution(
 
     tag_count_options: list[int] = []
     tag_count_weights: list[float] = []
-    max_tag_count = min(len(tag_group_names), 5)
+    max_tag_count = len(tag_group_names)
     for count, weight in configured_tag_count_pairs:
-        if count <= max_tag_count:
+        if minimum_count <= count <= max_tag_count:
             tag_count_options.append(count)
             tag_count_weights.append(weight)
 
@@ -326,7 +381,7 @@ def build_sexual_scene_tag_count_distribution(
         tag_count_options = [
             count
             for count in DEFAULT_SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION
-            if count <= max_tag_count
+            if minimum_count <= count <= max_tag_count
         ]
         tag_count_weights = [
             DEFAULT_SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION[count] for count in tag_count_options

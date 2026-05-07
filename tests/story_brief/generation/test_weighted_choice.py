@@ -70,7 +70,7 @@ def test_symmetric_peak_weights_rejects_non_positive_lengths() -> None:
             symmetric_peak_weights(length)
 
 
-def test_build_sexual_scene_tag_count_distribution_rejects_empty_result() -> None:
+def test_count_distribution_presence_fallback_respects_minimum_count_off_page() -> None:
     data = {
         "sexual_scene_tag_count_options": (3, 4),
         "sexual_scene_tag_count_weights": (0.5, 0.5),
@@ -188,7 +188,7 @@ def test_pick_sexual_scene_tags_enforces_required_groups_and_optional_pool() -> 
     assert set(selected_tags) == {"loc", "tone", "after", "pace", "phys"}
 
 
-def test_build_sexual_scene_tag_count_distribution_presence_fallback_respects_minimum_count() -> None:
+def test_count_distribution_presence_fallback_respects_minimum_count() -> None:
     data = {
         "sexual_scene_tag_count_weights_by_presence": {
             "on_page_full": {1: 1.0}

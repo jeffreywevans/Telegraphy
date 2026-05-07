@@ -41,9 +41,6 @@ def test_selected_characters_are_valid_for_time_period_year() -> None:
     for name, start, end in get_data()["character_availability"]:
         availability[name].append((start, end))
 
-    configured_counts_by_presence = get_data()["sexual_scene_tag_count_weights_by_presence"]
-    required_groups_by_presence = get_data()["sexual_scene_required_tag_groups_by_presence"]
-
     for seed in range(200):
         fields = pick_story_fields(random.Random(seed))
         selected = date.fromisoformat(str(fields["time_period"]))
@@ -88,7 +85,6 @@ def test_sexual_scene_tags_follow_count_and_group_rules() -> None:
     }
     configured_counts_by_presence = get_data()["sexual_scene_tag_count_weights_by_presence"]
     required_groups_by_presence = get_data()["sexual_scene_required_tag_groups_by_presence"]
-
     for seed in range(200):
         fields = pick_story_fields(random.Random(seed))
         sexual_content_level = fields["sexual_content_level"]

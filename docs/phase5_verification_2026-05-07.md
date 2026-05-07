@@ -17,8 +17,8 @@ These checks confirm the intended contract remains intact:
 
 ## Repository-wide quality gates
 
-- `ruff check .` → **pass**
-- `mypy .` → **fails** with pre-existing strict-typing debt across tests and a small set of modules.
+- `ruff check .` → **passed**
+- `mypy .` → **failed** with pre-existing strict-typing debt across tests and a small set of modules.
 
 `mypy .` currently reports 248 errors concentrated in existing test modules and a few runtime typing surfaces. This appears to be baseline repository state rather than a regression from legacy cleanup.
 

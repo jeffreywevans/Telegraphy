@@ -140,10 +140,16 @@ def pick_story_fields(
     title_template: str = rng.choice(
         cast(Sequence[str], sorted_pool_from_data(data, "titles"))
     )
+    sexual_presence_options = data.get(
+        "sexual_content_options", data["sexual_content_presence_options"]
+    )
+    sexual_presence_weights = data.get(
+        "sexual_content_weights", data["sexual_content_presence_weights"]
+    )
     sexual_content_level = weighted_choice(
         rng,
-        data["sexual_content_presence_options"],
-        data["sexual_content_presence_weights"],
+        sexual_presence_options,
+        sexual_presence_weights,
     )
     sexual_scene_tags = pick_sexual_scene_tags(rng, sexual_content_level, data)
     sexual_partner = pick_sexual_partner(
@@ -269,7 +275,8 @@ def build_sexual_scene_tag_count_distribution(
         Mapping[str, Mapping[str, Any]],
         data.get("sexual_scene_tag_count_weights_by_presence", {}),
     )
-    if raw_by_presence:
+    legacy_raw_weights = data.get("sexual_scene_tag_count_weights")
+    if raw_by_presence and not isinstance(legacy_raw_weights, Mapping):
         presence_weights = raw_by_presence.get(cast(str, sexual_content_presence), {})
         configured_tag_count_pairs: Iterable[tuple[int, float]] = (
             (int(count), float(weight)) for count, weight in presence_weights.items()
@@ -309,11 +316,21 @@ def build_sexual_scene_tag_count_distribution(
 
     tag_count_options: list[int] = []
     tag_count_weights: list[float] = []
+    max_tag_count = min(len(tag_group_names), 5)
     for count, weight in configured_tag_count_pairs:
-        if count <= len(tag_group_names):
+        if count <= max_tag_count:
             tag_count_options.append(count)
             tag_count_weights.append(weight)
 
+    if not tag_count_options and raw_by_presence:
+        tag_count_options = [
+            count
+            for count in DEFAULT_SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION
+            if count <= max_tag_count
+        ]
+        tag_count_weights = [
+            DEFAULT_SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION[count] for count in tag_count_options
+        ]
     if not tag_count_options:
         max_supported_count = len(tag_group_names)
         raise ValueError(

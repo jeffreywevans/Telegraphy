@@ -35,7 +35,15 @@ def _build_story_data(dataset_payloads: dict[str, Any]) -> dict[str, Any]:
         }
         for presence, weights in config["sexual_scene_tag_count_weights_by_presence"].items()
     }
-    legacy_default_presence = next(iter(sexual_scene_tag_count_weights_by_presence))
+    sexual_content_presence_options = tuple(str(v) for v in config["sexual_content_presence_options"])
+    legacy_default_presence = next(
+        (
+            presence
+            for presence in sexual_content_presence_options
+            if presence != "none" and presence in sexual_scene_tag_count_weights_by_presence
+        ),
+        sexual_content_presence_options[0],
+    )
     legacy_sorted_items = sorted(
         sexual_scene_tag_count_weights_by_presence[legacy_default_presence].items(),
         key=lambda item: item[0],
@@ -52,9 +60,7 @@ def _build_story_data(dataset_payloads: dict[str, Any]) -> dict[str, Any]:
         **sorted_prompt_lists,
         "date_start": validated.date_start,
         "date_end": validated.date_end,
-        "sexual_content_presence_options": tuple(
-            str(v) for v in config["sexual_content_presence_options"]
-        ),
+        "sexual_content_presence_options": sexual_content_presence_options,
         "sexual_content_presence_weights": tuple(
             float(v) for v in config["sexual_content_presence_weights"]
         ),

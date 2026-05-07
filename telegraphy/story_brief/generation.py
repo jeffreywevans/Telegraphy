@@ -330,44 +330,11 @@ def build_sexual_scene_tag_count_distribution(
         Mapping[str, Mapping[str, Any]],
         data.get("sexual_scene_tag_count_weights_by_presence", {}),
     )
-    legacy_raw_weights = data.get("sexual_scene_tag_count_weights")
-    if raw_by_presence and not isinstance(legacy_raw_weights, Mapping):
-        presence_weights = raw_by_presence.get(cast(str, sexual_content_presence), {})
-        configured_tag_count_pairs: Iterable[tuple[int, float]] = (
-            (int(count), float(weight)) for count, weight in presence_weights.items()
-        )
-    else:
-        options = cast(
-            Sequence[int],
-            data.get(
-                "sexual_scene_tag_count_options",
-                tuple(DEFAULT_SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION),
-            ),
-        )
-        raw_weights = data.get("sexual_scene_tag_count_weights")
-        weights: list[float]
-        if isinstance(raw_weights, Mapping) and raw_weights:
-            raw_weight_map = raw_weights
-            weights = [
-                float(raw_weight_map.get(option, raw_weight_map.get(str(option), 0.0)) or 0.0)
-                for option in options
-            ]
-        else:
-            if raw_weights:
-                raw_weight_sequence = cast(Sequence[float], raw_weights)
-                weights = [float(weight) for weight in raw_weight_sequence]
-            else:
-                weights = [
-                    float(DEFAULT_SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION.get(option, 0.0))
-                    for option in options
-                ]
-        if len(options) != len(weights):
-            raise ValueError(
-                "Mismatched lengths for sexual scene tag count options "
-                f"({len(options)}) and weights ({len(weights)}). "
-                "Both must have the same number of elements."
-            )
-        configured_tag_count_pairs = zip(options, weights, strict=True)
+    configured_tag_count_pairs = _configured_sexual_scene_tag_count_pairs(
+        data=data,
+        raw_by_presence=raw_by_presence,
+        sexual_content_presence=sexual_content_presence,
+    )
 
     tag_count_options: list[int] = []
     tag_count_weights: list[float] = []
@@ -395,6 +362,67 @@ def build_sexual_scene_tag_count_distribution(
         )
 
     return tag_count_options, tag_count_weights
+
+
+def _configured_sexual_scene_tag_count_pairs(
+    data: Mapping[str, Any],
+    raw_by_presence: Mapping[str, Mapping[str, Any]],
+    sexual_content_presence: str | None,
+) -> Iterable[tuple[int, float]]:
+    """Build configured count/weight pairs from legacy or presence-specific config."""
+    legacy_raw_weights = data.get("sexual_scene_tag_count_weights")
+    has_presence_only_config = raw_by_presence and not isinstance(legacy_raw_weights, Mapping)
+    if has_presence_only_config:
+        return _presence_specific_tag_count_pairs(raw_by_presence, sexual_content_presence)
+    return _legacy_tag_count_pairs(data, legacy_raw_weights)
+
+
+def _presence_specific_tag_count_pairs(
+    raw_by_presence: Mapping[str, Mapping[str, Any]],
+    sexual_content_presence: str | None,
+) -> Iterable[tuple[int, float]]:
+    """Build count/weight pairs from presence-specific tag count weights."""
+    presence_weights = raw_by_presence.get(cast(str, sexual_content_presence), {})
+    return ((int(count), float(weight)) for count, weight in presence_weights.items())
+
+
+def _legacy_tag_count_pairs(
+    data: Mapping[str, Any],
+    raw_weights: Any,
+) -> Iterable[tuple[int, float]]:
+    """Build count/weight pairs from legacy options/weights settings."""
+    options = cast(
+        Sequence[int],
+        data.get(
+            "sexual_scene_tag_count_options",
+            tuple(DEFAULT_SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION),
+        ),
+    )
+    weights = _resolve_legacy_tag_count_weights(options, raw_weights)
+    if len(options) != len(weights):
+        raise ValueError(
+            "Mismatched lengths for sexual scene tag count options "
+            f"({len(options)}) and weights ({len(weights)}). "
+            "Both must have the same number of elements."
+        )
+    return zip(options, weights, strict=True)
+
+
+def _resolve_legacy_tag_count_weights(options: Sequence[int], raw_weights: Any) -> list[float]:
+    """Resolve legacy weights from map, sequence, or defaults."""
+    if isinstance(raw_weights, Mapping) and raw_weights:
+        raw_weight_map = raw_weights
+        return [
+            float(raw_weight_map.get(option, raw_weight_map.get(str(option), 0.0)) or 0.0)
+            for option in options
+        ]
+    if raw_weights:
+        raw_weight_sequence = cast(Sequence[float], raw_weights)
+        return [float(weight) for weight in raw_weight_sequence]
+    return [
+        float(DEFAULT_SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION.get(option, 0.0))
+        for option in options
+    ]
 
 
 def pick_tags_from_selected_groups(

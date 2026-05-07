@@ -80,6 +80,7 @@ class ValidatedStoryData(NamedTuple):
     setting_availability: list[tuple[str, date, date]]
     date_start: date
     date_end: date
+    normalized_config: dict[str, Any]
     partner_distributions: PartnerDistributionDataset
 
 
@@ -399,8 +400,9 @@ def _normalize_config(config: dict[str, Any]) -> dict[str, Any]:
         joined = ", ".join(sorted(present_unsupported_aliases))
         raise ValueError(f"{UNSUPPORTED_CONFIG_ALIAS_ERROR_PREFIX}{joined}")
 
-    normalized.setdefault("sexual_content_story_role_options", ["incidental"])
-    normalized.setdefault("sexual_content_story_role_weights", [1.0])
+    if "sexual_content_story_role_options" not in normalized:
+        normalized["sexual_content_story_role_options"] = ["incidental"]
+        normalized["sexual_content_story_role_weights"] = [1.0]
     normalized.setdefault("sexual_scene_optional_tag_groups", [])
     return normalized
 
@@ -441,5 +443,6 @@ def validate_story_data(
         setting_availability=setting_rows,
         date_start=start,
         date_end=end,
+        normalized_config=normalized_config,
         partner_distributions=partner_distribution_index,
     )

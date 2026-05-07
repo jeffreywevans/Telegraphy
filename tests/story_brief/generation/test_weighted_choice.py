@@ -215,7 +215,7 @@ def test_pick_sexual_scene_tags_enforces_required_groups_and_optional_pool() -> 
     assert set(selected_tags) == {"loc", "tone", "after", "pace", "phys"}
 
 
-def test_count_distribution_presence_fallback_respects_minimum_count() -> None:
+def test_build_sexual_scene_tag_count_distribution_presence_fallback_honors_minimum_count() -> None:
     data = {
         "sexual_scene_tag_count_weights_by_presence": {
             "on_page_full": {1: 1.0}

@@ -389,6 +389,44 @@ Only the known dataset filenames are loaded. Telegraphy refuses unknown data-fil
 
 `partner_distributions.json` contains date-aware weighted partner pools by protagonist. An empty partner list means intentional celibacy for that era. A missing era means absent data and should be treated as a dataset problem.
 
+### Legacy tag-schema migration notes
+
+Telegraphy now accepts only the canonical by-presence tag schema for sexual-scene tag counts.
+
+Removed legacy keys:
+
+- `sexual_scene_tag_count_options`
+- `sexual_scene_tag_count_weights`
+
+Canonical replacement key:
+
+- `sexual_scene_tag_count_weights_by_presence`
+
+Minimal migration example:
+
+Before (removed shape):
+
+```json
+{
+  "sexual_scene_tag_count_options": [1, 2, 3],
+  "sexual_scene_tag_count_weights": [0.6, 0.3, 0.1]
+}
+```
+
+After (canonical shape):
+
+```json
+{
+  "sexual_scene_tag_count_weights_by_presence": {
+    "none": {"1": 0.6, "2": 0.3, "3": 0.1},
+    "suggestive": {"1": 0.5, "2": 0.3, "3": 0.2},
+    "explicit": {"1": 0.2, "2": 0.5, "3": 0.3}
+  }
+}
+```
+
+If legacy keys are present, schema validation fails fast and instructs you to use the canonical fields.
+
 ## Validation and linting
 
 Telegraphy has two related safety nets: validation and linting.

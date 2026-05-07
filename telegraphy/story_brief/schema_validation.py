@@ -278,7 +278,8 @@ def _validate_sexual_scene_tag_count_weights_by_presence(config: dict[str, Any])
         raw_weights = raw_by_presence.get(presence)
         if not isinstance(raw_weights, dict) or not raw_weights:
             raise ValueError(
-                f"config.sexual_scene_tag_count_weights_by_presence.{presence} must be a non-empty object"
+                "config.sexual_scene_tag_count_weights_by_presence."
+                f"{presence} must be a non-empty object"
             )
 
         weight_sum = 0.0

@@ -266,12 +266,14 @@ def build_sexual_scene_tag_count_distribution(
 ) -> tuple[list[int], list[float]]:
     """Build valid sexual scene tag count options and weights."""
     raw_by_presence = cast(
-        Mapping[str, Mapping[int, float]],
+        Mapping[str, Mapping[str, Any]],
         data.get("sexual_scene_tag_count_weights_by_presence", {}),
     )
     if raw_by_presence:
         presence_weights = raw_by_presence.get(cast(str, sexual_content_presence), {})
-        configured_tag_count_pairs: Iterable[tuple[int, float]] = presence_weights.items()
+        configured_tag_count_pairs: Iterable[tuple[int, float]] = (
+            (int(count), float(weight)) for count, weight in presence_weights.items()
+        )
     else:
         options = cast(
             Sequence[int],

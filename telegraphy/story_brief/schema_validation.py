@@ -265,6 +265,7 @@ def _validate_sexual_scene_tag_count_weights_by_presence(config: dict[str, Any])
         )
 
     group_count = len(config["sexual_scene_tag_groups"])
+    min_count = 1 if "sexual_scene_tag_count_weights" in config else 0
     for presence in config["sexual_content_presence_options"]:
         raw_weights = raw_by_presence.get(presence)
         if not isinstance(raw_weights, dict) or not raw_weights:
@@ -276,12 +277,13 @@ def _validate_sexual_scene_tag_count_weights_by_presence(config: dict[str, Any])
         for raw_count, weight in raw_weights.items():
             count = _parse_non_negative_weight_count(
                 raw_count,
-                field_name="sexual_scene_tag_count_weights keys"
+                field_name="sexual_scene_tag_count_weights keys",
+                min_count=min_count,
             )
             if count > group_count:
                 raise ValueError(
                     "sexual_scene_tag_count_weights keys must not exceed "
-                    "available sexual_scene_tag_groups count"
+                    "the available sexual_scene_tag_groups count"
                 )
             weight_sum += _coerce_non_negative_finite_weight(weight)
         if weight_sum <= 0:
@@ -293,13 +295,14 @@ def _validate_sexual_scene_tag_count_weights_by_presence(config: dict[str, Any])
 def _parse_non_negative_weight_count(
     raw_count: Any,
     field_name: str,
+    min_count: int = 0,
 ) -> int:
     error_message = f"{field_name} must be positive integers, got {raw_count!r}"
     try:
         count = int(raw_count)
     except (TypeError, ValueError) as exc:
         raise ValueError(error_message) from exc
-    if str(count) != str(raw_count) or count < 0:
+    if str(count) != str(raw_count) or count < min_count:
         raise ValueError(error_message)
     return count
 

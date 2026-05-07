@@ -633,5 +633,3 @@ You could drop this into the repo:
 - [ ] Tag created, if public release
 - [ ] Release notes published, if public release
 ```
-
-My strongest recommendation: add a CI check that fails when `pyproject.toml`, README, CHANGELOG, and SBOM disagree. That one guardrail would have caught the biggest issue in the current build.

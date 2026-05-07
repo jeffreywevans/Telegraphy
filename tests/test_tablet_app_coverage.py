@@ -110,7 +110,7 @@ def test_init_and_configure_style_and_build(monkeypatch):
             font=(tablet.font_family, 10),
         ),
     ]
-    assert poll_calls[-1] == (100, tablet._poll_worker_queue)
+    assert poll_calls == []
 
 
 def test_decode_output_paths(monkeypatch):
@@ -126,7 +126,7 @@ def test_decode_output_paths(monkeypatch):
     assert tablet._decode_output(b"fallback") == "fallback"
 
 
-def test_generate_story_brief_starts_worker(monkeypatch):
+def test_generate_story_brief_starts_worker_and_starts_polling(monkeypatch):
     tablet = _make_tablet()
     tablet.generate_button = MagicMock()
     tablet.copy_button = MagicMock()
@@ -136,6 +136,9 @@ def test_generate_story_brief_starts_worker(monkeypatch):
     tablet.date_var = SimpleNamespace(get=lambda: "")
 
     monkeypatch.setattr(tablet, "_set_output", MagicMock())
+
+    poll_called: list[bool] = []
+    monkeypatch.setattr(tablet, "_poll_worker_queue", lambda: poll_called.append(True))
 
     thread_record: dict[str, object] = {}
 
@@ -156,6 +159,8 @@ def test_generate_story_brief_starts_worker(monkeypatch):
     tablet.status.configure.assert_called_once_with(text="Generating...")
     tablet._set_output.assert_called_once_with("Kendall is warming her sweet ass up...")
     assert thread_record == {"target": tablet._run_cli_worker, "daemon": True, "started": True}
+    assert tablet._worker_active is True
+    assert poll_called == [True]
 
 
 
@@ -299,6 +304,7 @@ def test_poll_queue_and_copy_and_output_and_draw(monkeypatch):
     output_messages: list[str] = []
     monkeypatch.setattr(tablet, "_set_output", lambda msg: output_messages.append(msg))
 
+    tablet._worker_active = True
     tablet._poll_worker_queue()
     assert after_calls[-1] == (100, tablet._poll_worker_queue)
 
@@ -308,7 +314,9 @@ def test_poll_queue_and_copy_and_output_and_draw(monkeypatch):
     assert output_messages[-1] == "hello world"
     tablet.status.configure.assert_called_with(text="Generated. Ready to copy.")
     assert tablet.copy_button.configure.call_args_list[-1] == call(state="normal")
+    assert tablet._worker_active is False
 
+    tablet._worker_active = True
     tablet.result_queue.put(("error", "bad"))
     tablet._poll_worker_queue()
     assert tablet.latest_output == ""
@@ -316,6 +324,7 @@ def test_poll_queue_and_copy_and_output_and_draw(monkeypatch):
     tablet.status.configure.assert_called_with(text="Generation failed.")
     assert tablet.copy_button.configure.call_args_list[-1] == call(state="disabled")
 
+    tablet._worker_active = True
     tablet.result_queue.put(("success", ""))
     tablet._poll_worker_queue()
     assert tablet.latest_output == ""

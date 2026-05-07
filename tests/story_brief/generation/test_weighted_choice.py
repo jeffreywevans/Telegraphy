@@ -136,6 +136,19 @@ def test_build_sexual_scene_tag_count_distribution_none_presence_uses_defaults()
     assert weights == [0.7, 0.1]
 
 
+def test_tag_count_distribution_missing_config_key_falls_back_to_defaults() -> None:
+    data = {}
+
+    options, weights = build_sexual_scene_tag_count_distribution(
+        ("tone", "location", "dynamic"),
+        data,
+        sexual_content_presence="on_page_full",
+    )
+
+    assert options == [2, 3]
+    assert weights == [0.7, 0.1]
+
+
 def test_build_sexual_scene_tag_count_distribution_empty_mapping_falls_back_to_defaults() -> None:
     data = {
         "sexual_scene_tag_count_weights_by_presence": {

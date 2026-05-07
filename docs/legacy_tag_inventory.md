@@ -39,11 +39,9 @@ Out of scope for this inventory:
      - Coupling rejection and defaults in one helper: **Potential simplification target**.
 
 2. `telegraphy/story_brief/generation.py`
-   - Internal weighted-choice labels still use strings:
-     - `"sexual_content_options"`
-     - `"sexual_content_weights"`
-   - These are used as keys in `data.get()` calls for legacy fallback, but since validation now rejects these keys, this is effectively dead code.
-   - **Classification**: **Potential dead/legacy compatibility path**.
+   - No active lookups for legacy keys `sexual_content_options` or `sexual_content_weights` were found in the current module.
+   - The previously noted legacy fallback path appears to have been removed after this inventory was first drafted.
+   - **Classification**: **Completed cleanup (historical note retained for traceability)**.
 
 3. `telegraphy/story_brief/normalization.py`
    - Canonical field usage only (`sexual_scene_tag_count_weights_by_presence`).
@@ -85,8 +83,7 @@ Out of scope for this inventory:
 2. Split concerns:
    - one helper for rejecting removed keys,
    - one helper for applying current defaults.
-3. Remove dead legacy key lookups in `generation.py` (`sexual_content_options` and `sexual_content_weights`).
-4. Audit `generate_story_brief.py` alias comment/API to confirm intentional compatibility contract; remove if stale.
+3. Audit `generate_story_brief.py` alias comment/API to confirm intentional compatibility contract; remove if stale.
 
 ## Risks to manage in subsequent phases
 

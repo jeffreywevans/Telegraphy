@@ -373,18 +373,18 @@ def _validate_partner_distributions(
     return dataset
 
 
-def _apply_legacy_config_migrations(config: dict[str, Any]) -> None:
-    """Reject removed legacy config aliases and apply supported defaults."""
-    legacy_keys = (
+def _enforce_supported_config_keys_and_defaults(config: dict[str, Any]) -> None:
+    """Reject unsupported config aliases and apply supported defaults."""
+    unsupported_alias_keys = (
         "sexual_content_options",
         "sexual_content_weights",
         "sexual_scene_tag_count_weights",
     )
-    present_legacy_keys = [key for key in legacy_keys if key in config]
-    if present_legacy_keys:
-        joined = ", ".join(sorted(present_legacy_keys))
+    present_unsupported_aliases = [key for key in unsupported_alias_keys if key in config]
+    if present_unsupported_aliases:
+        joined = ", ".join(sorted(present_unsupported_aliases))
         raise ValueError(
-            "Legacy config keys are no longer supported; "
+            "The following config keys are no longer supported; "
             f"use canonical fields instead: {joined}"
         )
 
@@ -408,7 +408,7 @@ def validate_story_data(
     character_rows, setting_rows = _validate_entities(entities)
 
     _validate_prompt_lists(prompts)
-    _apply_legacy_config_migrations(config)
+    _enforce_supported_config_keys_and_defaults(config)
 
     require_keys(
         "config",

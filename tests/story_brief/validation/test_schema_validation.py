@@ -213,21 +213,21 @@ def test_schema_validation_rejects_too_many_sexual_scene_tag_groups(story_datase
 
 
 @pytest.mark.parametrize(
-    "legacy_key",
+    "unsupported_alias_key",
     [
         "sexual_content_options",
         "sexual_content_weights",
         "sexual_scene_tag_count_weights",
     ],
 )
-def test_schema_validation_rejects_legacy_tag_config_keys(
-    legacy_key: str,
+def test_schema_validation_rejects_removed_config_alias_keys(
+    unsupported_alias_key: str,
     story_dataset_payloads: dict[str, dict[str, Any]],
 ) -> None:
     _assert_schema_rejects(
         story_dataset_payloads,
-        lambda t, e, p, c: c.update({legacy_key: ["legacy"]}),
-        rf"canonical fields instead: .*{legacy_key}",
+        lambda t, e, p, c: c.update({unsupported_alias_key: ["legacy"]}),
+        rf"canonical fields instead: .*{unsupported_alias_key}",
     )
 
 

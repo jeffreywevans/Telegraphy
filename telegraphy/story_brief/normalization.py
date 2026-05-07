@@ -38,18 +38,6 @@ def _build_story_data(dataset_payloads: dict[str, Any]) -> dict[str, Any]:
     sexual_content_presence_options = tuple(
         str(v) for v in config["sexual_content_presence_options"]
     )
-    legacy_default_presence = next(
-        (
-            presence
-            for presence in sexual_content_presence_options
-            if presence != "none" and presence in sexual_scene_tag_count_weights_by_presence
-        ),
-        next(iter(sexual_scene_tag_count_weights_by_presence)),
-    )
-    legacy_sorted_items = sorted(
-        sexual_scene_tag_count_weights_by_presence[legacy_default_presence].items(),
-        key=lambda item: item[0],
-    )
     word_count_targets = tuple(int(value) for value in config["word_count_targets"])
 
     return {
@@ -79,8 +67,6 @@ def _build_story_data(dataset_payloads: dict[str, Any]) -> dict[str, Any]:
             for group_name, tags in sexual_scene_tag_groups.items()
         },
         "sexual_scene_tag_count_weights_by_presence": sexual_scene_tag_count_weights_by_presence,
-        "sexual_scene_tag_count_options": tuple(option for option, _ in legacy_sorted_items),
-        "sexual_scene_tag_count_weights": tuple(weight for _, weight in legacy_sorted_items),
         "sexual_scene_required_tag_groups_by_presence": {
             str(presence): tuple(str(group_name) for group_name in groups)
             for presence, groups in config["sexual_scene_required_tag_groups_by_presence"].items()

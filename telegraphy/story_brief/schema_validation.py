@@ -278,25 +278,28 @@ def _validate_sexual_scene_tag_count_weights_by_presence(config: dict[str, Any])
         raw_weights = raw_by_presence.get(presence)
         if not isinstance(raw_weights, dict) or not raw_weights:
             raise ValueError(
-                "config.sexual_scene_tag_count_weights_by_presence.<presence> must be a non-empty object"
+                f"config.sexual_scene_tag_count_weights_by_presence.{presence} must be a non-empty object"
             )
 
         weight_sum = 0.0
         for raw_count, weight in raw_weights.items():
             count = _parse_non_negative_weight_count(
                 raw_count,
-                field_name="sexual_scene_tag_count_weights_by_presence.<presence> keys",
+                field_name=f"sexual_scene_tag_count_weights_by_presence.{presence} keys",
                 min_count=min_count,
             )
             if count > group_count:
                 raise ValueError(
-                    "sexual_scene_tag_count_weights_by_presence.<presence> keys must not exceed "
+                    f"sexual_scene_tag_count_weights_by_presence.{presence} keys must not exceed "
                     "the available sexual_scene_tag_groups count"
                 )
-            weight_sum += _coerce_non_negative_finite_weight(weight)
+            weight_sum += _coerce_non_negative_finite_weight(
+                weight,
+                field_name=f"sexual_scene_tag_count_weights_by_presence.{presence} values",
+            )
         if weight_sum <= 0:
             raise ValueError(
-                "sexual_scene_tag_count_weights_by_presence.<presence> values must sum to > 0"
+                f"sexual_scene_tag_count_weights_by_presence.{presence} values must sum to > 0"
             )
 
 
@@ -316,19 +319,13 @@ def _parse_non_negative_weight_count(
     return count
 
 
-def _coerce_non_negative_finite_weight(weight: Any) -> float:
+def _coerce_non_negative_finite_weight(weight: Any, field_name: str = "weight") -> float:
     if isinstance(weight, bool) or not isinstance(weight, (int, float)):
-        raise ValueError(
-            "sexual_scene_tag_count_weights_by_presence.<presence> values must be real numbers"
-        )
+        raise ValueError(f"{field_name} must be real numbers")
     if not math.isfinite(weight):
-        raise ValueError(
-            "sexual_scene_tag_count_weights_by_presence.<presence> values must be finite"
-        )
+        raise ValueError(f"{field_name} must be finite")
     if weight < 0:
-        raise ValueError(
-            "sexual_scene_tag_count_weights_by_presence.<presence> values must be non-negative"
-        )
+        raise ValueError(f"{field_name} must be non-negative")
     return float(weight)
 
 

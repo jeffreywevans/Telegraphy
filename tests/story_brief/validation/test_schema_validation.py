@@ -32,7 +32,7 @@ def test_schema_validation_accepts_current_data(story_dataset_payloads) -> None:
         (lambda t, e, p, c: c.update({"dataset_version": ""}), "dataset_version"),
         (lambda t, e, p, c: c.update({"date_start": "not-a-date"}), "ISO dates"),
         (
-            lambda t, e, p, c: c.update({"sexual_content_weights": [0, 0, 0, 0, 0]}),
+            lambda t, e, p, c: c.update({"sexual_content_presence_weights": [0, 0, 0, 0, 0]}),
             "must sum to > 0",
         ),
         (
@@ -206,9 +206,11 @@ def test_schema_validation_rejects_invalid_sexual_scene_tag_count_weight_key(
     prompts = story_dataset_payloads["prompts"]
     config = story_dataset_payloads["config"]
     partner_distributions = story_dataset_payloads["partner_distributions"]
-    config["sexual_scene_tag_count_weights"] = {"0": 1.0}
+    config["sexual_scene_tag_count_weights_by_presence"] = {
+        presence: {"abc": 1.0} for presence in config["sexual_content_presence_options"]
+    }
 
-    with pytest.raises(ValueError, match="keys must be positive integers"):
+    with pytest.raises(ValueError, match="keys must be non-negative integers"):
         validate_story_data(titles, entities, prompts, config, partner_distributions)
 
 
@@ -221,7 +223,10 @@ def test_schema_validation_rejects_sexual_scene_tag_count_weight_above_group_cou
     config = story_dataset_payloads["config"]
     partner_distributions = story_dataset_payloads["partner_distributions"]
     group_count = len(config["sexual_scene_tag_groups"])
-    config["sexual_scene_tag_count_weights"] = {str(group_count + 1): 1.0}
+    config["sexual_scene_tag_count_weights_by_presence"] = {
+        presence: {str(group_count + 1): 1.0}
+        for presence in config["sexual_content_presence_options"]
+    }
 
     with pytest.raises(ValueError, match="must not exceed the available"):
         validate_story_data(titles, entities, prompts, config, partner_distributions)
@@ -578,33 +583,33 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
         ),
         (
             lambda _titles, _entities, _prompts, config: config.update(
-                {"sexual_content_weights": []}
+                {"sexual_content_presence_weights": []}
             ),
-            r"config\.sexual_content_weights must be a non-empty list",
+            r"config\.sexual_content_presence_weights must be a non-empty list",
         ),
         (
             lambda _titles, _entities, _prompts, config: config.update(
-                {"sexual_content_weights": [1.0]}
+                {"sexual_content_presence_weights": [1.0]}
             ),
-            r"sexual_content_options/weights must be the same length",
+            r"config sexual_content_presence_options/sexual_content_presence_weights must be the same length",
         ),
         (
             lambda _titles, _entities, _prompts, config: config.update(
-                {"sexual_content_weights": [True, 1.0, 1.0, 1.0, 1.0]}
+                {"sexual_content_presence_weights": [True, 1.0, 1.0, 1.0, 1.0]}
             ),
-            r"config\.sexual_content_weights\[0\] must be a real number",
+            r"config\.sexual_content_presence_weights\[0\] must be a real number",
         ),
         (
             lambda _titles, _entities, _prompts, config: config.update(
-                {"sexual_content_weights": [math.inf, 1.0, 1.0, 1.0, 1.0]}
+                {"sexual_content_presence_weights": [math.inf, 1.0, 1.0, 1.0, 1.0]}
             ),
-            r"config\.sexual_content_weights\[0\] must be finite",
+            r"config\.sexual_content_presence_weights\[0\] must be finite",
         ),
         (
             lambda _titles, _entities, _prompts, config: config.update(
-                {"sexual_content_weights": [-1.0, 1.0, 1.0, 1.0, 1.0]}
+                {"sexual_content_presence_weights": [-1.0, 1.0, 1.0, 1.0, 1.0]}
             ),
-            r"config\.sexual_content_weights\[0\] must be non-negative",
+            r"config\.sexual_content_presence_weights\[0\] must be non-negative",
         ),
         (
             lambda _titles, _entities, _prompts, config: config.update(
@@ -626,37 +631,37 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
         ),
         (
             lambda _titles, _entities, _prompts, config: config.update(
-                {"sexual_scene_tag_count_weights": {}}
+                {"sexual_scene_tag_count_weights_by_presence": {}}
             ),
-            r"config\.sexual_scene_tag_count_weights must be a non-empty object",
+            r"config\.sexual_scene_tag_count_weights_by_presence must be a non-empty object",
         ),
         (
             lambda _titles, _entities, _prompts, config: config.update(
-                {"sexual_scene_tag_count_weights": {"abc": 1.0}}
+                {"sexual_scene_tag_count_weights_by_presence": {"none": {"abc": 1.0}, "suggestive": {"1": 1.0}, "explicit": {"1": 1.0}, "implied": {"1": 1.0}, "fade_to_black": {"1": 1.0}}}
             ),
-            r"sexual_scene_tag_count_weights keys must be positive integers",
+            r"sexual_scene_tag_count_weights keys must be non-negative integers",
         ),
         (
             lambda _titles, _entities, _prompts, config: config.update(
-                {"sexual_scene_tag_count_weights": {"1": 0.0, "2": 0.0}}
+                {"sexual_scene_tag_count_weights_by_presence": {"none": {"1": 0.0, "2": 0.0}, "suggestive": {"1": 1.0}, "explicit": {"1": 1.0}, "implied": {"1": 1.0}, "fade_to_black": {"1": 1.0}}}
             ),
             r"sexual_scene_tag_count_weights values must sum to > 0",
         ),
         (
             lambda _titles, _entities, _prompts, config: config.update(
-                {"sexual_scene_tag_count_weights": {"1": True}}
+                {"sexual_scene_tag_count_weights_by_presence": {"none": {"1": True}, "suggestive": {"1": 1.0}, "explicit": {"1": 1.0}, "implied": {"1": 1.0}, "fade_to_black": {"1": 1.0}}}
             ),
             r"sexual_scene_tag_count_weights values must be real numbers",
         ),
         (
             lambda _titles, _entities, _prompts, config: config.update(
-                {"sexual_scene_tag_count_weights": {"1": math.inf}}
+                {"sexual_scene_tag_count_weights_by_presence": {"none": {"1": math.inf}, "suggestive": {"1": 1.0}, "explicit": {"1": 1.0}, "implied": {"1": 1.0}, "fade_to_black": {"1": 1.0}}}
             ),
             r"sexual_scene_tag_count_weights values must be finite",
         ),
         (
             lambda _titles, _entities, _prompts, config: config.update(
-                {"sexual_scene_tag_count_weights": {"1": -1.0}}
+                {"sexual_scene_tag_count_weights_by_presence": {"none": {"1": -1.0}, "suggestive": {"1": 1.0}, "explicit": {"1": 1.0}, "implied": {"1": 1.0}, "fade_to_black": {"1": 1.0}}}
             ),
             r"sexual_scene_tag_count_weights values must be non-negative",
         ),

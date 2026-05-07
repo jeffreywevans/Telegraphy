@@ -373,8 +373,8 @@ def _presence_specific_tag_count_pairs(
 
     pairs: list[tuple[int, float]] = []
     for raw_count, raw_weight in presence_weights.items():
-        if isinstance(raw_count, bool):
-            raise TypeError("sexual scene tag count keys must be integers, not booleans")
+        if isinstance(raw_count, (bool, float)):
+            raise TypeError("sexual scene tag count keys must be integers, not booleans or floats")
         try:
             parsed_count = int(raw_count)
         except (TypeError, ValueError) as exc:

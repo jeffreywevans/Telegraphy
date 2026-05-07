@@ -297,7 +297,7 @@ def build_sexual_scene_tag_count_distribution(
                 or tuple(DEFAULT_SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION.values()),
             )
             weights = [float(weight) for weight in raw_weight_sequence]
-        configured_tag_count_pairs = zip(options, weights, strict=False)
+        configured_tag_count_pairs = zip(options, weights, strict=True)
 
     tag_count_options: list[int] = []
     tag_count_weights: list[float] = []

@@ -384,7 +384,7 @@ def _enforce_supported_config_keys_and_defaults(config: dict[str, Any]) -> None:
     if present_unsupported_aliases:
         joined = ", ".join(sorted(present_unsupported_aliases))
         raise ValueError(
-            "Unsupported config keys are no longer supported; "
+            "The following config keys are no longer supported; "
             f"use canonical fields instead: {joined}"
         )
 

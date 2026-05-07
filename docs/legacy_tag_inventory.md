@@ -85,7 +85,7 @@ Out of scope for this inventory:
 2. Split concerns:
    - one helper for rejecting removed keys,
    - one helper for applying current defaults.
-3. Evaluate whether weighted-choice label strings in `generation.py` should avoid removed-key terminology to reduce ambiguity.
+3. Remove dead legacy key lookups in `generation.py` (`sexual_content_options` and `sexual_content_weights`).
 4. Audit `generate_story_brief.py` alias comment/API to confirm intentional compatibility contract; remove if stale.
 
 ## Risks to manage in subsequent phases

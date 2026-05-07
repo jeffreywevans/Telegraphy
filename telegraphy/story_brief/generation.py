@@ -265,14 +265,30 @@ def build_sexual_scene_tag_count_distribution(
     sexual_content_presence: str | None = None,
 ) -> tuple[list[int], list[float]]:
     """Build valid sexual scene tag count options and weights."""
-    raw_by_presence = cast(Mapping[str, Mapping[int, float]], data.get("sexual_scene_tag_count_weights_by_presence", {}))
+    raw_by_presence = cast(
+        Mapping[str, Mapping[int, float]],
+        data.get("sexual_scene_tag_count_weights_by_presence", {}),
+    )
     if raw_by_presence:
         raw_weights = raw_by_presence.get(cast(str, sexual_content_presence), {})
         configured_tag_count_pairs = raw_weights.items()
     else:
-        options = cast(Sequence[int], data.get("sexual_scene_tag_count_options", tuple(DEFAULT_SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION)))
+        options = cast(
+            Sequence[int],
+            data.get(
+                "sexual_scene_tag_count_options",
+                tuple(DEFAULT_SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION),
+            ),
+        )
         raw_weights = data.get("sexual_scene_tag_count_weights")
-        weights = [float(raw_weights.get(str(option)) or 0.0) for option in options] if isinstance(raw_weights, Mapping) and raw_weights else cast(Sequence[float], raw_weights or tuple(DEFAULT_SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION.values()))
+        if isinstance(raw_weights, Mapping) and raw_weights:
+            weights = [float(raw_weights.get(str(option)) or 0.0) for option in options]
+        else:
+            weights = cast(
+                Sequence[float],
+                raw_weights
+                or tuple(DEFAULT_SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION.values()),
+            )
         configured_tag_count_pairs = zip(options, weights, strict=False)
 
     tag_count_options: list[int] = []

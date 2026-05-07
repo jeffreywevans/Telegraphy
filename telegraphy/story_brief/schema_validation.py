@@ -183,7 +183,8 @@ def _validate_sexual_content_weights(config: dict[str, Any]) -> None:
         raise ValueError("config.sexual_content_presence_weights must be a non-empty list")
     if len(weights) != len(config["sexual_content_presence_options"]):
         raise ValueError(
-            "config sexual_content_presence_options/sexual_content_presence_weights must be the same length"
+            "config sexual_content_presence_options/"
+            "sexual_content_presence_weights must be the same length"
         )
     for idx, value in enumerate(weights):
         if isinstance(value, bool) or not isinstance(value, (int, float)):
@@ -200,11 +201,15 @@ def _validate_sexual_content_weights(config: dict[str, Any]) -> None:
         raise ValueError("config.sexual_content_story_role_weights must be a non-empty list")
     if len(role_weights) != len(config["sexual_content_story_role_options"]):
         raise ValueError(
-            "config sexual_content_story_role_options/sexual_content_story_role_weights must be the same length"
+            "config sexual_content_story_role_options/"
+            "sexual_content_story_role_weights must be the same length"
         )
     for idx, value in enumerate(role_weights):
         if isinstance(value, bool) or not isinstance(value, (int, float)):
-            raise ValueError(f"config.sexual_content_story_role_weights[{idx}] must be a real number")
+            raise ValueError(
+                f"config.sexual_content_story_role_weights[{idx}] "
+                "must be a real number"
+            )
         if not math.isfinite(value):
             raise ValueError(f"config.sexual_content_story_role_weights[{idx}] must be finite")
         if value < 0:
@@ -381,7 +386,10 @@ def validate_story_data(
     if "sexual_content_presence_options" not in config and "sexual_content_options" in config:
         config["sexual_content_presence_options"] = config["sexual_content_options"]
         config["sexual_content_presence_weights"] = config["sexual_content_weights"]
-    if "sexual_scene_tag_count_weights_by_presence" not in config and "sexual_scene_tag_count_weights" in config:
+    if (
+        "sexual_scene_tag_count_weights_by_presence" not in config
+        and "sexual_scene_tag_count_weights" in config
+    ):
         config["sexual_scene_tag_count_weights_by_presence"] = {
             presence: config["sexual_scene_tag_count_weights"]
             for presence in config["sexual_content_presence_options"]

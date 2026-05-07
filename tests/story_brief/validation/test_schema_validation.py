@@ -660,7 +660,7 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
                     )
                 }
             ),
-            r"sexual_scene_tag_count_weights keys must be non-negative integers",
+            r"sexual_scene_tag_count_weights_by_presence\.none keys must be non-negative integers",
         ),
         (
             lambda _titles, _entities, _prompts, config: config.update(
@@ -670,7 +670,7 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
                     )
                 }
             ),
-            r"sexual_scene_tag_count_weights values must sum to > 0",
+            r"sexual_scene_tag_count_weights_by_presence\.none values must sum to > 0",
         ),
         (
             lambda _titles, _entities, _prompts, config: config.update(
@@ -680,7 +680,7 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
                     )
                 }
             ),
-            r"sexual_scene_tag_count_weights values must be real numbers",
+            r"sexual_scene_tag_count_weights_by_presence\.none values must be real numbers",
         ),
         (
             lambda _titles, _entities, _prompts, config: config.update(
@@ -690,7 +690,7 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
                     )
                 }
             ),
-            r"sexual_scene_tag_count_weights values must be finite",
+            r"sexual_scene_tag_count_weights_by_presence\.none values must be finite",
         ),
         (
             lambda _titles, _entities, _prompts, config: config.update(
@@ -700,7 +700,7 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
                     )
                 }
             ),
-            r"sexual_scene_tag_count_weights values must be non-negative",
+            r"sexual_scene_tag_count_weights_by_presence\.none values must be non-negative",
         ),
         (
             lambda _titles, _entities, _prompts, config: config.update({"ordered_keys": []}),

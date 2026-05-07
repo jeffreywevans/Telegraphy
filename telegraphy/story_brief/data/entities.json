@@ -58,6 +58,11 @@
   ],
   "setting_availability": [
     [
+      "AT&T Stadium – Arlington, TX, USA",
+      "2009-01-01",
+      "2032-12-31"
+    ],
+    [
       "Alamodome – San Antonio, TX, USA",
       "1995-01-01",
       "2032-12-31"
@@ -88,11 +93,6 @@
       "2008-12-31"
     ],
     [
-      "AT&T Stadium – Arlington, TX, USA",
-      "2009-01-01",
-      "2032-12-31"
-    ],
-    [
       "Athens, OH, USA",
       "1989-12-04",
       "1992-12-31"
@@ -105,6 +105,16 @@
     [
       "Austin, TX, USA",
       "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "BC Place – Vancouver, BC, Canada",
+      "1995-01-01",
+      "2032-12-31"
+    ],
+    [
+      "BOK Center – Tulsa, OK, USA",
+      "2008-01-01",
       "2032-12-31"
     ],
     [
@@ -125,11 +135,6 @@
     [
       "Barclays Center – Brooklyn, NY, USA",
       "2012-01-01",
-      "2032-12-31"
-    ],
-    [
-      "BC Place – Vancouver, BC, Canada",
-      "1995-01-01",
       "2032-12-31"
     ],
     [
@@ -158,11 +163,6 @@
       "2032-12-31"
     ],
     [
-      "BOK Center – Tulsa, OK, USA",
-      "2008-01-01",
-      "2032-12-31"
-    ],
-    [
       "Bon Secours Wellness Arena – Greenville, SC, USA",
       "1998-01-01",
       "2032-12-31"
@@ -175,6 +175,11 @@
     [
       "Bridgestone Arena – Nashville, TN, USA",
       "1996-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Brisbane Entertainment Centre – Brisbane, QLD, Australia",
+      "1999-01-01",
       "2032-12-31"
     ],
     [
@@ -200,6 +205,11 @@
     [
       "Buffalo, NY, USA",
       "1992-01-01",
+      "2032-12-31"
+    ],
+    [
+      "CFG Bank Arena – Baltimore, MD, USA",
+      "1993-01-01",
       "2032-12-31"
     ],
     [
@@ -245,11 +255,6 @@
     [
       "Centre Vidéotron – Québec City, QC, Canada",
       "2015-01-01",
-      "2032-12-31"
-    ],
-    [
-      "CFG Bank Arena – Baltimore, MD, USA",
-      "1993-01-01",
       "2032-12-31"
     ],
     [
@@ -683,6 +688,11 @@
       "1996-12-31"
     ],
     [
+      "NRG Stadium – Houston, TX, USA",
+      "2002-01-01",
+      "2032-12-31"
+    ],
+    [
       "Nashville, TN, USA",
       "1992-01-01",
       "2032-12-31"
@@ -711,11 +721,6 @@
       "Northlands Coliseum – Edmonton, AB, Canada",
       "1993-01-01",
       "2018-12-31"
-    ],
-    [
-      "NRG Stadium – Houston, TX, USA",
-      "2002-01-01",
-      "2032-12-31"
     ],
     [
       "Nutter Center – Dayton, OH, USA",
@@ -768,6 +773,26 @@
       "2032-12-31"
     ],
     [
+      "PHX Arena – Phoenix, AZ, USA",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "PNC Bank Arts Center – Holmdel, NJ, USA",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "PNC Music Pavilion – Charlotte, NC, USA",
+      "1993-01-01",
+      "2032-12-31"
+    ],
+    [
+      "PPL Center – Allentown, PA, USA",
+      "2014-01-01",
+      "2032-12-31"
+    ],
+    [
       "Pacific Coliseum – Vancouver, BC, Canada",
       "1993-01-01",
       "2032-12-31"
@@ -785,11 +810,6 @@
     [
       "Phoenix, AZ, USA",
       "1992-01-01",
-      "2032-12-31"
-    ],
-    [
-      "PHX Arena – Phoenix, AZ, USA",
-      "1993-01-01",
       "2032-12-31"
     ],
     [
@@ -813,16 +833,6 @@
       "2032-12-31"
     ],
     [
-      "PNC Bank Arts Center – Holmdel, NJ, USA",
-      "1993-01-01",
-      "2032-12-31"
-    ],
-    [
-      "PNC Music Pavilion – Charlotte, NC, USA",
-      "1993-01-01",
-      "2032-12-31"
-    ],
-    [
       "Pontiac Silverdome – Pontiac, MI, USA",
       "1995-01-01",
       "2013-12-31"
@@ -843,11 +853,6 @@
       "1992-12-31"
     ],
     [
-      "PPL Center – Allentown, PA, USA",
-      "2014-01-01",
-      "2032-12-31"
-    ],
-    [
       "Providence, RI, USA",
       "1992-01-01",
       "2032-12-31"
@@ -856,6 +861,21 @@
       "Prudential Center – Newark, NJ, USA",
       "2007-01-01",
       "2032-12-31"
+    ],
+    [
+      "Qudos Bank Arena – Sydney, NSW, Australia",
+      "2000-01-01",
+      "2032-12-31"
+    ],
+    [
+      "RAC Arena – Perth, WA, Australia",
+      "2012-01-01",
+      "2032-12-31"
+    ],
+    [
+      "RFK Stadium – Washington, DC, USA",
+      "1995-01-01",
+      "2019-12-31"
     ],
     [
       "Raleigh, NC, USA",
@@ -871,11 +891,6 @@
       "Reunion Arena – Dallas, TX, USA",
       "1993-01-01",
       "2008-12-31"
-    ],
-    [
-      "RFK Stadium – Washington, DC, USA",
-      "1995-01-01",
-      "2019-12-31"
     ],
     [
       "Richfield Coliseum – Richfield, OH, USA",
@@ -910,6 +925,11 @@
     [
       "Rocket Arena – Cleveland, OH, USA",
       "1994-01-01",
+      "2032-12-31"
+    ],
+    [
+      "Rod Laver Arena – Melbourne, VIC, Australia",
+      "1999-01-01",
       "2032-12-31"
     ],
     [
@@ -1078,6 +1098,11 @@
       "2032-12-31"
     ],
     [
+      "TD Garden – Boston, MA, USA",
+      "1995-01-01",
+      "2032-12-31"
+    ],
+    [
       "Tacoma Dome – Tacoma, WA, USA",
       "1993-01-01",
       "2032-12-31"
@@ -1090,11 +1115,6 @@
     [
       "Target Center – Minneapolis, MN, USA",
       "1993-01-01",
-      "2032-12-31"
-    ],
-    [
-      "TD Garden – Boston, MA, USA",
-      "1995-01-01",
       "2032-12-31"
     ],
     [

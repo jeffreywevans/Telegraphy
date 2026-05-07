@@ -418,9 +418,9 @@ After (canonical shape):
 ```json
 {
   "sexual_scene_tag_count_weights_by_presence": {
-    "none": {"1": 0.6, "2": 0.3, "3": 0.1},
-    "suggestive": {"1": 0.5, "2": 0.3, "3": 0.2},
-    "explicit": {"1": 0.2, "2": 0.5, "3": 0.3}
+    "none": {"0": 1.0},
+    "implied": {"1": 0.6, "2": 0.3, "3": 0.1},
+    "on_page_full": {"1": 0.2, "2": 0.5, "3": 0.3}
   }
 }
 ```

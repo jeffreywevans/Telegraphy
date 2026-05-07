@@ -291,13 +291,21 @@ def build_sexual_scene_tag_count_distribution(
                 for option in options
             ]
         else:
-            raw_weight_sequence = cast(
-                Sequence[float],
-                raw_weights
-                or tuple(DEFAULT_SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION.values()),
+            if raw_weights:
+                raw_weight_sequence = cast(Sequence[float], raw_weights)
+                weights = [float(weight) for weight in raw_weight_sequence]
+            else:
+                weights = [
+                    float(DEFAULT_SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION.get(option, 0.0))
+                    for option in options
+                ]
+        if len(options) != len(weights):
+            raise ValueError(
+                "Mismatched lengths for sexual scene tag count options "
+                f"({len(options)}) and weights ({len(weights)}). "
+                "Both must have the same number of elements."
             )
-            weights = [float(weight) for weight in raw_weight_sequence]
-        configured_tag_count_pairs = zip(options, weights, strict=False)
+        configured_tag_count_pairs = zip(options, weights, strict=True)
 
     tag_count_options: list[int] = []
     tag_count_weights: list[float] = []

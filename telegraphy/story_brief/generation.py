@@ -184,7 +184,8 @@ def pick_story_characters(
 ) -> tuple[str, str]:
     """Pick protagonist and secondary character for a date."""
     characters_for_date = stable_sorted_pool(available_characters(selected_date, data))
-    distinct_characters_for_date = list(dict.fromkeys(characters_for_date))
+    # `set`-based de-duplication is safe here because characters are already sorted.
+    distinct_characters_for_date = sorted(set(characters_for_date))
     if len(distinct_characters_for_date) < 2:
         raise ValueError(
             "Need at least two distinct available characters for year "
@@ -298,6 +299,12 @@ def _candidate_sexual_scene_tag_groups(
     optional_group_names = set(
         cast(Sequence[str], data.get("sexual_scene_optional_tag_groups", all_group_names))
     )
+    unknown_optional_groups = optional_group_names.difference(all_group_names)
+    if unknown_optional_groups:
+        raise ValueError(
+            "Configured optional sexual scene tag groups are unknown: "
+            f"{', '.join(sorted(unknown_optional_groups))}"
+        )
     allowed_group_names = optional_group_names | set(required_tag_groups)
 
     return [group_name for group_name in all_group_names if group_name in allowed_group_names]
@@ -363,7 +370,32 @@ def _presence_specific_tag_count_pairs(
         presence_weights: Mapping[str, Any] = {}
     else:
         presence_weights = raw_by_presence.get(sexual_content_presence, {})
-    return ((int(count), float(weight)) for count, weight in presence_weights.items())
+
+    pairs: list[tuple[int, float]] = []
+    for raw_count, raw_weight in presence_weights.items():
+        if isinstance(raw_count, bool):
+            raise TypeError("sexual scene tag count keys must be integers, not booleans")
+        try:
+            parsed_count = int(raw_count)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                f"invalid sexual scene tag count key: {raw_count!r}"
+            ) from exc
+
+        if isinstance(raw_weight, bool):
+            raise TypeError(
+                f"weight for sexual scene tag count {parsed_count} must be numeric, not bool"
+            )
+        try:
+            parsed_weight = float(raw_weight)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                f"invalid weight for sexual scene tag count {parsed_count}: {raw_weight!r}"
+            ) from exc
+
+        pairs.append((parsed_count, parsed_weight))
+
+    return pairs
 
 
 def pick_tags_from_selected_groups(
@@ -387,7 +419,10 @@ def _sorted_tags_for_group(group_name: str, data: Mapping[str, Any]) -> Sequence
         return tag_groups_sorted[group_name]
     except KeyError:  # pragma: no cover - compatibility fallback for minimal data maps.
         tag_groups = cast(Mapping[str, Iterable[str]], data["sexual_scene_tag_groups"])
-        return stable_sorted_pool(tag_groups[group_name])
+        try:
+            return stable_sorted_pool(tag_groups[group_name])
+        except KeyError as exc:
+            raise ValueError(f"Unknown sexual scene tag group: {group_name}") from exc
 
 
 def pick_sexual_partner(

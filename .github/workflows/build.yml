@@ -38,25 +38,15 @@ jobs:
       matrix:
         include:
           - python_label: baseline
-            use_version_file: true
+            python_version: "3.14"
           - python_label: latest
-            use_version_file: false
+            python_version: "3.14"
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Verify .python-version exists
-        if: matrix.use_version_file
-        run: test -f .python-version
-      - name: Setup Python from .python-version
-        if: matrix.use_version_file
+      - name: Setup Python
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
-          python-version-file: ".python-version"
-          cache: "pip"
-      - name: Setup latest stable Python
-        if: ${{ !matrix.use_version_file }}
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
-        with:
-          python-version: "3.14"
+          python-version: ${{ matrix.python_version }}
           cache: "pip"
       - name: Show resolved Python version
         run: python --version

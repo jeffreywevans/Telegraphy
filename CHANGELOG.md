@@ -6,9 +6,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
-### Changed
-- Clarified README compatibility guidance for legacy sexual-scene tag-count schema removal, including removed fields, replacement field, and a before/after JSON example without implying runtime migration.
-
 ## [0.5.0] - 2026-05-08
 
 Released Telegraphy 0.5.0 as a build declaration release that aligns package metadata, README status text, and SBOM artifacts while carrying forward current quality and validation standards.
@@ -16,6 +13,7 @@ Released Telegraphy 0.5.0 as a build declaration release that aligns package met
 ### Changed
 - Bumped package metadata and top-level README release/version references from 0.4.3 to 0.5.0 for build consistency.
 - Regenerated `sbom.cdx.json` so CycloneDX metadata aligns with the 0.5.0 package declaration.
+- Clarified README compatibility guidance for legacy sexual-scene tag-count schema removal, including removed fields, replacement field, and a before/after JSON example without implying runtime migration.
 
 ### Known Issues
 - GUI smoke testing remains environment-dependent in headless shells and should be verified on a desktop session before public release.

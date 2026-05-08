@@ -405,7 +405,7 @@ def test_dataset_lint_reports_non_blocking_warnings() -> None:
     assert any("exactly two characters" in msg for msg in report.warnings)
     assert any("exactly one setting" in msg for msg in report.warnings)
     assert any("token(s) never used" in msg for msg in report.warnings)
-    assert any("weather has only 1 option" in msg for msg in report.warnings)
+    assert any("weather has only 1 option;" in msg for msg in report.warnings)
 
 
 def test_dataset_lint_reports_partner_data_coverage_gaps_by_protagonist() -> None:

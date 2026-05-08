@@ -78,7 +78,7 @@ The generator is date-aware. Character availability, setting availability, and p
 
 ## Install
 
-Telegraphy requires Python 3.12 or newer.
+Telegraphy requires Python 3.14 or newer.
 
 For normal local use from a clone:
 
@@ -562,19 +562,19 @@ python -m pip install tox
 Run the full tox workflow:
 
 ```bash
-tox -e py312
+tox -e py314
 ```
 
 Run fast tests only:
 
 ```bash
-tox -e py312-fast
+tox -e py314-fast
 ```
 
 Run slow or integration tests:
 
 ```bash
-tox -e py312-slow
+tox -e py314-slow
 ```
 
 The repository uses:
@@ -614,7 +614,7 @@ Current package facts:
 | --- | --- |
 | Package | `telegraphy` |
 | Current version | `0.5.0` |
-| Python | `>=3.12` |
+| Python | `>=3.14` |
 | Runtime dependency | `PyYAML>=6.0.3` |
 | Console script | `story-brief = telegraphy.story_brief.cli:main` |
 | License | MIT |

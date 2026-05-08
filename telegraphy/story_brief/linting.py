@@ -330,21 +330,25 @@ def _append_minimum_option_warning(
     if option_count >= minimum_count:
         return
 
+    plural_suffix = "" if option_count == 1 else "s"
     warnings.append(
-        f"Prompt depth warning: {key} has only {option_count} option(s); "
+        f"Prompt depth warning: {key} has only {option_count} option{plural_suffix}; "
         f"consider {recommendation}."
     )
 
 
 def _append_prompt_depth_warnings(data: Mapping[str, Any], *, warnings: list[str]) -> None:
     """Warn when prompt lists are too shallow for durable random variety."""
+    recommendation_for_prompts = (
+        f"adding at least {_MINIMUM_PROMPT_OPTIONS} for variety"
+    )
     for key in PROMPT_LIST_KEYS:
         _append_minimum_option_warning(
             warnings=warnings,
             key=key,
             option_count=len(data[key]),
             minimum_count=_MINIMUM_PROMPT_OPTIONS,
-            recommendation=f"adding at least {_MINIMUM_PROMPT_OPTIONS} for variety",
+            recommendation=recommendation_for_prompts,
         )
 
     _append_minimum_option_warning(

@@ -25,7 +25,7 @@ def test_project_metadata_declares_release_metadata() -> None:
     assert project["license"] == "MIT"
     assert project["license-files"] == ["LICENSE"]
     assert "License :: OSI Approved :: MIT License" not in project["classifiers"]
-    assert project["requires-python"] == ">=3.12"
+    assert project["requires-python"] == ">=3.14"
     assert any(dep.casefold().startswith("pyyaml") for dep in project["dependencies"])
     assert project["urls"]["Repository"] == "https://github.com/jeffreywevans/Telegraphy.git"
 

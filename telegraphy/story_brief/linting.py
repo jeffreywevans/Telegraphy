@@ -25,6 +25,7 @@ _MINIMUM_PROMPT_OPTIONS = 3
 _MINIMUM_CHARACTER_CHOICES = 2
 _MINIMUM_SETTING_CHOICES = 1
 _ONE_DAY = timedelta(days=1)
+_WORD_COUNT_TARGETS_KEY = "word_count_targets"
 
 
 class DatasetLintReport(NamedTuple):
@@ -317,24 +318,42 @@ def _append_coverage_messages(
         )
 
 
+def _append_minimum_option_warning(
+    *,
+    warnings: list[str],
+    key: str,
+    option_count: int,
+    minimum_count: int,
+    recommendation: str,
+) -> None:
+    """Append a warning when a prompt list has fewer than ``minimum_count`` options."""
+    if option_count >= minimum_count:
+        return
+
+    warnings.append(
+        f"Prompt depth warning: {key} has only {option_count} option(s); "
+        f"consider {recommendation}."
+    )
+
+
 def _append_prompt_depth_warnings(data: Mapping[str, Any], *, warnings: list[str]) -> None:
     """Warn when prompt lists are too shallow for durable random variety."""
     for key in PROMPT_LIST_KEYS:
-        option_count = len(data[key])
-        if option_count >= _MINIMUM_PROMPT_OPTIONS:
-            continue
-
-        warnings.append(
-            f"Prompt depth warning: {key} has only {option_count} option(s); "
-            f"consider adding at least {_MINIMUM_PROMPT_OPTIONS} for variety."
+        _append_minimum_option_warning(
+            warnings=warnings,
+            key=key,
+            option_count=len(data[key]),
+            minimum_count=_MINIMUM_PROMPT_OPTIONS,
+            recommendation=f"adding at least {_MINIMUM_PROMPT_OPTIONS} for variety",
         )
 
-    if len(data["word_count_targets"]) < _MINIMUM_PROMPT_OPTIONS:
-        warnings.append(
-            "Prompt depth warning: word_count_targets has fewer than "
-            f"{_MINIMUM_PROMPT_OPTIONS} options; "
-            "consider adding more range variety."
-        )
+    _append_minimum_option_warning(
+        warnings=warnings,
+        key=_WORD_COUNT_TARGETS_KEY,
+        option_count=len(data[_WORD_COUNT_TARGETS_KEY]),
+        minimum_count=_MINIMUM_PROMPT_OPTIONS,
+        recommendation="adding more range variety",
+    )
 
 
 def _append_title_token_warnings(data: Mapping[str, Any], *, warnings: list[str]) -> None:

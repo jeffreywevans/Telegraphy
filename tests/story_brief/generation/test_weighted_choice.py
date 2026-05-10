@@ -231,3 +231,45 @@ def test_build_sexual_scene_tag_count_distribution_presence_fallback_honors_mini
 
     assert options == [4, 5]
     assert weights == [0.1, 0.1]
+
+
+def test_pick_sexual_scene_tags_none_returns_empty_list() -> None:
+    from telegraphy.story_brief.generation import pick_sexual_scene_tags
+
+    assert pick_sexual_scene_tags(random.Random(1), "none", {}) == []
+
+
+def test_pick_sexual_scene_tags_rejects_missing_required_group() -> None:
+    from telegraphy.story_brief.generation import pick_sexual_scene_tags
+
+    data = {
+        "sexual_scene_tag_group_names_sorted": ("known",),
+        "sexual_scene_required_tag_groups_by_presence": {"on_page_full": ("unknown",)},
+    }
+
+    with pytest.raises(ValueError, match="missing"):
+        pick_sexual_scene_tags(random.Random(1), "on_page_full", data)
+
+
+def test_pick_sexual_scene_tags_rejects_unknown_optional_group() -> None:
+    from telegraphy.story_brief.generation import pick_sexual_scene_tags
+
+    data = {
+        "sexual_scene_tag_group_names_sorted": ("known",),
+        "sexual_scene_tag_groups_sorted": {"known": ("tag",)},
+        "sexual_scene_optional_tag_groups": ("unknown",),
+    }
+
+    with pytest.raises(ValueError, match="unknown"):
+        pick_sexual_scene_tags(random.Random(1), "on_page_full", data)
+
+
+def test_pick_tags_from_selected_groups_rejects_unknown_group() -> None:
+    from telegraphy.story_brief.generation import pick_tags_from_selected_groups
+
+    with pytest.raises(ValueError, match="Unknown sexual scene tag group"):
+        pick_tags_from_selected_groups(
+            random.Random(1),
+            ["missing"],
+            {"sexual_scene_tag_groups": {"known": ["tag"]}},
+        )

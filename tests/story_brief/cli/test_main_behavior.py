@@ -9,6 +9,20 @@ from telegraphy.story_brief import cli as story_cli
 from telegraphy.story_brief import filenames as filename_utils
 
 
+def _mock_story_generation(monkeypatch: pytest.MonkeyPatch, *, markdown: str = "body") -> None:
+    """Stub story generation for CLI tests that only exercise IO/argument behavior."""
+    monkeypatch.setattr(
+        story_cli.story_brief_cli,
+        "pick_story_fields",
+        lambda *_args, **_kwargs: {"title": "A"},
+    )
+    monkeypatch.setattr(
+        story_cli.story_brief_cli,
+        "to_markdown",
+        lambda _fields, data=None: markdown,
+    )
+
+
 def test_main_print_only_calls_pick_story_fields_with_selected_date(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -152,10 +166,7 @@ def test_main_rejects_parent_traversal_in_output_dir(
         "argv",
         ["story-brief", "--output-dir", "../outside", "--filename", "safe.md"],
     )
-    monkeypatch.setattr(
-        story_cli.story_brief_cli, "pick_story_fields", lambda *_args, **_kwargs: {"title": "A"}
-    )
-    monkeypatch.setattr(story_cli.story_brief_cli, "to_markdown", lambda _fields, data=None: "body")
+    _mock_story_generation(monkeypatch)
 
     assert story_cli.main() == 1
 
@@ -170,10 +181,7 @@ def test_main_allows_absolute_output_dir_when_within_cwd(
         "argv",
         ["story-brief", "--output-dir", str(output_dir), "--filename", "safe.md"],
     )
-    monkeypatch.setattr(
-        story_cli.story_brief_cli, "pick_story_fields", lambda *_args, **_kwargs: {"title": "A"}
-    )
-    monkeypatch.setattr(story_cli.story_brief_cli, "to_markdown", lambda _fields, data=None: "body")
+    _mock_story_generation(monkeypatch)
 
     assert story_cli.main() == 0
 
@@ -199,10 +207,7 @@ def test_main_force_rejects_symlink_output_target(
         "argv",
         ["story-brief", "--filename", "linked.md", "--force"],
     )
-    monkeypatch.setattr(
-        story_cli.story_brief_cli, "pick_story_fields", lambda *_args, **_kwargs: {"title": "A"}
-    )
-    monkeypatch.setattr(story_cli.story_brief_cli, "to_markdown", lambda _fields, data=None: "body")
+    _mock_story_generation(monkeypatch)
 
     assert story_cli.main() == 1
 
@@ -216,10 +221,7 @@ def test_main_write_failure_exits_cleanly(
         "argv",
         ["story-brief", "--filename", "write-fail.md", "--force"],
     )
-    monkeypatch.setattr(
-        story_cli.story_brief_cli, "pick_story_fields", lambda *_args, **_kwargs: {"title": "A"}
-    )
-    monkeypatch.setattr(story_cli.story_brief_cli, "to_markdown", lambda _fields, data=None: "body")
+    _mock_story_generation(monkeypatch)
 
     real_open = filename_utils.os.open
 

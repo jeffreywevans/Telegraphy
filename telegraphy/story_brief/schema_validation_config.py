@@ -328,21 +328,21 @@ def _raise_for_excess_none_required_groups(
     groups: list[str],
     tag_count_weights_by_presence: dict[str, dict[Any, float]],
 ) -> None:
-    if presence != "none" or len(groups) <= 1:
+    if presence != "none":
         return
 
     tag_count_weights = tag_count_weights_by_presence[presence]
     positive_tag_counts = [
         int(count) for count, weight in tag_count_weights.items() if weight > 0 and int(count) > 0
     ]
-    max_allowed = max(positive_tag_counts, default=0)
-    if len(groups) > max_allowed:
+    min_allowed = min(positive_tag_counts, default=0)
+    if len(groups) > min_allowed:
         group_count = len(groups)
         raise ValueError(
             f"config.sexual_scene_required_tag_groups_by_presence.{presence} "
             f"requires {group_count} group{'s' if group_count != 1 else ''}, but "
             f"config.sexual_scene_tag_count_weights_by_presence.{presence} "
-            f"allows as few as {max_allowed} tag{'s' if max_allowed != 1 else ''}"
+            f"allows as few as {min_allowed} tag{'s' if min_allowed != 1 else ''}"
         )
 
 

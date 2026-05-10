@@ -236,7 +236,7 @@ def _candidate_sexual_scene_tag_groups(
 
 def _sexual_scene_tag_group_names(data: StoryData) -> Sequence[str]:
     """Return deterministic sexual-scene tag group names."""
-    return cast(Sequence[str], data["sexual_scene_tag_group_names_sorted"])
+    return data["sexual_scene_tag_group_names_sorted"]
 
 
 def build_sexual_scene_tag_count_distribution(
@@ -334,7 +334,7 @@ def pick_tags_from_selected_groups(
 
 def _sorted_tags_for_group(group_name: str, data: StoryData) -> Sequence[str]:
     """Return deterministic tags for one sexual-scene tag group."""
-    tag_groups_sorted = cast(Mapping[str, Sequence[str]], data["sexual_scene_tag_groups_sorted"])
+    tag_groups_sorted = data["sexual_scene_tag_groups_sorted"]
     try:
         return tag_groups_sorted[group_name]
     except KeyError as exc:

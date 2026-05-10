@@ -257,6 +257,24 @@ def validate_sexual_scene_tag_group_presence_rules(config: dict[str, Any]) -> No
         validate_string_list("config", "sexual_scene_optional_tag_groups", optional_groups)
         validate_no_duplicate_strings("config", "sexual_scene_optional_tag_groups", optional_groups)
 
+    _raise_for_unknown_optional_groups(optional_groups, group_names)
+    _raise_for_unknown_presence_options(required_by_presence, config["sexual_content_presence_options"])
+
+    for presence, groups in required_by_presence.items():
+        _validate_required_groups_for_presence(
+            presence=presence,
+            groups=groups,
+            group_names=group_names,
+            tag_count_weights_by_presence=config["sexual_scene_tag_count_weights_by_presence"],
+        )
+
+    _raise_for_missing_required_presence_options(
+        required_by_presence,
+        config["sexual_scene_tag_count_weights_by_presence"],
+    )
+
+
+def _raise_for_unknown_optional_groups(optional_groups: list[str], group_names: set[str]) -> None:
     unknown_optional = sorted(group for group in optional_groups if group not in group_names)
     if unknown_optional:
         raise ValueError(
@@ -264,9 +282,14 @@ def validate_sexual_scene_tag_group_presence_rules(config: dict[str, Any]) -> No
             + ", ".join(unknown_optional)
         )
 
-    presence_options = set(config["sexual_content_presence_options"])
+
+def _raise_for_unknown_presence_options(
+    required_by_presence: dict[str, Any],
+    presence_options: list[str],
+) -> None:
+    valid_presence_options = set(presence_options)
     unknown_presence = sorted(
-        presence for presence in required_by_presence if presence not in presence_options
+        presence for presence in required_by_presence if presence not in valid_presence_options
     )
     if unknown_presence:
         raise ValueError(
@@ -274,56 +297,86 @@ def validate_sexual_scene_tag_group_presence_rules(config: dict[str, Any]) -> No
             f"options: {', '.join(unknown_presence)}"
         )
 
-    for presence, groups in required_by_presence.items():
-        if not isinstance(groups, list):
-            raise ValueError(
-                "config.sexual_scene_required_tag_groups_by_presence."
-                f"{presence} must be a list"
-            )
-        if groups:
-            field_name = f"sexual_scene_required_tag_groups_by_presence.{presence}"
-            validate_string_list("config", field_name, groups)
-            validate_no_duplicate_strings("config", field_name, groups)
 
-        if presence == "none" and len(groups) > 1:
-            tag_count_weights = config["sexual_scene_tag_count_weights_by_presence"][presence]
-            positive_tag_counts = [
-                int(count)
-                for count, weight in tag_count_weights.items()
-                if weight > 0 and int(count) > 0
-            ]
-            max_allowed = max(positive_tag_counts, default=0)
-            if len(groups) > max_allowed:
-                group_count = len(groups)
-                raise ValueError(
-                    f"config.sexual_scene_required_tag_groups_by_presence.{presence} "
-                    f"requires {group_count} group{'s' if group_count != 1 else ''}, but "
-                    f"config.sexual_scene_tag_count_weights_by_presence.{presence} "
-                    f"allows as few as {max_allowed} tag{'s' if max_allowed != 1 else ''}"
-                )
-
-        unknown_required = sorted(group for group in groups if group not in group_names)
-        if unknown_required:
-            raise ValueError(
-                "config.sexual_scene_required_tag_groups_by_presence."
-                f"{presence} contains unknown groups: {', '.join(unknown_required)}"
-            )
-
-    required_presence_options = set(config["sexual_scene_tag_count_weights_by_presence"])
-    missing_presence = sorted(required_presence_options - set(required_by_presence))
-    if missing_presence:
-        presence_display_aliases = {
-            "off_page": "fade_to_black",
-            "on_page_brief": "suggestive",
-            "on_page_full": "explicit",
-        }
-        missing_presence_display = sorted(
-            presence_display_aliases.get(presence, presence) for presence in missing_presence
-        )
+def _validate_required_groups_for_presence(
+    *,
+    presence: str,
+    groups: Any,
+    group_names: set[str],
+    tag_count_weights_by_presence: dict[str, dict[Any, float]],
+) -> None:
+    if not isinstance(groups, list):
         raise ValueError(
-            "config.sexual_scene_required_tag_groups_by_presence is missing "
-            f"required presence options: {', '.join(missing_presence_display)}"
+            "config.sexual_scene_required_tag_groups_by_presence."
+            f"{presence} must be a list"
         )
+
+    if groups:
+        field_name = f"sexual_scene_required_tag_groups_by_presence.{presence}"
+        validate_string_list("config", field_name, groups)
+        validate_no_duplicate_strings("config", field_name, groups)
+
+    _raise_for_excess_none_required_groups(presence, groups, tag_count_weights_by_presence)
+    _raise_for_unknown_required_groups(presence, groups, group_names)
+
+
+def _raise_for_excess_none_required_groups(
+    presence: str,
+    groups: list[str],
+    tag_count_weights_by_presence: dict[str, dict[Any, float]],
+) -> None:
+    if presence != "none" or len(groups) <= 1:
+        return
+
+    tag_count_weights = tag_count_weights_by_presence[presence]
+    positive_tag_counts = [
+        int(count) for count, weight in tag_count_weights.items() if weight > 0 and int(count) > 0
+    ]
+    max_allowed = max(positive_tag_counts, default=0)
+    if len(groups) > max_allowed:
+        group_count = len(groups)
+        raise ValueError(
+            f"config.sexual_scene_required_tag_groups_by_presence.{presence} "
+            f"requires {group_count} group{'s' if group_count != 1 else ''}, but "
+            f"config.sexual_scene_tag_count_weights_by_presence.{presence} "
+            f"allows as few as {max_allowed} tag{'s' if max_allowed != 1 else ''}"
+        )
+
+
+def _raise_for_unknown_required_groups(
+    presence: str,
+    groups: list[str],
+    group_names: set[str],
+) -> None:
+    unknown_required = sorted(group for group in groups if group not in group_names)
+    if unknown_required:
+        raise ValueError(
+            "config.sexual_scene_required_tag_groups_by_presence."
+            f"{presence} contains unknown groups: {', '.join(unknown_required)}"
+        )
+
+
+def _raise_for_missing_required_presence_options(
+    required_by_presence: dict[str, Any],
+    tag_count_weights_by_presence: dict[str, dict[Any, float]],
+) -> None:
+    required_presence_options = set(tag_count_weights_by_presence)
+    missing_presence = sorted(required_presence_options - set(required_by_presence))
+    if not missing_presence:
+        return
+
+    presence_display_aliases = {
+        "off_page": "fade_to_black",
+        "on_page_brief": "suggestive",
+        "on_page_full": "explicit",
+    }
+    missing_presence_display = sorted(
+        presence_display_aliases.get(presence, presence) for presence in missing_presence
+    )
+    raise ValueError(
+        "config.sexual_scene_required_tag_groups_by_presence is missing "
+        f"required presence options: {', '.join(missing_presence_display)}"
+    )
 
 
 def validate_ordered_keys(config: dict[str, Any]) -> None:

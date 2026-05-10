@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import math
 import random
 import secrets
 from collections.abc import Iterable, Mapping, Sequence
@@ -9,9 +8,15 @@ from functools import lru_cache
 from typing import Any, TypeAlias, TypeVar, cast
 
 from ._constants import (
-    CHARACTER_AVAILABILITY_KEY,
     PARTNER_DISTRIBUTIONS_KEY,
-    SETTING_AVAILABILITY_KEY,
+)
+from .generation_helpers import (
+    _date_in_range,
+    available_characters,
+    available_settings,
+    sorted_pool_from_data,
+    stable_sorted_pool,
+    weighted_choice,
 )
 from .rendering import render_title
 
@@ -19,7 +24,6 @@ RandomSource: TypeAlias = random.Random | secrets.SystemRandom
 GeneratedFieldValue: TypeAlias = str | int | list[str] | None
 GeneratedFields: TypeAlias = dict[str, GeneratedFieldValue]
 PoolValue = TypeVar("PoolValue", bound=str | int | tuple[str, float])
-OptionT = TypeVar("OptionT")
 
 DEFAULT_SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION: dict[int, float] = {
     2: 0.7,
@@ -35,84 +39,6 @@ def random_date_in_range(rng: RandomSource, start: date, end: date) -> date:
     return start + timedelta(days=rng.randint(0, day_span))
 
 
-def stable_sorted_pool(values: Iterable[PoolValue]) -> list[PoolValue]:
-    """Return a consistently sorted copy for seed-stable random selection."""
-    return sorted(values)
-
-
-def sorted_pool_from_data(data: Mapping[str, Any], key: str) -> Sequence[PoolValue]:
-    """Read a pre-sorted pool from data when present, otherwise sort lazily.
-
-    Normalized production data provides ``<key>_sorted`` entries so generation
-    remains deterministic even if raw dataset order changes. The lazy fallback
-    is retained for lightweight callers and compatibility tests that pass only
-    the raw pool.
-    """
-    sorted_key = f"{key}_sorted"
-    try:
-        return cast(Sequence[PoolValue], data[sorted_key])
-    except KeyError:  # pragma: no cover - compatibility fallback for minimal data maps.
-        return stable_sorted_pool(cast(Iterable[PoolValue], data[key]))
-
-
-def _date_in_range(selected_date: date, start_date: date, end_date: date) -> bool:
-    """Return whether selected_date falls inside an inclusive date window."""
-    return start_date <= selected_date <= end_date
-
-
-def available_characters(selected_date: date, data: Mapping[str, Any]) -> list[str]:
-    """Return characters available for the selected date."""
-    return [
-        name
-        for name, start_date, end_date in data[CHARACTER_AVAILABILITY_KEY]
-        if _date_in_range(selected_date, start_date, end_date)
-    ]
-
-
-def available_settings(selected_date: date, data: Mapping[str, Any]) -> list[str]:
-    """Return settings available for the selected date."""
-    return [
-        setting
-        for setting, start_date, end_date in data[SETTING_AVAILABILITY_KEY]
-        if _date_in_range(selected_date, start_date, end_date)
-    ]
-
-
-def weighted_choice(
-    rng: RandomSource,
-    options: Sequence[OptionT],
-    weights: Sequence[float],
-) -> OptionT:
-    """Pick one option using relative weights."""
-    if not options:
-        raise ValueError("options must not be empty")
-    if not weights:
-        raise ValueError("weights must not be empty")
-    if len(options) != len(weights):
-        raise ValueError("options and weights must be the same length")
-
-    for index, weight in enumerate(weights):
-        if isinstance(weight, bool) or not isinstance(weight, (int, float)):
-            raise TypeError(f"weight at index {index} must be a real number")
-        if not math.isfinite(weight):
-            raise ValueError(f"weight at index {index} must be finite")
-        if weight < 0:
-            raise ValueError(f"weight at index {index} must be non-negative")
-
-    total = sum(weights)
-    if total <= 0:
-        raise ValueError("at least one weight must be greater than zero")
-
-    # Avoid random.choices: it consumes RNG differently and breaks seed-stable generation.
-    threshold = rng.random() * total
-    cumulative = 0.0
-
-    for option, weight in zip(options, weights, strict=True):  # pragma: no branch
-        cumulative += weight
-        if threshold < cumulative:
-            return option
-
-    return options[-1]  # pragma: no cover - floating-point guard for pathological totals.
 
 
 @lru_cache(maxsize=16)

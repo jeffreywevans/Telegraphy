@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from ._constants import PROMPT_LIST_KEYS
-from .generation import stable_sorted_pool
+from .generation_helpers import stable_sorted_pool
 from .validation import validate_story_data
 
 

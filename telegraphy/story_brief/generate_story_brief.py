@@ -27,7 +27,6 @@ from .validation import (
     EXPECTED_GENERATED_FIELD_KEYS as _EXPECTED_GENERATED_FIELD_KEYS,
 )
 
-
 # NOTE:
 # - validation.EXPECTED_GENERATED_FIELD_KEYS is intentionally a mutable `set`
 #   for internal set arithmetic in validation helpers.

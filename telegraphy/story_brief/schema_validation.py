@@ -331,7 +331,11 @@ def _validate_sexual_scene_tag_group_presence_rules(config: dict[str, Any]) -> N
         raise ValueError("config.sexual_scene_optional_tag_groups must be a list")
     if optional_groups:
         _validate_string_list("config", "sexual_scene_optional_tag_groups", optional_groups)
-        _validate_no_duplicate_strings("config", "sexual_scene_optional_tag_groups", optional_groups)
+        _validate_no_duplicate_strings(
+            "config",
+            "sexual_scene_optional_tag_groups",
+            optional_groups,
+        )
 
     unknown_optional = sorted(group for group in optional_groups if group not in group_names)
     if unknown_optional:

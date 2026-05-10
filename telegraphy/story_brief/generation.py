@@ -5,7 +5,7 @@ import secrets
 from collections.abc import Iterable, Mapping, Sequence
 from datetime import date, timedelta
 from functools import lru_cache
-from typing import Any, TypeAlias, cast
+from typing import Any, Literal, TypeAlias, cast, overload
 
 from .generation_helpers import (
     _date_in_range,
@@ -21,6 +21,13 @@ from .story_data import StoryData
 RandomSource: TypeAlias = random.Random | secrets.SystemRandom
 GeneratedFieldValue: TypeAlias = str | int | list[str] | None
 GeneratedFields: TypeAlias = dict[str, GeneratedFieldValue]
+SortedStringPoolKey: TypeAlias = Literal[
+    "titles",
+    "central_conflicts",
+    "inciting_pressures",
+    "ending_types",
+    "style_guidance",
+]
 DEFAULT_SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION: dict[int, float] = {
     2: 0.7,
     3: 0.1,
@@ -95,13 +102,29 @@ def pick_story_fields(
     }
 
 
+@overload
 def _pick_sorted_data_value(
     rng: RandomSource,
     data: StoryData,
-    key: str,
-) -> str:
+    key: Literal["word_count_targets"],
+) -> int: ...
+
+
+@overload
+def _pick_sorted_data_value(
+    rng: RandomSource,
+    data: StoryData,
+    key: SortedStringPoolKey,
+) -> str: ...
+
+
+def _pick_sorted_data_value(
+    rng: RandomSource,
+    data: StoryData,
+    key: SortedStringPoolKey | Literal["word_count_targets"],
+) -> str | int:
     """Pick one deterministic value from a sorted top-level story-data pool."""
-    return rng.choice(cast(Sequence[str], sorted_pool_from_data(data, key)))
+    return cast(str | int, rng.choice(sorted_pool_from_data(data, key)))
 
 
 def pick_story_characters(

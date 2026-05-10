@@ -5,7 +5,7 @@ import secrets
 from collections.abc import Iterable, Mapping, Sequence
 from datetime import date, timedelta
 from functools import lru_cache
-from typing import Any, TypeAlias, TypeVar, cast
+from typing import Any, TypeAlias, cast
 
 from .generation_helpers import (
     _date_in_range,
@@ -21,8 +21,6 @@ from .story_data import StoryData
 RandomSource: TypeAlias = random.Random | secrets.SystemRandom
 GeneratedFieldValue: TypeAlias = str | int | list[str] | None
 GeneratedFields: TypeAlias = dict[str, GeneratedFieldValue]
-PoolValue = TypeVar("PoolValue", bound=str | int | tuple[str, float])
-
 DEFAULT_SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION: dict[int, float] = {
     2: 0.7,
     3: 0.1,
@@ -178,11 +176,9 @@ def pick_sexual_scene_tags(
         tag_count_options,
         tag_count_weights,
     )
-    required_set = set(required_tag_groups)
+    required_group_names = set(required_tag_groups)
     optional_groups = [
-        group_name
-        for group_name in candidate_tag_groups
-        if group_name not in required_set
+        group_name for group_name in candidate_tag_groups if group_name not in required_group_names
     ]
     optional_needed = selected_tag_count - len(required_tag_groups)
     selected_tag_groups = [

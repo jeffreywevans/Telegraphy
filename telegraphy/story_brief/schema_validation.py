@@ -8,10 +8,6 @@ from .availability_validation import validate_availability_rows
 from .partner_models import PartnerDistributionDataset, require_keys
 from .schema_validation_config import (
     CONFIG_REQUIRED_KEYS,
-    EXPECTED_GENERATED_FIELD_KEYS,
-    MAX_SEXUAL_SCENE_TAG_GROUPS,
-    UNSUPPORTED_CONFIG_ALIAS_ERROR_PREFIX,
-    UNSUPPORTED_CONFIG_ALIAS_KEYS,
     normalize_config,
     parse_and_validate_config_dates,
     validate_config_date_overlap,

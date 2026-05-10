@@ -6,7 +6,10 @@ from typing import Any
 
 from ._constants import PARTNER_DISTRIBUTIONS_KEY
 from .availability_validation import has_date_overlap
-from .partner_models import PartnerDistributionDataset, parse_partner_distribution_payload, require_keys
+from .partner_models import (
+    PartnerDistributionDataset,
+    parse_partner_distribution_payload,
+)
 from .schema_validation_common import validate_no_duplicate_strings, validate_string_list
 
 CONFIG_REQUIRED_KEYS = frozenset({
@@ -275,13 +278,16 @@ def validate_sexual_scene_tag_group_presence_rules(config: dict[str, Any]) -> No
                 f"{presence} must be a list"
             )
         if groups:
-            validate_string_list("config", f"sexual_scene_required_tag_groups_by_presence.{presence}", groups)
-            validate_no_duplicate_strings("config", f"sexual_scene_required_tag_groups_by_presence.{presence}", groups)
+            field_name = f"sexual_scene_required_tag_groups_by_presence.{presence}"
+            validate_string_list("config", field_name, groups)
+            validate_no_duplicate_strings("config", field_name, groups)
 
         if presence == "none" and len(groups) > 1:
             tag_count_weights = config["sexual_scene_tag_count_weights_by_presence"][presence]
             positive_tag_counts = [
-                int(count) for count, weight in tag_count_weights.items() if weight > 0 and int(count) > 0
+                int(count)
+                for count, weight in tag_count_weights.items()
+                if weight > 0 and int(count) > 0
             ]
             max_allowed = max(positive_tag_counts, default=0)
             if len(groups) > max_allowed:
@@ -344,7 +350,11 @@ def validate_writing_preamble(config: dict[str, Any]) -> None:
 
 
 def validate_partner_distributions(
-    partner_payload: dict[str, Any], *, config_start: date, config_end: date, character_rows: list[tuple[str, date, date]]
+    partner_payload: dict[str, Any],
+    *,
+    config_start: date,
+    config_end: date,
+    character_rows: list[tuple[str, date, date]],
 ) -> PartnerDistributionDataset:
     return parse_partner_distribution_payload(
         partner_payload,
@@ -358,7 +368,9 @@ def validate_partner_distributions(
 def normalize_config(config: dict[str, Any]) -> dict[str, Any]:
     normalized = dict(config)
 
-    present_unsupported_aliases = [key for key in UNSUPPORTED_CONFIG_ALIAS_KEYS if key in normalized]
+    present_unsupported_aliases = [
+        key for key in UNSUPPORTED_CONFIG_ALIAS_KEYS if key in normalized
+    ]
     if present_unsupported_aliases:
         joined = ", ".join(sorted(present_unsupported_aliases))
         raise ValueError(f"{UNSUPPORTED_CONFIG_ALIAS_ERROR_PREFIX}{joined}")

@@ -14,29 +14,30 @@ def test_strict_invariants_pass_for_normalized_story_data() -> None:
 
 
 def test_strict_invariants_fail_when_date_has_only_one_distinct_character() -> None:
-    data = get_data()
-    selected_date = data["date_start"]
+    selected_date = date(2000, 1, 1)
     end_date = selected_date + timedelta(days=1)
-
-    data["character_availability"] = (("Alex", selected_date, end_date),)
-    data["setting_availability"] = (("Seattle", selected_date, end_date),)
-    data["date_end"] = end_date
+    data = {
+        "date_start": selected_date,
+        "date_end": end_date,
+        "character_availability": (("Alex", selected_date, end_date),),
+        "setting_availability": (("Seattle", selected_date, end_date),),
+    }
 
     with pytest.raises(ValueError, match="fewer than two distinct available characters"):
         validate_story_data_strict(data)
 
 
 def test_strict_invariants_fail_when_date_has_no_available_setting() -> None:
-    data = get_data()
     selected_date = date(2000, 1, 1)
-
-    data["date_start"] = selected_date
-    data["date_end"] = selected_date
-    data["character_availability"] = (
-        ("Alex", selected_date, selected_date),
-        ("Jordan", selected_date, selected_date),
-    )
-    data["setting_availability"] = tuple()
+    data = {
+        "date_start": selected_date,
+        "date_end": selected_date,
+        "character_availability": (
+            ("Alex", selected_date, selected_date),
+            ("Jordan", selected_date, selected_date),
+        ),
+        "setting_availability": (),
+    }
 
     with pytest.raises(ValueError, match="no available settings"):
         validate_story_data_strict(data)

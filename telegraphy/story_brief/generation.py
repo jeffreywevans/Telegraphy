@@ -8,6 +8,7 @@ from functools import lru_cache
 from typing import Any, TypeAlias, cast
 
 from .generation_helpers import (
+    PoolValue,
     _date_in_range,
     available_characters,
     available_settings,
@@ -99,9 +100,9 @@ def _pick_sorted_data_value(
     rng: RandomSource,
     data: StoryData,
     key: str,
-) -> str:
+) -> PoolValue:
     """Pick one deterministic value from a sorted top-level story-data pool."""
-    return rng.choice(cast(Sequence[str], sorted_pool_from_data(data, key)))
+    return rng.choice(sorted_pool_from_data(data, key))
 
 
 def pick_story_characters(

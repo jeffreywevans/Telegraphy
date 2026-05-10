@@ -5,8 +5,8 @@ Date: 2026-05-10
 ## Files containing explicit backward-compatibility code
 
 1. `telegraphy/story_brief/generate_story_brief.py`
-   - Re-exports legacy filename constants as compatibility aliases from the canonical mapping.
-   - Provides `load_story_data()` as a backward-compatible alias to `get_data()`.
+   - Re-exports legacy constants (filenames and metadata) as compatibility aliases.
+   - Provides `get_data()`, `load_story_data()`, `pick_story_fields()`, and `to_markdown()` as backward-compatible wrappers.
    - Compatibility intent is explicit in comments/docstrings.
 
 2. `telegraphy/story_brief/validation.py`

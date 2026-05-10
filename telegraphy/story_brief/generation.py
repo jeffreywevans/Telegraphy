@@ -184,8 +184,8 @@ def pick_story_characters(
 ) -> tuple[str, str]:
     """Pick protagonist and secondary character for a date."""
     characters_for_date = stable_sorted_pool(available_characters(selected_date, data))
-    # `set`-based de-duplication is safe here because characters are already sorted.
-    distinct_characters_for_date = sorted(set(characters_for_date))
+    # De-duplicate while preserving deterministic sorted order.
+    distinct_characters_for_date = list(dict.fromkeys(characters_for_date))
     if len(distinct_characters_for_date) < 2:
         raise ValueError(
             "Need at least two distinct available characters for year "
@@ -263,7 +263,6 @@ def pick_sexual_scene_tags(
     return pick_tags_from_selected_groups(rng, selected_tag_groups, data)
 
 
-
 def _required_sexual_scene_tag_groups(
     sexual_content_level: str,
     data: Mapping[str, Any],
@@ -308,6 +307,7 @@ def _candidate_sexual_scene_tag_groups(
     allowed_group_names = optional_group_names | set(required_tag_groups)
 
     return [group_name for group_name in all_group_names if group_name in allowed_group_names]
+
 
 def _sexual_scene_tag_group_names(data: Mapping[str, Any]) -> Sequence[str]:
     """Return deterministic sexual-scene tag group names."""

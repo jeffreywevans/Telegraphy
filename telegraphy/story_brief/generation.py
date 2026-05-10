@@ -38,7 +38,6 @@ def random_date_in_range(rng: RandomSource, start: date, end: date) -> date:
 
 
 
-
 @lru_cache(maxsize=16)
 def symmetric_peak_weights(length: int) -> tuple[float, ...]:
     """Build symmetric bell-curve-like weights with a center peak."""
@@ -235,10 +234,7 @@ def _candidate_sexual_scene_tag_groups(
 
 def _sexual_scene_tag_group_names(data: StoryData) -> Sequence[str]:
     """Return deterministic sexual-scene tag group names."""
-    try:
-        return cast(Sequence[str], data["sexual_scene_tag_group_names_sorted"])
-    except KeyError:  # pragma: no cover - compatibility fallback for minimal data maps.
-        return stable_sorted_pool(cast(Iterable[str], data["sexual_scene_tag_groups"]))
+    return cast(Sequence[str], data["sexual_scene_tag_group_names_sorted"])
 
 
 def build_sexual_scene_tag_count_distribution(
@@ -336,17 +332,11 @@ def pick_tags_from_selected_groups(
 
 def _sorted_tags_for_group(group_name: str, data: StoryData) -> Sequence[str]:
     """Return deterministic tags for one sexual-scene tag group."""
-    tag_groups_sorted = cast(
-        Mapping[str, Sequence[str]], data.get("sexual_scene_tag_groups_sorted", {})
-    )
+    tag_groups_sorted = cast(Mapping[str, Sequence[str]], data["sexual_scene_tag_groups_sorted"])
     try:
         return tag_groups_sorted[group_name]
-    except KeyError:  # pragma: no cover - compatibility fallback for minimal data maps.
-        tag_groups = cast(Mapping[str, Iterable[str]], data["sexual_scene_tag_groups"])
-        try:
-            return stable_sorted_pool(tag_groups[group_name])
-        except KeyError as exc:
-            raise ValueError(f"Unknown sexual scene tag group: {group_name}") from exc
+    except KeyError as exc:
+        raise ValueError(f"Unknown sexual scene tag group: {group_name}") from exc
 
 
 def pick_sexual_partner(

@@ -319,8 +319,8 @@ def _validate_required_groups_for_presence(
         validate_string_list("config", field_name, groups)
         validate_no_duplicate_strings("config", field_name, groups)
 
-    _raise_for_excess_none_required_groups(presence, groups, tag_count_weights_by_presence)
     _raise_for_unknown_required_groups(presence, groups, group_names)
+    _raise_for_excess_none_required_groups(presence, groups, tag_count_weights_by_presence)
 
 
 def _raise_for_excess_none_required_groups(
@@ -342,7 +342,7 @@ def _raise_for_excess_none_required_groups(
             f"config.sexual_scene_required_tag_groups_by_presence.{presence} "
             f"requires {group_count} group{'s' if group_count != 1 else ''}, but "
             f"config.sexual_scene_tag_count_weights_by_presence.{presence} "
-            f"allows at most {max_allowed} tag{'s' if max_allowed != 1 else ''}"
+            f"allows as few as {max_allowed} tag{'s' if max_allowed != 1 else ''}"
         )
 
 

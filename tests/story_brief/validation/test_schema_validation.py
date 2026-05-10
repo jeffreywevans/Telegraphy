@@ -723,6 +723,30 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
             r"sexual_scene_tag_count_weights_by_presence\.none values must be non-negative",
         ),
         (
+            lambda _titles, _entities, _prompts, config: config.update(
+                {"sexual_scene_optional_tag_groups": ["unknown"]}
+            ),
+            r"config\.sexual_scene_optional_tag_groups contains unknown groups: unknown",
+        ),
+        (
+            lambda _titles, _entities, _prompts, config: config.update(
+                {"sexual_scene_required_tag_groups_by_presence": {"unknown": ["tone"]}}
+            ),
+            (
+                r"config\.sexual_scene_required_tag_groups_by_presence contains unknown "
+                r"presence options: unknown"
+            ),
+        ),
+        (
+            lambda _titles, _entities, _prompts, config: config.update(
+                {"sexual_scene_required_tag_groups_by_presence": {"none": ["unknown"]}}
+            ),
+            (
+                r"config\.sexual_scene_required_tag_groups_by_presence\.none contains unknown "
+                r"groups: unknown"
+            ),
+        ),
+        (
             lambda _titles, _entities, _prompts, config: config.update({"ordered_keys": []}),
             r"config\.ordered_keys must be a non-empty list",
         ),

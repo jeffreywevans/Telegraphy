@@ -320,6 +320,47 @@ def _validate_sexual_scene_tag_count_weights_by_presence(config: dict[str, Any])
             )
 
 
+def _validate_sexual_scene_tag_group_presence_rules(config: dict[str, Any]) -> None:
+    group_names = set(config["sexual_scene_tag_groups"])
+    required_by_presence = config["sexual_scene_required_tag_groups_by_presence"]
+    optional_groups = config["sexual_scene_optional_tag_groups"]
+
+    if not isinstance(required_by_presence, dict):
+        raise ValueError("config.sexual_scene_required_tag_groups_by_presence must be an object")
+    if not isinstance(optional_groups, list):
+        raise ValueError("config.sexual_scene_optional_tag_groups must be a list")
+
+    unknown_optional = sorted(group for group in optional_groups if group not in group_names)
+    if unknown_optional:
+        raise ValueError(
+            "config.sexual_scene_optional_tag_groups contains unknown groups: "
+            + ", ".join(unknown_optional)
+        )
+
+    presence_options = set(config["sexual_content_presence_options"])
+    unknown_presence = sorted(
+        presence for presence in required_by_presence if presence not in presence_options
+    )
+    if unknown_presence:
+        raise ValueError(
+            "config.sexual_scene_required_tag_groups_by_presence contains unknown presence "
+            f"options: {', '.join(unknown_presence)}"
+        )
+
+    for presence, groups in required_by_presence.items():
+        if not isinstance(groups, list):
+            raise ValueError(
+                "config.sexual_scene_required_tag_groups_by_presence."
+                f"{presence} must be a list"
+            )
+        unknown_required = sorted(group for group in groups if group not in group_names)
+        if unknown_required:
+            raise ValueError(
+                "config.sexual_scene_required_tag_groups_by_presence."
+                f"{presence} contains unknown groups: {', '.join(unknown_required)}"
+            )
+
+
 def _parse_non_negative_weight_count(
     raw_count: Any,
     field_name: str,
@@ -428,6 +469,7 @@ def validate_story_data(
     _validate_sexual_content_weights(normalized_config)
     _validate_sexual_scene_tag_groups(normalized_config)
     _validate_sexual_scene_tag_count_weights_by_presence(normalized_config)
+    _validate_sexual_scene_tag_group_presence_rules(normalized_config)
     _validate_word_count_targets(normalized_config)
     _validate_ordered_keys(normalized_config)
     _validate_writing_preamble(normalized_config)

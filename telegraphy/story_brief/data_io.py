@@ -54,12 +54,20 @@ def _validate_override_text(raw_value: str) -> str:
     return trimmed
 
 
+def _home_directory_text() -> str:
+    """Return home directory text, honoring explicit HOME overrides first."""
+    home_env = os.environ.get("HOME")
+    if home_env:
+        return home_env
+    return str(Path.home())
+
+
 def _expand_home_marker(path_text: str) -> str:
     """Expand only the current user's home marker; reject ~other forms."""
     if path_text == "~":
-        return str(Path.home())
+        return _home_directory_text()
     if path_text.startswith(_HOME_MARKERS):
-        return os.path.join(str(Path.home()), path_text[2:])
+        return os.path.join(_home_directory_text(), path_text[2:])
     if path_text.startswith("~"):
         raise DataDirError("Configured data directory must not use ~user expansion")
     return path_text
@@ -85,7 +93,10 @@ def _resolve_override_data_dir(raw_value: str) -> Path:
     candidate_text = _validated_override_path_text(raw_value)
     candidate = Path(candidate_text)
     if not candidate.is_absolute():
-        raise DataDirError("Configured data directory must be an absolute path")
+        if os.name == "nt" and candidate_text.startswith(("/", "\\")):
+            candidate = candidate.absolute()
+        if not candidate.is_absolute():
+            raise DataDirError("Configured data directory must be an absolute path")
     try:
         resolved = candidate.resolve(strict=False)
         if not resolved.exists() or not resolved.is_dir():

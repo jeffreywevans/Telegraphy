@@ -7,9 +7,6 @@ from datetime import date, timedelta
 from functools import lru_cache
 from typing import Any, TypeAlias, TypeVar, cast
 
-from ._constants import (
-    PARTNER_DISTRIBUTIONS_KEY,
-)
 from .generation_helpers import (
     _date_in_range,
     available_characters,
@@ -19,6 +16,7 @@ from .generation_helpers import (
     weighted_choice,
 )
 from .rendering import render_title
+from .story_data import StoryData
 
 RandomSource: TypeAlias = random.Random | secrets.SystemRandom
 GeneratedFieldValue: TypeAlias = str | int | list[str] | None
@@ -52,7 +50,7 @@ def symmetric_peak_weights(length: int) -> tuple[float, ...]:
 def pick_story_fields(
     rng: RandomSource,
     selected_date: date | None = None,
-    data: Mapping[str, Any] | None = None,
+    data: StoryData | None = None,
 ) -> GeneratedFields:
     """Pick a randomized, schema-compatible story brief field set."""
     if data is None:  # pragma: no cover - facade resolves production data before calling.
@@ -106,7 +104,7 @@ def pick_story_fields(
 def pick_story_characters(
     rng: RandomSource,
     selected_date: date,
-    data: Mapping[str, Any],
+    data: StoryData,
 ) -> tuple[str, str]:
     """Pick protagonist and secondary character for a date."""
     characters_for_date = stable_sorted_pool(available_characters(selected_date, data))
@@ -125,7 +123,7 @@ def pick_story_characters(
 def pick_story_setting(
     rng: RandomSource,
     selected_date: date,
-    data: Mapping[str, Any],
+    data: StoryData,
 ) -> str:
     """Pick an available setting for a date."""
     settings_for_date = stable_sorted_pool(available_settings(selected_date, data))
@@ -141,7 +139,7 @@ def pick_story_setting(
 def resolve_selected_date(
     rng: RandomSource,
     selected_date: date | None,
-    data: Mapping[str, Any],
+    data: StoryData,
 ) -> date:
     """Resolve and validate story date selection."""
     if selected_date is None:
@@ -159,7 +157,7 @@ def resolve_selected_date(
 def pick_sexual_scene_tags(
     rng: RandomSource,
     sexual_content_level: str,
-    data: Mapping[str, Any],
+    data: StoryData,
 ) -> list[str]:
     """Pick sexual scene tags when sexual content is enabled."""
     if sexual_content_level == "none":
@@ -191,7 +189,7 @@ def pick_sexual_scene_tags(
 
 def _required_sexual_scene_tag_groups(
     sexual_content_level: str,
-    data: Mapping[str, Any],
+    data: StoryData,
 ) -> list[str]:
     """Return required sexual-scene tag groups for this sexual-content level."""
     required_groups_by_presence = cast(
@@ -217,7 +215,7 @@ def _required_sexual_scene_tag_groups(
 
 def _candidate_sexual_scene_tag_groups(
     required_tag_groups: Sequence[str],
-    data: Mapping[str, Any],
+    data: StoryData,
 ) -> list[str]:
     """Return ordered candidate sexual-scene tag groups for sampling."""
     all_group_names = list(_sexual_scene_tag_group_names(data))
@@ -235,7 +233,7 @@ def _candidate_sexual_scene_tag_groups(
     return [group_name for group_name in all_group_names if group_name in allowed_group_names]
 
 
-def _sexual_scene_tag_group_names(data: Mapping[str, Any]) -> Sequence[str]:
+def _sexual_scene_tag_group_names(data: StoryData) -> Sequence[str]:
     """Return deterministic sexual-scene tag group names."""
     try:
         return cast(Sequence[str], data["sexual_scene_tag_group_names_sorted"])
@@ -245,7 +243,7 @@ def _sexual_scene_tag_group_names(data: Mapping[str, Any]) -> Sequence[str]:
 
 def build_sexual_scene_tag_count_distribution(
     tag_group_names: Sequence[str],
-    data: Mapping[str, Any],
+    data: StoryData,
     sexual_content_presence: str | None = None,
     minimum_count: int = 1,
 ) -> tuple[list[int], list[float]]:
@@ -327,7 +325,7 @@ def _presence_specific_tag_count_pairs(
 def pick_tags_from_selected_groups(
     rng: RandomSource,
     selected_tag_groups: Sequence[str],
-    data: Mapping[str, Any],
+    data: StoryData,
 ) -> list[str]:
     """Pick one random tag from each selected tag group."""
     return [
@@ -336,7 +334,7 @@ def pick_tags_from_selected_groups(
     ]
 
 
-def _sorted_tags_for_group(group_name: str, data: Mapping[str, Any]) -> Sequence[str]:
+def _sorted_tags_for_group(group_name: str, data: StoryData) -> Sequence[str]:
     """Return deterministic tags for one sexual-scene tag group."""
     tag_groups_sorted = cast(
         Mapping[str, Sequence[str]], data.get("sexual_scene_tag_groups_sorted", {})
@@ -354,14 +352,14 @@ def _sorted_tags_for_group(group_name: str, data: Mapping[str, Any]) -> Sequence
 def pick_sexual_partner(
     rng: RandomSource,
     sexual_content_level: str,
-    data: Mapping[str, Any],
+    data: StoryData,
     protagonist: str,
     selected_date: date,
 ) -> str | None:
     """Pick partner for sexual content, if available for selected era."""
     if sexual_content_level == "none":
         return None
-    for era in data[PARTNER_DISTRIBUTIONS_KEY].get(protagonist, ()):
+    for era in data["partner_distributions"].get(protagonist, ()):
         if _date_in_range(selected_date, era["date_start"], era["date_end"]):
             return weighted_partner_for_era(rng, era["partners"])
     return None

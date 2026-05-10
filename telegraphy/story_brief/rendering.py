@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Mapping, Sequence
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import yaml
 
@@ -13,8 +13,21 @@ _ISO_DATE_SCALAR_PATTERN = re.compile(
     re.ASCII,
 )
 
+if TYPE_CHECKING:
 
-class _StoryBriefDumper(yaml.SafeDumper):
+    class _SafeDumperBase:
+        @classmethod
+        def add_representer(cls, data_type: type[object], representer: Any) -> None: ...
+
+        def represent_scalar(
+            self, tag: str, value: str, style: str | None = None
+        ) -> yaml.ScalarNode: ...
+
+else:
+    _SafeDumperBase = yaml.SafeDumper
+
+
+class _StoryBriefDumper(_SafeDumperBase):
     """Safe dumper with stable scalar rendering for front matter."""
 
 

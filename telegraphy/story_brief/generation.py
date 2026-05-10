@@ -7,9 +7,6 @@ from datetime import date, timedelta
 from functools import lru_cache
 from typing import Any, TypeAlias, TypeVar, cast
 
-from ._constants import (
-    PARTNER_DISTRIBUTIONS_KEY,
-)
 from .generation_helpers import (
     _date_in_range,
     available_characters,
@@ -362,7 +359,7 @@ def pick_sexual_partner(
     """Pick partner for sexual content, if available for selected era."""
     if sexual_content_level == "none":
         return None
-    for era in data[PARTNER_DISTRIBUTIONS_KEY].get(protagonist, ()):
+    for era in data["partner_distributions"].get(protagonist, ()):
         if _date_in_range(selected_date, era["date_start"], era["date_end"]):
             return weighted_partner_for_era(rng, era["partners"])
     return None

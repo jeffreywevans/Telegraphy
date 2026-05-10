@@ -14,7 +14,7 @@ _ISO_DATE_SCALAR_PATTERN = re.compile(
 )
 
 
-class _StoryBriefDumper(yaml.SafeDumper):
+class _StoryBriefDumper(yaml.SafeDumper):  # type: ignore[misc]
     """Safe dumper with stable scalar rendering for front matter."""
 
 

@@ -6,7 +6,7 @@ Date: 2026-05-10
 
 1. `telegraphy/story_brief/generate_story_brief.py`
    - Re-exports legacy constants (filenames and metadata) as compatibility aliases.
-   - Provides `get_data()`, `load_story_data()`, `pick_story_fields()`, and `to_markdown()` as backward-compatible wrappers.
+   - Provides `get_data()`, `load_story_data()`, `pick_story_fields()`, `to_markdown()`, `clear_get_data_cache()`, `build_auto_filename()`, and `emit_lint_report()` as backward-compatible wrappers or aliases.
    - Compatibility intent is explicit in comments/docstrings.
 
 2. `telegraphy/story_brief/validation.py`

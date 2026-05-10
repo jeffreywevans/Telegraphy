@@ -20,18 +20,9 @@ def stable_sorted_pool(values: Iterable[PoolValue]) -> list[PoolValue]:
 
 
 def sorted_pool_from_data(data: Mapping[str, Any], key: str) -> Sequence[PoolValue]:
-    """Read a pre-sorted pool from data when present, otherwise sort lazily.
-
-    Normalized production data provides ``<key>_sorted`` entries so generation
-    remains deterministic even if raw dataset order changes. The lazy fallback
-    is retained for lightweight callers and compatibility tests that pass only
-    the raw pool.
-    """
+    """Read a pre-sorted pool from normalized story data."""
     sorted_key = f"{key}_sorted"
-    try:
-        return cast(Sequence[PoolValue], data[sorted_key])
-    except KeyError:  # pragma: no cover - compatibility fallback for minimal data maps.
-        return stable_sorted_pool(cast(Iterable[PoolValue], data[key]))
+    return cast(Sequence[PoolValue], data[sorted_key])
 
 
 def _date_in_range(selected_date: date, start_date: date, end_date: date) -> bool:

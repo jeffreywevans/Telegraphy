@@ -263,5 +263,5 @@ def test_pick_tags_from_selected_groups_rejects_unknown_group() -> None:
         pick_tags_from_selected_groups(
             random.Random(1),
             ["missing"],
-            {"sexual_scene_tag_groups": {"known": ["tag"]}},
+            {"sexual_scene_tag_groups_sorted": {"known": ("tag",)}},
         )

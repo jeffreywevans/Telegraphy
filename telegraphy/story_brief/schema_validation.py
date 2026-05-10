@@ -21,7 +21,13 @@ from .schema_validation_config import (
     validate_word_count_targets,
     validate_writing_preamble,
 )
-from .schema_validation_titles_prompts import validate_prompt_lists, validate_titles
+from .schema_validation_titles_prompts import (
+    ANY_TITLE_TOKEN_PATTERN as ANY_TITLE_TOKEN_PATTERN,
+    OPTIONAL_PROMPT_KEYS as OPTIONAL_PROMPT_KEYS,
+    PROMPT_LIST_KEYS_SET as PROMPT_LIST_KEYS_SET,
+    validate_prompt_lists,
+    validate_titles,
+)
 
 ENTITY_AVAILABILITY_KEYS = frozenset({CHARACTER_AVAILABILITY_KEY, SETTING_AVAILABILITY_KEY})
 

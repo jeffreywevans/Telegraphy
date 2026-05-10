@@ -37,7 +37,6 @@ def random_date_in_range(rng: RandomSource, start: date, end: date) -> date:
     return start + timedelta(days=rng.randint(0, day_span))
 
 
-
 @lru_cache(maxsize=16)
 def symmetric_peak_weights(length: int) -> tuple[float, ...]:
     """Build symmetric bell-curve-like weights with a center peak."""
@@ -60,9 +59,7 @@ def pick_story_fields(
     protagonist, secondary_character = pick_story_characters(rng, selected_date, data)
     setting = pick_story_setting(rng, selected_date, data)
 
-    title_template: str = rng.choice(
-        cast(Sequence[str], sorted_pool_from_data(data, "titles"))
-    )
+    title_template = _pick_sorted_data_value(rng, data, "titles")
     sexual_content_level = weighted_choice(
         rng,
         data["sexual_content_presence_options"],
@@ -89,15 +86,24 @@ def pick_story_fields(
             data["weather"],
             symmetric_peak_weights(len(data["weather"])),
         ),
-        "central_conflict": rng.choice(sorted_pool_from_data(data, "central_conflicts")),
-        "inciting_pressure": rng.choice(sorted_pool_from_data(data, "inciting_pressures")),
-        "ending_type": rng.choice(sorted_pool_from_data(data, "ending_types")),
-        "style_guidance": rng.choice(sorted_pool_from_data(data, "style_guidance")),
+        "central_conflict": _pick_sorted_data_value(rng, data, "central_conflicts"),
+        "inciting_pressure": _pick_sorted_data_value(rng, data, "inciting_pressures"),
+        "ending_type": _pick_sorted_data_value(rng, data, "ending_types"),
+        "style_guidance": _pick_sorted_data_value(rng, data, "style_guidance"),
         "sexual_content_level": sexual_content_level,
         "sexual_partner": sexual_partner,
         "sexual_scene_tags": sexual_scene_tags,
-        "word_count_target": rng.choice(sorted_pool_from_data(data, "word_count_targets")),
+        "word_count_target": _pick_sorted_data_value(rng, data, "word_count_targets"),
     }
+
+
+def _pick_sorted_data_value(
+    rng: RandomSource,
+    data: StoryData,
+    key: str,
+) -> str:
+    """Pick one deterministic value from a sorted top-level story-data pool."""
+    return rng.choice(cast(Sequence[str], sorted_pool_from_data(data, key)))
 
 
 def pick_story_characters(

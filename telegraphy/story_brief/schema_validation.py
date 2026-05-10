@@ -329,6 +329,9 @@ def _validate_sexual_scene_tag_group_presence_rules(config: dict[str, Any]) -> N
         raise ValueError("config.sexual_scene_required_tag_groups_by_presence must be an object")
     if not isinstance(optional_groups, list):
         raise ValueError("config.sexual_scene_optional_tag_groups must be a list")
+    if optional_groups:
+        _validate_string_list("config", "sexual_scene_optional_tag_groups", optional_groups)
+        _validate_no_duplicate_strings("config", "sexual_scene_optional_tag_groups", optional_groups)
 
     unknown_optional = sorted(group for group in optional_groups if group not in group_names)
     if unknown_optional:
@@ -347,17 +350,42 @@ def _validate_sexual_scene_tag_group_presence_rules(config: dict[str, Any]) -> N
             f"options: {', '.join(unknown_presence)}"
         )
 
+    missing_presence = sorted(presence_options - set(required_by_presence))
+    if missing_presence:
+        raise ValueError(
+            "config.sexual_scene_required_tag_groups_by_presence is missing "
+            f"required presence options: {', '.join(missing_presence)}"
+        )
+
     for presence, groups in required_by_presence.items():
         if not isinstance(groups, list):
             raise ValueError(
                 "config.sexual_scene_required_tag_groups_by_presence."
                 f"{presence} must be a list"
             )
+        if groups:
+            _validate_string_list(
+                "config", f"sexual_scene_required_tag_groups_by_presence.{presence}", groups
+            )
+            _validate_no_duplicate_strings(
+                "config", f"sexual_scene_required_tag_groups_by_presence.{presence}", groups
+            )
+
         unknown_required = sorted(group for group in groups if group not in group_names)
         if unknown_required:
             raise ValueError(
                 "config.sexual_scene_required_tag_groups_by_presence."
                 f"{presence} contains unknown groups: {', '.join(unknown_required)}"
+            )
+
+        tag_count_weights = config["sexual_scene_tag_count_weights_by_presence"][presence]
+        min_allowed = min(int(count) for count, weight in tag_count_weights.items() if weight > 0)
+        if len(groups) > min_allowed:
+            raise ValueError(
+                f"config.sexual_scene_required_tag_groups_by_presence.{presence} "
+                f"requires {len(groups)} groups, but "
+                f"config.sexual_scene_tag_count_weights_by_presence.{presence} "
+                f"allows as few as {min_allowed} tags"
             )
 
 

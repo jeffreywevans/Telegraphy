@@ -730,6 +730,18 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
         ),
         (
             lambda _titles, _entities, _prompts, config: config.update(
+                {"sexual_scene_optional_tag_groups": ["tone", "tone"]}
+            ),
+            r"config\.sexual_scene_optional_tag_groups contains duplicate value at index 1",
+        ),
+        (
+            lambda _titles, _entities, _prompts, config: config.update(
+                {"sexual_scene_optional_tag_groups": ["tone", " "]}
+            ),
+            r"config\.sexual_scene_optional_tag_groups\[1\] must be a non-empty string",
+        ),
+        (
+            lambda _titles, _entities, _prompts, config: config.update(
                 {"sexual_scene_required_tag_groups_by_presence": {"unknown": ["tone"]}}
             ),
             (
@@ -739,11 +751,79 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
         ),
         (
             lambda _titles, _entities, _prompts, config: config.update(
+                {
+                    "sexual_scene_required_tag_groups_by_presence": {
+                        "none": [],
+                    }
+                }
+            ),
+            (
+                r"config\.sexual_scene_required_tag_groups_by_presence is missing required "
+                r"presence options: explicit, fade_to_black, implied, suggestive"
+            ),
+        ),
+        (
+            lambda _titles, _entities, _prompts, config: config.update(
                 {"sexual_scene_required_tag_groups_by_presence": {"none": ["unknown"]}}
             ),
             (
                 r"config\.sexual_scene_required_tag_groups_by_presence\.none contains unknown "
                 r"groups: unknown"
+            ),
+        ),
+        (
+            lambda _titles, _entities, _prompts, config: config.update(
+                {"sexual_scene_required_tag_groups_by_presence": {"none": ["tone", "tone"]}}
+            ),
+            (
+                r"config\.sexual_scene_required_tag_groups_by_presence\.none contains duplicate "
+                r"value at index 1"
+            ),
+        ),
+        (
+            lambda _titles, _entities, _prompts, config: config.update(
+                {
+                    "sexual_scene_required_tag_groups_by_presence": {
+                        "none": ["tone", " "],
+                        **{
+                            key: value
+                            for key, value in config[
+                                "sexual_scene_required_tag_groups_by_presence"
+                            ].items()
+                            if key != "none"
+                        },
+                    }
+                }
+            ),
+            (
+                r"config\.sexual_scene_required_tag_groups_by_presence\.none\[1\] must be a "
+                r"non-empty string"
+            ),
+        ),
+        (
+            lambda _titles, _entities, _prompts, config: (
+                config["sexual_scene_tag_count_weights_by_presence"]
+                .setdefault("none", {})
+                .update({"1": 1.0, "2": 0.0}),
+                config.update(
+                    {
+                        "sexual_scene_required_tag_groups_by_presence": {
+                            "none": ["tone", "partner"],
+                            **{
+                                key: value
+                                for key, value in config[
+                                    "sexual_scene_required_tag_groups_by_presence"
+                                ].items()
+                                if key != "none"
+                            },
+                        }
+                    }
+                ),
+            ),
+            (
+                r"config\.sexual_scene_required_tag_groups_by_presence\.none requires 2 groups, "
+                r"but config\.sexual_scene_tag_count_weights_by_presence\.none allows as few "
+                r"as 1 tags"
             ),
         ),
         (

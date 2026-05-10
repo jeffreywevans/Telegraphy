@@ -368,17 +368,20 @@ def _validate_sexual_scene_tag_group_presence_rules(config: dict[str, Any]) -> N
                 "config", f"sexual_scene_required_tag_groups_by_presence.{presence}", groups
             )
 
-        if presence == "none":
+        if presence == "none" and len(groups) > 1:
             tag_count_weights = config["sexual_scene_tag_count_weights_by_presence"][presence]
-            min_allowed = min(
-                int(count) for count, weight in tag_count_weights.items() if weight > 0
-            )
-            if len(groups) > min_allowed:
+            positive_tag_counts = [
+                int(count)
+                for count, weight in tag_count_weights.items()
+                if weight > 0 and int(count) > 0
+            ]
+            max_allowed = max(positive_tag_counts, default=0)
+            if len(groups) > max_allowed:
                 raise ValueError(
                     f"config.sexual_scene_required_tag_groups_by_presence.{presence} "
                     f"requires {len(groups)} groups, but "
                     f"config.sexual_scene_tag_count_weights_by_presence.{presence} "
-                    f"allows as few as {min_allowed} tags"
+                    f"allows as few as {max_allowed} tags"
                 )
 
         unknown_required = sorted(group for group in groups if group not in group_names)

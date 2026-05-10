@@ -10,7 +10,10 @@ from .partner_models import (
     PartnerDistributionDataset,
     parse_partner_distribution_payload,
 )
-from .schema_validation_common import validate_no_duplicate_strings, validate_string_list
+from .schema_validation_common import (
+    validate_no_duplicate_strings,
+    validate_string_list,
+)
 
 CONFIG_REQUIRED_KEYS = frozenset({
     "schema_version",

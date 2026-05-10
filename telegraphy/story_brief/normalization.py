@@ -4,7 +4,7 @@ from typing import Any
 
 from ._constants import PROMPT_LIST_KEYS
 from .generation_helpers import stable_sorted_pool
-from .validation import validate_story_data
+from .schema_validation import validate_story_data
 
 
 def _build_story_data(dataset_payloads: dict[str, Any]) -> dict[str, Any]:

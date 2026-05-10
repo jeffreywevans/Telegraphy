@@ -391,7 +391,8 @@ def _validate_sexual_scene_tag_group_presence_rules(config: dict[str, Any]) -> N
                 f"{presence} contains unknown groups: {', '.join(unknown_required)}"
             )
 
-    missing_presence = sorted(presence_options - set(required_by_presence))
+    required_presence_options = set(config["sexual_scene_tag_count_weights_by_presence"])
+    missing_presence = sorted(required_presence_options - set(required_by_presence))
     if missing_presence:
         raise ValueError(
             "config.sexual_scene_required_tag_groups_by_presence is missing "

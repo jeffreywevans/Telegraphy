@@ -64,11 +64,10 @@ def _home_directory_text() -> str:
 
 def _expand_home_marker(path_text: str) -> str:
     """Expand only the current user's home marker; reject ~other forms."""
-    home_text = _home_directory_text()
     if path_text == "~":
-        return home_text
+        return _home_directory_text()
     if path_text.startswith(_HOME_MARKERS):
-        return os.path.join(home_text, path_text[2:])
+        return os.path.join(_home_directory_text(), path_text[2:])
     if path_text.startswith("~"):
         raise DataDirError("Configured data directory must not use ~user expansion")
     return path_text
@@ -95,9 +94,7 @@ def _resolve_override_data_dir(raw_value: str) -> Path:
     candidate = Path(candidate_text)
     if not candidate.is_absolute():
         if os.name == "nt" and candidate_text.startswith(("/", "\\")):
-            anchor = Path.cwd().anchor
-            if anchor:
-                candidate = Path(f"{anchor}{candidate_text.lstrip('/\\')}")
+            candidate = candidate.absolute()
         if not candidate.is_absolute():
             raise DataDirError("Configured data directory must be an absolute path")
     try:

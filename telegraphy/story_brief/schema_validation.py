@@ -377,11 +377,12 @@ def _validate_sexual_scene_tag_group_presence_rules(config: dict[str, Any]) -> N
             ]
             max_allowed = max(positive_tag_counts, default=0)
             if len(groups) > max_allowed:
+                group_count = len(groups)
                 raise ValueError(
                     f"config.sexual_scene_required_tag_groups_by_presence.{presence} "
-                    f"requires {len(groups)} groups, but "
+                    f"requires {group_count} group{'s' if group_count != 1 else ''}, but "
                     f"config.sexual_scene_tag_count_weights_by_presence.{presence} "
-                    f"allows as few as {max_allowed} tags"
+                    f"allows as few as {max_allowed} tag{'s' if max_allowed != 1 else ''}"
                 )
 
         unknown_required = sorted(group for group in groups if group not in group_names)

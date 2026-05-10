@@ -21,7 +21,7 @@ from .filenames import (
     write_output_markdown,
 )
 from .linting import emit_lint_report, lint_story_data
-from .validation import validate_story_data_strict
+from .generation_invariants import validate_story_data_strict
 
 StoryData = story_brief_cli.StoryData
 StoryFields = Mapping[str, Any]

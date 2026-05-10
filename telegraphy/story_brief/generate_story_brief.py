@@ -6,94 +6,31 @@ from __future__ import annotations
 import random
 import secrets
 from datetime import date
-from typing import cast
 
-from . import data_io as _data_io_module
-from . import filenames as _filenames
 from ._constants import (
-    CHARACTER_AVAILABILITY_KEY as _CHARACTER_AVAILABILITY_KEY,
+    CHARACTER_AVAILABILITY_KEY,
+    PARTNER_DISTRIBUTIONS_KEY,
+    SETTING_AVAILABILITY_KEY,
 )
-from ._constants import (
-    PARTNER_DISTRIBUTIONS_KEY as _PARTNER_DISTRIBUTIONS_KEY,
-)
-from ._constants import (
-    SETTING_AVAILABILITY_KEY as _SETTING_AVAILABILITY_KEY,
-)
+from .data_io import DATA_FILENAMES, get_normalized_story_data
 from .generation import pick_story_fields as _pick_story_fields
-from .linting import emit_lint_report
 from .rendering import to_markdown as _to_markdown
+from .schema_validation_config import EXPECTED_GENERATED_FIELD_KEYS
 from .story_data import NormalizedPartnerEra, StoryData
-from .validation import (
-    EXPECTED_GENERATED_FIELD_KEYS as _EXPECTED_GENERATED_FIELD_KEYS,
-)
 
-# NOTE:
-# - validation.EXPECTED_GENERATED_FIELD_KEYS is intentionally a mutable `set`
-#   for internal set arithmetic in validation helpers.
-# - The public re-export here is a `frozenset` to provide an immutable API.
-EXPECTED_GENERATED_FIELD_KEYS = frozenset(_EXPECTED_GENERATED_FIELD_KEYS)
-build_auto_filename = _filenames.build_auto_filename
-CHARACTER_AVAILABILITY_KEY = _CHARACTER_AVAILABILITY_KEY
-SETTING_AVAILABILITY_KEY = _SETTING_AVAILABILITY_KEY
-PARTNER_DISTRIBUTIONS_KEY = _PARTNER_DISTRIBUTIONS_KEY
-
-
-# Public exports for this facade module.
+# Public exports for this module.
 __all__ = [
     "CHARACTER_AVAILABILITY_KEY",
-    "CONFIG_FILENAME",
-    "ENTITIES_FILENAME",
+    "DATA_FILENAMES",
     "EXPECTED_GENERATED_FIELD_KEYS",
     "NormalizedPartnerEra",
-    "PARTNER_DISTRIBUTIONS_FILENAME",
     "PARTNER_DISTRIBUTIONS_KEY",
-    "PROMPTS_FILENAME",
     "SETTING_AVAILABILITY_KEY",
-    "STORY_DATASET_FILES",
     "StoryData",
-    "TITLES_FILENAME",
-    "build_auto_filename",
-    "clear_get_data_cache",
-    "emit_lint_report",
-    "get_data",
-    "load_story_data",
+    "get_normalized_story_data",
     "pick_story_fields",
     "to_markdown",
 ]
-
-
-# Canonical dataset file mapping lives in telegraphy.story_brief.data_io.
-STORY_DATASET_FILES = _data_io_module.DATA_FILENAMES
-
-# Backward-compatible aliases re-exported from the canonical mapping.
-TITLES_FILENAME = STORY_DATASET_FILES["titles"]
-ENTITIES_FILENAME = STORY_DATASET_FILES["entities"]
-PROMPTS_FILENAME = STORY_DATASET_FILES["prompts"]
-CONFIG_FILENAME = STORY_DATASET_FILES["config"]
-PARTNER_DISTRIBUTIONS_FILENAME = STORY_DATASET_FILES["partner_distributions"]
-
-
-def get_data() -> StoryData:
-    """Load story-brief data from the authoritative data_io cache.
-
-    Returns a deep copy of processed data to prevent cache poisoning when callers
-    mutate nested structures.
-    """
-    return cast(StoryData, _data_io_module.get_normalized_story_data())
-
-
-def load_story_data() -> StoryData:
-    """Backward-compatible alias for :func:`get_data`."""
-    return get_data()
-
-
-def _clear_get_data_cache() -> None:
-    _data_io_module.clear_data_cache()
-
-
-def clear_get_data_cache() -> None:
-    """Clear the authoritative raw dataset cache in data_io."""
-    _clear_get_data_cache()
 
 
 def pick_story_fields(
@@ -102,7 +39,7 @@ def pick_story_fields(
     data: StoryData | None = None,
 ) -> dict[str, str | int | list[str] | None]:
     """Pick a randomized, schema-compatible story brief field set."""
-    resolved_data = get_data() if data is None else data
+    resolved_data = get_normalized_story_data() if data is None else data
     return _pick_story_fields(rng, selected_date=selected_date, data=resolved_data)
 
 
@@ -111,7 +48,7 @@ def to_markdown(
     data: StoryData | None = None,
 ) -> str:
     """Render selected story fields as Markdown with YAML front matter."""
-    resolved_data = get_data() if data is None else data
+    resolved_data = get_normalized_story_data() if data is None else data
     return _to_markdown(
         fields,
         ordered_keys=resolved_data["ordered_keys"],

@@ -823,7 +823,7 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
             (
                 r"config\.sexual_scene_required_tag_groups_by_presence\.none requires 2 groups, "
                 r"but config\.sexual_scene_tag_count_weights_by_presence\.none allows as few "
-                r"as 1 tags"
+                r"as 1 tag"
             ),
         ),
         (

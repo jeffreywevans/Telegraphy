@@ -258,7 +258,10 @@ def validate_sexual_scene_tag_group_presence_rules(config: dict[str, Any]) -> No
         validate_no_duplicate_strings("config", "sexual_scene_optional_tag_groups", optional_groups)
 
     _raise_for_unknown_optional_groups(optional_groups, group_names)
-    _raise_for_unknown_presence_options(required_by_presence, config["sexual_content_presence_options"])
+    _raise_for_unknown_presence_options(
+        required_by_presence,
+        config["sexual_content_presence_options"],
+    )
 
     for presence, groups in required_by_presence.items():
         _validate_required_groups_for_presence(

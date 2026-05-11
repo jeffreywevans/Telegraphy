@@ -4,7 +4,12 @@ from datetime import date
 
 import pytest
 
-from telegraphy.story_brief.generate_story_brief import get_normalized_story_data as get_data, pick_story_fields
+from telegraphy.story_brief.generate_story_brief import (
+    get_normalized_story_data as get_data,
+)
+from telegraphy.story_brief.generate_story_brief import (
+    pick_story_fields,
+)
 
 
 def test_same_seed_is_deterministic() -> None:

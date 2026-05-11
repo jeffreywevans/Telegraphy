@@ -13,7 +13,6 @@ from typing import Any
 
 import pytest
 
-from telegraphy.story_brief import generate_story_brief as story_brief
 from telegraphy.story_brief.data_io import DATA_FILENAMES, data_file, load_json
 from telegraphy.story_brief.partner_models import (
     PartnerDistributionDataset,

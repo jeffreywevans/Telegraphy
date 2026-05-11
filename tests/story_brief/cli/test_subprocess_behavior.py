@@ -10,7 +10,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from telegraphy.story_brief.data_io import clear_data_cache as clear_get_data_cache
+from telegraphy.story_brief.data_io import clear_data_cache
 from telegraphy.story_brief.generate_story_brief import get_normalized_story_data as get_data
 
 pytestmark = pytest.mark.integration

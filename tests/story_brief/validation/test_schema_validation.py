@@ -806,7 +806,7 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
                 config.update(
                     {
                         "sexual_scene_required_tag_groups_by_presence": {
-                            "none": ["tone", "partner"],
+                            "none": list(config["sexual_scene_tag_groups"].keys())[:2],
                             **{
                                 key: value
                                 for key, value in config[

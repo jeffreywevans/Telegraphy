@@ -5,11 +5,6 @@ from datetime import timedelta
 from typing import Any
 
 import pytest
-
-from telegraphy.story_brief.generate_story_brief import (
-    load_story_data,
-)
-from telegraphy.story_brief.linting import lint_story_data
 from telegraphy.story_brief.validation import (
     MAX_SEXUAL_SCENE_TAG_GROUPS,
     UNSUPPORTED_CONFIG_ALIAS_ERROR_PREFIX,
@@ -17,6 +12,11 @@ from telegraphy.story_brief.validation import (
     validate_story_data,
     validate_story_data_strict,
 )
+
+from telegraphy.story_brief.generate_story_brief import (
+    load_story_data,
+)
+from telegraphy.story_brief.linting import lint_story_data
 
 DEFAULT_TAG_COUNT_WEIGHTS_BY_PRESENCE = {
     "suggestive": {"1": 1.0},

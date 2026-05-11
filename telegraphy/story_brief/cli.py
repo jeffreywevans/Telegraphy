@@ -12,16 +12,17 @@ from pathlib import Path
 from typing import Any, Union
 
 from . import generate_story_brief as story_brief_cli
-from .data_io import DataDirError
+from .data_io import DataDirError, get_normalized_story_data
 from .filenames import (
     DEFAULT_OUTPUT_DIR,
     OutputPathError,
     OutputWriteError,
+    build_auto_filename,
     resolve_output_path,
     write_output_markdown,
 )
-from .linting import emit_lint_report, lint_story_data
 from .generation_invariants import validate_story_data_strict
+from .linting import emit_lint_report, lint_story_data
 
 StoryData = story_brief_cli.StoryData
 StoryFields = Mapping[str, Any]
@@ -123,7 +124,7 @@ def _write_story_markdown(
 
 def _build_generated_filename(fields: StoryFields) -> str:
     """Build the automatic output filename from generated story fields."""
-    return story_brief_cli.build_auto_filename(
+    return build_auto_filename(
         str(fields.get("title") or ""),
         today=fields.get("time_period"),
     )
@@ -135,7 +136,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(list(argv) if argv is not None else None)
 
     try:
-        data: StoryData = story_brief_cli.get_data()
+        data: StoryData = get_normalized_story_data()
     except DataDirError as exc:  # pragma: no cover
         return _print_error(f"Failed to load story brief dataset file. {exc}")
     except ValueError as exc:  # pragma: no cover

@@ -20,7 +20,6 @@ from .rendering import to_markdown as _to_markdown
 from .schema_validation_config import EXPECTED_GENERATED_FIELD_KEYS
 from .story_data import NormalizedPartnerEra, StoryData
 
-
 # Public exports for this module.
 __all__ = [
     "CHARACTER_AVAILABILITY_KEY",

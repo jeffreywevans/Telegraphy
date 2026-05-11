@@ -16,48 +16,33 @@ jobs:
   ensure-labels:
     runs-on: ubuntu-latest
     steps:
-      - name: Create labels used by Dependabot
+      - name: Ensure labels used by Dependabot
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v7
         with:
           script: |
             const labels = [
-              {
-                name: 'dependencies',
-                color: '0366d6',
-                description: 'Pull requests that update project dependencies.',
-              },
-              {
-                name: 'github-actions',
-                color: '1f883d',
-                description: 'Updates to GitHub Actions workflows and actions.',
-              },
-              {
-                name: 'python',
-                color: '3572A5',
-                description: 'Changes related to Python packages or tooling.',
-              },
+              ['dependencies', '0366d6', 'Pull requests that update project dependencies.'],
+              ['github-actions', '1f883d', 'Updates to GitHub Actions workflows and actions.'],
+              ['python', '3572A5', 'Changes related to Python packages or tooling.'],
             ];
 
-            for (const label of labels) {
-              try {
-                await github.rest.issues.createLabel({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  ...label,
-                });
-                core.info(`Created label: ${label.name}`);
-              } catch (error) {
-                if (error.status === 422) {
-                  await github.rest.issues.updateLabel({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    name: label.name,
-                    color: label.color,
-                    description: label.description,
-                  });
-                  core.info(`Updated label: ${label.name}`);
-                } else {
-                  throw error;
-                }
+            const repo = { owner: context.repo.owner, repo: context.repo.repo };
+            const existing = await github.paginate(github.rest.issues.listLabelsForRepo, { ...repo, per_page: 100 });
+            const current = new Map(existing.map((l) => [l.name, { color: l.color.toLowerCase(), description: l.description ?? '' }]));
+
+            for (const [name, color, description] of labels) {
+              const found = current.get(name);
+              if (!found) {
+                await github.rest.issues.createLabel({ ...repo, name, color, description });
+                core.info(`Created label: ${name}`);
+                continue;
               }
+
+              if (found.color === color.toLowerCase() && found.description === description) {
+                core.info(`No changes needed: ${name}`);
+                continue;
+              }
+
+              await github.rest.issues.updateLabel({ ...repo, name, color, description });
+              core.info(`Updated label: ${name}`);
             }

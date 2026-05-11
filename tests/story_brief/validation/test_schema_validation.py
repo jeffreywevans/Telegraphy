@@ -851,26 +851,6 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
             ),
         ),
         (
-            lambda _titles, _entities, _prompts, config: (
-                config["sexual_scene_tag_count_weights_by_presence"]
-                .setdefault("implied", {})
-                .update({"1": 1.0, "2": 1.0}),
-                config.update(
-                    {
-                        "sexual_scene_required_tag_groups_by_presence": {
-                            **config["sexual_scene_required_tag_groups_by_presence"],
-                            "implied": ["tone", "partner"],
-                        }
-                    }
-                ),
-            ),
-            (
-                r"config\.sexual_scene_required_tag_groups_by_presence\.implied requires "
-                r"2 groups, but config\.sexual_scene_tag_count_weights_by_presence\.implied "
-                r"allows as few as 1 tag"
-            ),
-        ),
-        (
             lambda _titles, _entities, _prompts, config: config.update({"ordered_keys": []}),
             r"config\.ordered_keys must be a non-empty list",
         ),

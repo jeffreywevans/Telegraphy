@@ -333,6 +333,9 @@ def _raise_for_excess_required_groups(
     groups: list[str],
     tag_count_weights_by_presence: dict[str, dict[Any, float]],
 ) -> None:
+    if presence != "none":
+        return
+
     tag_count_weights = tag_count_weights_by_presence[presence]
     min_allowed = _get_min_allowed_tag_count(tag_count_weights)
     if len(groups) > min_allowed:

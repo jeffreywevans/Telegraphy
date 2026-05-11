@@ -193,6 +193,8 @@ def test_generate_story_brief_invalid_seed_starts_poll_but_not_worker(monkeypatc
 
     assert poll_called == [True]
     assert not thread_called
+    assert tablet._worker_active is False
+    assert tablet.generate_button.configure.call_args_list[-1] == call(state="normal")
     assert tablet.result_queue.get_nowait()[0] == "error"
 
 
@@ -228,10 +230,14 @@ def test_generate_story_brief_invalid_seed_queue_message_is_consumed(monkeypatch
     tablet.generate_story_brief()
 
     assert not thread_called
-    assert tablet._worker_active is True
+    assert tablet._worker_active is False
+    assert tablet.generate_button.configure.call_args_list[-1] == call(state="normal")
+    assert tablet.copy_button.configure.call_args_list[0] == call(state="disabled")
+    assert len(after_calls) == 1
 
-    # Simulate tkinter running the scheduled poll callback.
-    after_calls[-1][1]()
+    # Simulate tkinter draining the already-queued validation error.
+    tablet._worker_active = True
+    tablet._poll_worker_queue()
 
     assert tablet._worker_active is False
     assert tablet.result_queue.empty()

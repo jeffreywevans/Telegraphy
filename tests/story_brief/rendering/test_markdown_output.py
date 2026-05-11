@@ -143,7 +143,7 @@ def test_to_markdown_calls_get_data_once(monkeypatch) -> None:
         return data
 
     monkeypatch.setattr(
-        "telegraphy.story_brief.generate_story_brief.get_data",
+        "telegraphy.story_brief.generate_story_brief.get_normalized_story_data",
         fake_get_data,
     )
 

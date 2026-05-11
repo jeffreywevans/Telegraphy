@@ -107,7 +107,7 @@ def test_env_override_loads_dataset_from_custom_directory(
     override_data_dir: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setenv("TELEGRAPHY_DATA_DIR", str(override_data_dir))
-    story_brief.clear_data_cache()
+    data_io.clear_data_cache()
     loaded = story_brief.get_normalized_story_data()
 
     assert loaded["dataset_version"] == "test"
@@ -141,7 +141,7 @@ def test_load_story_data_normalizes_sexual_scene_tag_count_weights_by_presence(
         },
     )
     monkeypatch.setenv("TELEGRAPHY_DATA_DIR", str(override_data_dir))
-    story_brief.clear_data_cache()
+    data_io.clear_data_cache()
 
     loaded = story_brief.get_normalized_story_data()
 
@@ -154,7 +154,7 @@ def test_env_override_rejects_unresolved_title_token(
     _write_payload(override_data_dir / "titles.json", {"titles": ["Oops @protagnoist"]})
 
     monkeypatch.setenv("TELEGRAPHY_DATA_DIR", str(override_data_dir))
-    story_brief.clear_data_cache()
+    data_io.clear_data_cache()
 
     with pytest.raises(ValueError, match="unsupported token"):
         story_brief.get_normalized_story_data()
@@ -175,7 +175,7 @@ def test_load_story_data_strips_availability_names(
     )
 
     monkeypatch.setenv("TELEGRAPHY_DATA_DIR", str(override_data_dir))
-    story_brief.clear_data_cache()
+    data_io.clear_data_cache()
     loaded = story_brief.get_normalized_story_data()
 
     assert loaded["character_availability"][0][0] == "Alex"
@@ -188,7 +188,7 @@ def test_env_override_requires_existing_directory(
 ) -> None:
     missing_dir = tmp_path / "missing"
     monkeypatch.setenv("TELEGRAPHY_DATA_DIR", str(missing_dir))
-    story_brief.clear_data_cache()
+    data_io.clear_data_cache()
 
     with pytest.raises(data_io.DataDirError, match="must be an existing directory"):
         story_brief.get_normalized_story_data()
@@ -203,7 +203,7 @@ def test_env_override_requires_absolute_directory(
     monkeypatch.chdir(tmp_path)
 
     monkeypatch.setenv("TELEGRAPHY_DATA_DIR", "override-data")
-    story_brief.clear_data_cache()
+    data_io.clear_data_cache()
 
     with pytest.raises(data_io.DataDirError, match="must be an absolute path"):
         story_brief.get_normalized_story_data()
@@ -277,7 +277,7 @@ def test_load_data_missing_filename_without_exc_filename(
 
 
 def test_get_data_returns_defensive_copies() -> None:
-    story_brief.clear_data_cache()
+    data_io.clear_data_cache()
 
     original = story_brief.get_normalized_story_data()
     # Top-level mutation should not poison cached state.

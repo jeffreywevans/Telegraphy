@@ -4,7 +4,12 @@ from datetime import date
 
 import pytest
 
-from telegraphy.story_brief.generate_story_brief import get_data, pick_story_fields
+from telegraphy.story_brief.generate_story_brief import (
+    get_normalized_story_data as get_data,
+)
+from telegraphy.story_brief.generate_story_brief import (
+    pick_story_fields,
+)
 
 
 def test_same_seed_is_deterministic() -> None:
@@ -57,7 +62,7 @@ def test_duplicate_character_rows_require_two_distinct_names(
 ) -> None:
     from telegraphy.story_brief import generate_story_brief as story_brief
 
-    data = dict(story_brief.get_data())
+    data = dict(story_brief.get_normalized_story_data())
     data["character_availability"] = [
         ("Only Name", date(2000, 1, 1), date(2000, 12, 31)),
         ("Only Name", date(2000, 1, 1), date(2000, 12, 31)),
@@ -121,7 +126,7 @@ def test_non_none_sexual_content_with_positive_partner_weight_requires_partner_s
 ) -> None:
     from telegraphy.story_brief import generate_story_brief as story_brief
 
-    data = story_brief.get_data()
+    data = story_brief.get_normalized_story_data()
     selected_date = date(2000, 1, 1)
     protagonist = "Alex"
 
@@ -160,8 +165,8 @@ def test_seed_output_is_stable_when_option_pool_order_changes(
 ) -> None:
     from telegraphy.story_brief import generate_story_brief as story_brief
 
-    baseline_data = story_brief.get_data()
-    shuffled_data = story_brief.get_data()
+    baseline_data = story_brief.get_normalized_story_data()
+    shuffled_data = story_brief.get_normalized_story_data()
 
     shuffled_data["setting_availability"] = list(reversed(shuffled_data["setting_availability"]))
     shuffled_data["titles"] = list(reversed(shuffled_data["titles"]))
@@ -198,7 +203,7 @@ def test_pick_story_fields_reads_data_once_per_invocation(
     from telegraphy.story_brief import generate_story_brief as story_brief
 
     calls = {"count": 0}
-    data = story_brief.get_data()
+    data = story_brief.get_normalized_story_data()
 
     def counting_get_data() -> dict[str, object]:
         calls["count"] += 1
@@ -216,7 +221,7 @@ def test_pick_story_fields_handles_partner_distribution_gap_year(
     from telegraphy.story_brief import generate_story_brief as story_brief
 
     selected_date = date(2000, 1, 1)
-    data = story_brief.get_data()
+    data = story_brief.get_normalized_story_data()
     data["character_availability"] = [
         ("Alex", selected_date, selected_date),
         ("Jordan", selected_date, selected_date),
@@ -252,7 +257,7 @@ def test_pick_story_fields_handles_missing_partner_distribution_for_protagonist(
     from telegraphy.story_brief import generate_story_brief as story_brief
 
     selected_date = date(2000, 1, 1)
-    data = story_brief.get_data()
+    data = story_brief.get_normalized_story_data()
     data["character_availability"] = [
         ("Alex", selected_date, selected_date),
         ("Jordan", selected_date, selected_date),

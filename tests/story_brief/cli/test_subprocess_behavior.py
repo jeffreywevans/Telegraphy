@@ -10,7 +10,8 @@ from pathlib import Path
 import pytest
 import yaml
 
-from telegraphy.story_brief.generate_story_brief import clear_get_data_cache, get_data
+from telegraphy.story_brief.data_io import clear_data_cache
+from telegraphy.story_brief.generate_story_brief import get_normalized_story_data as get_data
 
 pytestmark = pytest.mark.integration
 
@@ -144,7 +145,7 @@ def test_print_only_seeded_output_matches_front_matter_schema(
     assert isinstance(parsed, dict)
 
     monkeypatch.delenv("TELEGRAPHY_DATA_DIR", raising=False)
-    clear_get_data_cache()
+    clear_data_cache()
     required_keys = list(get_data()["ordered_keys"])
     assert list(parsed) == required_keys
 

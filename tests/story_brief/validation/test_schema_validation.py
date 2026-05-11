@@ -13,9 +13,7 @@ from telegraphy.story_brief.validation import (
     validate_story_data_strict,
 )
 
-from telegraphy.story_brief.generate_story_brief import (
-    load_story_data,
-)
+from telegraphy.story_brief.generate_story_brief import get_normalized_story_data
 from telegraphy.story_brief.linting import lint_story_data
 
 DEFAULT_TAG_COUNT_WEIGHTS_BY_PRESENCE = {
@@ -282,7 +280,7 @@ def test_schema_validation_rejects_duplicate_partners_in_single_era(story_datase
 
 
 def test_strict_validation_accepts_well_formed_small_range() -> None:
-    data = load_story_data()
+    data = get_normalized_story_data()
     start = data["date_start"]
     data["date_end"] = start
     data["character_availability"] = [
@@ -298,11 +296,11 @@ def test_strict_validation_accepts_well_formed_small_range() -> None:
 
 
 def test_real_dataset_passes_strict_validation() -> None:
-    validate_story_data_strict(load_story_data())
+    validate_story_data_strict(get_normalized_story_data())
 
 
 def test_strict_validation_rejects_dates_with_fewer_than_two_distinct_characters() -> None:
-    data = load_story_data()
+    data = get_normalized_story_data()
     data["date_end"] = data["date_start"]
     data["character_availability"] = [
         ("Only One", data["date_start"], data["date_end"]),
@@ -313,7 +311,7 @@ def test_strict_validation_rejects_dates_with_fewer_than_two_distinct_characters
 
 
 def test_strict_validation_rejects_dates_with_no_settings() -> None:
-    data = load_story_data()
+    data = get_normalized_story_data()
     data["date_end"] = data["date_start"]
     data["setting_availability"] = []
     data["character_availability"] = [
@@ -326,7 +324,7 @@ def test_strict_validation_rejects_dates_with_no_settings() -> None:
 
 
 def test_strict_validation_handles_max_date_boundary_without_overflow() -> None:
-    max_day = load_story_data()["date_end"].replace(year=9999, month=12, day=31)
+    max_day = get_normalized_story_data()["date_end"].replace(year=9999, month=12, day=31)
     data = {
         "date_start": max_day,
         "date_end": max_day,
@@ -344,7 +342,7 @@ def test_strict_validation_handles_max_date_boundary_without_overflow() -> None:
 
 
 def test_dataset_lint_reports_coverage_gap_errors() -> None:
-    data = load_story_data()
+    data = get_normalized_story_data()
     data["date_end"] = data["date_start"]
     data["character_availability"] = [
         ("Only One", data["date_start"], data["date_end"]),
@@ -359,7 +357,7 @@ def test_dataset_lint_reports_coverage_gap_errors() -> None:
 
 
 def test_dataset_lint_handles_max_date_boundary_without_excluding_final_day() -> None:
-    max_day = load_story_data()["date_end"].replace(year=9999, month=12, day=31)
+    max_day = get_normalized_story_data()["date_end"].replace(year=9999, month=12, day=31)
     data = {
         "date_start": max_day,
         "date_end": max_day,
@@ -385,7 +383,7 @@ def test_dataset_lint_handles_max_date_boundary_without_excluding_final_day() ->
 
 
 def test_dataset_lint_reports_non_blocking_warnings() -> None:
-    data = load_story_data()
+    data = get_normalized_story_data()
     day = data["date_start"]
     data["date_end"] = day
     data["character_availability"] = [
@@ -409,7 +407,7 @@ def test_dataset_lint_reports_non_blocking_warnings() -> None:
 
 
 def test_dataset_lint_reports_partner_data_coverage_gaps_by_protagonist() -> None:
-    data = load_story_data()
+    data = get_normalized_story_data()
     day = data["date_start"]
     data["date_end"] = day
     data["character_availability"] = [
@@ -438,7 +436,7 @@ def test_dataset_lint_reports_partner_data_coverage_gaps_by_protagonist() -> Non
 
 
 def test_dataset_lint_uses_partner_era_boundaries_for_gap_detection() -> None:
-    data = load_story_data()
+    data = get_normalized_story_data()
     day = data["date_start"]
     next_day = day + timedelta(days=1)
     data["date_end"] = next_day
@@ -470,7 +468,7 @@ def test_dataset_lint_uses_partner_era_boundaries_for_gap_detection() -> None:
 
 
 def test_dataset_lint_treats_empty_partner_eras_as_intentional_celibacy() -> None:
-    data = load_story_data()
+    data = get_normalized_story_data()
     day = data["date_start"]
     data["date_end"] = day
     data["character_availability"] = [

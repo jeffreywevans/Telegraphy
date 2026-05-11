@@ -4,7 +4,7 @@ from datetime import date, timedelta
 
 import pytest
 
-from telegraphy.story_brief.generate_story_brief import get_data
+from telegraphy.story_brief.generate_story_brief import get_normalized_story_data as get_data
 from telegraphy.story_brief.generation_invariants import validate_story_data_strict
 
 

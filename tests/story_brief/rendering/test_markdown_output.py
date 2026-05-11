@@ -1,5 +1,5 @@
 from telegraphy.story_brief import generate_story_brief as story_cli
-from telegraphy.story_brief.generate_story_brief import get_data
+from telegraphy.story_brief.generate_story_brief import get_normalized_story_data as get_data
 from telegraphy.story_brief.rendering import render_title, to_markdown
 
 

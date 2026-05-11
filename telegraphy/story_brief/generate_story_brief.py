@@ -15,8 +15,13 @@ from ._constants import (
 from .data_io import DATA_FILENAMES, get_normalized_story_data
 from .generation import pick_story_fields as _pick_story_fields
 from .rendering import to_markdown as _to_markdown
-from .schema_validation_config import EXPECTED_GENERATED_FIELD_KEYS
+from .schema_validation_config import (
+    EXPECTED_GENERATED_FIELD_KEYS as _EXPECTED_GENERATED_FIELD_KEYS,
+)
 from .story_data import NormalizedPartnerEra, StoryData
+
+EXPECTED_GENERATED_FIELD_KEYS = frozenset(_EXPECTED_GENERATED_FIELD_KEYS)
+
 
 # Public exports for this module.
 __all__ = [

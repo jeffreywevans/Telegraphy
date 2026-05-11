@@ -3,7 +3,7 @@ name: CodeQL
 on:
   push:
     branches: [main]
-    paths:
+    paths: &codeql_paths
       - "telegraphy/**"
       - "pyproject.toml"
       - "requirements*.txt"
@@ -12,11 +12,7 @@ on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
     branches: [main]
-    paths:
-      - "telegraphy/**"
-      - "pyproject.toml"
-      - "requirements*.txt"
-      - ".github/workflows/**"
+    paths: *codeql_paths
 
   schedule:
     - cron: "17 4 * * 1"

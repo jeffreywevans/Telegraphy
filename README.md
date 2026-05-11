@@ -199,7 +199,7 @@ Press **COPY!** to copy the most recent successful brief to your clipboard.
 
 ## Using the GUI
 
-The 0.5.0 GUI is intentionally focused: it is a tablet-shaped desktop wrapper around the existing `story-brief` engine.
+The 0.5.1 GUI is intentionally focused: it is a tablet-shaped desktop wrapper around the existing `story-brief` engine.
 
 ### What happens when you click GENERATE!
 
@@ -613,7 +613,7 @@ Current package facts:
 | Field | Value |
 | --- | --- |
 | Package | `telegraphy` |
-| Current version | `0.5.0` |
+| Current version | `0.5.1` |
 | Python | `>=3.14` |
 | Runtime dependency | `PyYAML>=6.0.3` |
 | Console script | `story-brief = telegraphy.story_brief.cli:main` |
@@ -636,9 +636,9 @@ For generation changes, preserve deterministic seeded behavior unless the PR exp
 
 ## Release notes and status
 
-Current status: `0.5.0`.
+Current status: `0.5.1`.
 
-This release declares the 0.5.0 line and rolls forward the validated build baseline with synchronized metadata, documentation, and SBOM artifacts.
+This release declares the 0.5.1 line and rolls forward the validated build baseline with synchronized metadata, documentation, and SBOM artifacts.
 
 Highlights:
 

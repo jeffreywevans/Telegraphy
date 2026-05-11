@@ -6,6 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-05-11
+
+Released Telegraphy 0.5.1 as a build declaration release that reruns the full quality gate and aligns metadata, docs, and SBOM for this patch line.
+
+### Added
+- Recorded the 0.5.1 build checklist execution outcomes and release-artifact metadata in `BUILD_NOTES.md` for traceability.
+
+### Changed
+- Bumped package metadata and top-level README release/version references from 0.5.0 to 0.5.1 for build consistency.
+- Regenerated `sbom.cdx.json` so CycloneDX metadata aligns with the 0.5.1 package declaration.
+
+### Fixed
+- No product-code fixes in this build; this patch focuses on release hygiene and verification.
+
+### Security
+- Re-ran static dangerous-pattern scans (`shell=True`, `eval(`, `exec(`, `pickle`, `yaml.load`, `os.system`) with no unsafe findings requiring remediation.
+
+### Known Issues
+- GUI smoke testing remains environment-dependent in headless shells and should be verified on a desktop session before public release.
+
 ## [0.5.0] - 2026-05-08
 
 Released Telegraphy 0.5.0 as a build declaration release that aligns package metadata, README status text, and SBOM artifacts while carrying forward current quality and validation standards.
@@ -136,7 +156,8 @@ This release marks the transition from a single-purpose generator script into a 
 - Refactored story brief generation into focused modules (CLI, data loading, validation, linting, etc.).
 - Hardened output-path handling and filename generation.
 
-[Unreleased]: https://github.com/jeffreywevans/Telegraphy/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/jeffreywevans/Telegraphy/compare/v0.5.1...HEAD
+[0.5.1]: https://github.com/jeffreywevans/Telegraphy/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/jeffreywevans/Telegraphy/compare/v0.4.3...v0.5.0
 [0.4.3]: https://github.com/jeffreywevans/Telegraphy/compare/v0.4.2...v0.4.3
 [0.4.2]: https://github.com/jeffreywevans/Telegraphy/compare/v0.4.1...v0.4.2

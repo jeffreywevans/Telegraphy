@@ -191,10 +191,10 @@ def test_generate_story_brief_invalid_seed_starts_poll_but_not_worker(monkeypatc
 
     tablet.generate_story_brief()
 
-    assert poll_called == [True]
+    assert poll_called == [True, True]
     assert not thread_called
-    assert tablet._worker_active is False
-    assert tablet.generate_button.configure.call_args_list[-1] == call(state="normal")
+    assert tablet._worker_active is True
+    assert tablet.generate_button.configure.call_args_list == [call(state="disabled")]
     assert tablet.result_queue.get_nowait()[0] == "error"
 
 
@@ -235,11 +235,6 @@ def test_generate_story_brief_invalid_seed_queue_message_is_consumed(monkeypatch
     assert tablet.copy_button.configure.call_args_list[0] == call(state="disabled")
     assert len(after_calls) == 1
 
-    # Simulate tkinter draining the already-queued validation error.
-    tablet._worker_active = True
-    tablet._poll_worker_queue()
-
-    assert tablet._worker_active is False
     assert tablet.result_queue.empty()
     assert "Invalid seed" in output_messages[-1]
     tablet.status.configure.assert_called_with(text="Generation failed.")

@@ -8,9 +8,10 @@ from functools import lru_cache
 from importlib.resources import files
 from importlib.resources.abc import Traversable
 from pathlib import Path
-from typing import Any, Final
+from typing import Any, Final, cast
 
 from .normalization import _build_story_data
+from .story_data import StoryData
 
 DATA_DIR_ENV_VAR: Final = "TELEGRAPHY_DATA_DIR"
 _CONFIGURED_DATA_DIR_LABEL: Final = (
@@ -268,11 +269,11 @@ def get_data() -> dict[str, Any]:
 
 
 @lru_cache(maxsize=1)
-def _get_normalized_story_data_cached() -> dict[str, Any]:
-    return _build_story_data(_get_data_cached())
+def _get_normalized_story_data_cached() -> StoryData:
+    return cast(StoryData, _build_story_data(_get_data_cached()))
 
 
-def get_normalized_story_data() -> dict[str, Any]:
+def get_normalized_story_data() -> StoryData:
     return copy.deepcopy(_get_normalized_story_data_cached())
 
 

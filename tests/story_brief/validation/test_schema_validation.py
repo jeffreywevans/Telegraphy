@@ -825,6 +825,32 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
             ),
         ),
         (
+            lambda _titles, _entities, _prompts, config: (
+                config["sexual_scene_tag_count_weights_by_presence"]
+                .setdefault("none", {})
+                .update({"0": 1.0, "1": 1.0}),
+                config.update(
+                    {
+                        "sexual_scene_required_tag_groups_by_presence": {
+                            "none": ["tone"],
+                            **{
+                                key: value
+                                for key, value in config[
+                                    "sexual_scene_required_tag_groups_by_presence"
+                                ].items()
+                                if key != "none"
+                            },
+                        }
+                    }
+                ),
+            ),
+            (
+                r"config\.sexual_scene_required_tag_groups_by_presence\.none requires 1 group, "
+                r"but config\.sexual_scene_tag_count_weights_by_presence\.none allows as few "
+                r"as 0 tags"
+            ),
+        ),
+        (
             lambda _titles, _entities, _prompts, config: config.update({"ordered_keys": []}),
             r"config\.ordered_keys must be a non-empty list",
         ),

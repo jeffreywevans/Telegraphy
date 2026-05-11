@@ -319,38 +319,16 @@ def _validate_required_groups_for_presence(
         validate_string_list("config", field_name, groups)
         validate_no_duplicate_strings("config", field_name, groups)
 
-    if _should_prioritize_none_excess_group_error(
-        presence=presence,
-        groups=groups,
-        tag_count_weights_by_presence=tag_count_weights_by_presence,
-    ):
-        _raise_for_excess_none_required_groups(presence, groups, tag_count_weights_by_presence)
-
     _raise_for_unknown_required_groups(presence, groups, group_names)
-    _raise_for_excess_none_required_groups(presence, groups, tag_count_weights_by_presence)
+    _raise_for_excess_required_groups(presence, groups, tag_count_weights_by_presence)
 
 
-def _should_prioritize_none_excess_group_error(
-    *,
-    presence: str,
-    groups: list[str],
-    tag_count_weights_by_presence: dict[str, dict[Any, float]],
-) -> bool:
-    if presence != "none":
-        return False
-
-    max_allowed = _get_max_allowed_positive_none_tag_count(tag_count_weights_by_presence[presence])
-    return max_allowed > 0 and len(groups) > max_allowed
+def _get_min_allowed_tag_count(tag_count_weights: dict[Any, float]) -> int:
+    allowed_tag_counts = [int(count) for count, weight in tag_count_weights.items() if weight > 0]
+    return min(allowed_tag_counts, default=0)
 
 
-def _get_max_allowed_positive_none_tag_count(tag_count_weights: dict[Any, float]) -> int:
-    positive_tag_counts = [
-        int(count) for count, weight in tag_count_weights.items() if weight > 0 and int(count) > 0
-    ]
-    return max(positive_tag_counts, default=0)
-
-
-def _raise_for_excess_none_required_groups(
+def _raise_for_excess_required_groups(
     presence: str,
     groups: list[str],
     tag_count_weights_by_presence: dict[str, dict[Any, float]],
@@ -359,14 +337,14 @@ def _raise_for_excess_none_required_groups(
         return
 
     tag_count_weights = tag_count_weights_by_presence[presence]
-    max_allowed = _get_max_allowed_positive_none_tag_count(tag_count_weights)
-    if len(groups) > max_allowed:
+    min_allowed = _get_min_allowed_tag_count(tag_count_weights)
+    if len(groups) > min_allowed:
         group_count = len(groups)
         raise ValueError(
             f"config.sexual_scene_required_tag_groups_by_presence.{presence} "
             f"requires {group_count} group{'s' if group_count != 1 else ''}, but "
             f"config.sexual_scene_tag_count_weights_by_presence.{presence} "
-            f"allows as few as {max_allowed} tag{'s' if max_allowed != 1 else ''}"
+            f"allows as few as {min_allowed} tag{'s' if min_allowed != 1 else ''}"
         )
 
 

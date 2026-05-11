@@ -12,9 +12,10 @@ from ._constants import (
     PARTNER_DISTRIBUTIONS_KEY,
     SETTING_AVAILABILITY_KEY,
 )
-from .data_io import DATA_FILENAMES, clear_data_cache, get_normalized_story_data
+from .data_io import DATA_FILENAMES, clear_data_cache, get_data, get_normalized_story_data
 from .filenames import build_auto_filename
 from .generation import pick_story_fields as _pick_story_fields
+from .linting import emit_lint_report
 from .rendering import to_markdown as _to_markdown
 from .schema_validation_config import (
     EXPECTED_GENERATED_FIELD_KEYS as _EXPECTED_GENERATED_FIELD_KEYS,
@@ -35,6 +36,8 @@ __all__ = [
     "StoryData",
     "build_auto_filename",
     "clear_data_cache",
+    "emit_lint_report",
+    "get_data",
     "get_normalized_story_data",
     "pick_story_fields",
     "to_markdown",

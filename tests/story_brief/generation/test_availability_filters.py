@@ -5,7 +5,7 @@ from telegraphy.story_brief.generation import available_characters, available_se
 
 
 def test_available_characters_filters_by_date() -> None:
-    data = dict(story_brief.get_data())
+    data = dict(story_brief.get_normalized_story_data())
     data["character_availability"] = [
         ("Alex", date(2000, 1, 1), date(2001, 12, 31)),
         ("Jordan", date(2002, 1, 1), date(2003, 12, 31)),
@@ -17,7 +17,7 @@ def test_available_characters_filters_by_date() -> None:
 
 
 def test_available_settings_filters_by_date() -> None:
-    data = dict(story_brief.get_data())
+    data = dict(story_brief.get_normalized_story_data())
     data["setting_availability"] = [
         ("Seattle", date(2000, 1, 1), date(2000, 12, 31)),
         ("Portland", date(2000, 6, 1), date(2001, 6, 30)),

@@ -14,13 +14,13 @@ from typing import Any
 import pytest
 
 from telegraphy.story_brief import generate_story_brief as story_brief
-from telegraphy.story_brief.data_io import data_file, load_json
+from telegraphy.story_brief.data_io import DATA_FILENAMES, data_file, load_json
 from telegraphy.story_brief.partner_models import (
     PartnerDistributionDataset,
     parse_partner_distribution_payload,
 )
 
-_STORY_DATASET_FILES = tuple(story_brief.STORY_DATASET_FILES.values())
+_STORY_DATASET_FILES = tuple(DATA_FILENAMES.values())
 PartnerPayloadParser = Callable[
     [dict[str, object], list[tuple[str, date, date]]],
     PartnerDistributionDataset,
@@ -31,7 +31,7 @@ PartnerPayloadParser = Callable[
 def _load_story_dataset_payloads() -> dict[str, dict[str, Any]]:
     return {
         key: load_json(data_file(filename))
-        for key, filename in story_brief.STORY_DATASET_FILES.items()
+        for key, filename in DATA_FILENAMES.items()
     }
 
 
@@ -122,7 +122,7 @@ def parse_partner_payload() -> PartnerPayloadParser:
 @pytest.fixture
 def source_story_data_dir() -> Path:
     """Canonical story dataset directory used by CLI/data tests."""
-    config_path = data_file(story_brief.CONFIG_FILENAME)
+    config_path = data_file(DATA_FILENAMES["config"])
     if not isinstance(config_path, Path):
         raise TypeError("Test fixture requires filesystem-backed story dataset files")
     return config_path.parent

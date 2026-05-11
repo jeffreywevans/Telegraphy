@@ -394,8 +394,7 @@ class TelegraphyTablet(tk.Tk):
 
         resolved_options = self._resolve_run_options()
         if resolved_options is None:
-            self._worker_active = False
-            self.generate_button.configure(state="normal")
+            self._poll_worker_queue()
             return
         self.run_options = resolved_options
         self.status.configure(text="Generating...")

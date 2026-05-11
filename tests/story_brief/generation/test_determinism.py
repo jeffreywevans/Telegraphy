@@ -67,7 +67,7 @@ def test_duplicate_character_rows_require_two_distinct_names(
         ("Only Name", date(2000, 1, 1), date(2000, 12, 31)),
         ("Only Name", date(2000, 1, 1), date(2000, 12, 31)),
     ]
-    monkeypatch.setattr(story_brief, "get_data", lambda: data)
+    monkeypatch.setattr(story_brief, "get_normalized_story_data", lambda: data)
 
     with pytest.raises(ValueError, match="two distinct available characters"):
         pick_story_fields(random.Random(7), selected_date=date(2000, 1, 1))
@@ -151,7 +151,7 @@ def test_non_none_sexual_content_with_positive_partner_weight_requires_partner_s
             "partners": [(protagonist, 1.0)],
         }
     ]
-    monkeypatch.setattr(story_brief, "get_data", lambda: data)
+    monkeypatch.setattr(story_brief, "get_normalized_story_data", lambda: data)
     fields = story_brief.pick_story_fields(random.Random(123), selected_date=selected_date)
 
     assert fields["sexual_content_level"] != "none"
@@ -184,12 +184,12 @@ def test_seed_output_is_stable_when_option_pool_order_changes(
 
     seed = 8675309
     selected_date = date(2026, 1, 1)
-    monkeypatch.setattr(story_brief, "get_data", lambda: baseline_data)
+    monkeypatch.setattr(story_brief, "get_normalized_story_data", lambda: baseline_data)
     baseline_fields = story_brief.pick_story_fields(
         random.Random(seed), selected_date=selected_date
     )
 
-    monkeypatch.setattr(story_brief, "get_data", lambda: shuffled_data)
+    monkeypatch.setattr(story_brief, "get_normalized_story_data", lambda: shuffled_data)
     shuffled_fields = story_brief.pick_story_fields(
         random.Random(seed), selected_date=selected_date
     )
@@ -209,7 +209,7 @@ def test_pick_story_fields_reads_data_once_per_invocation(
         calls["count"] += 1
         return data
 
-    monkeypatch.setattr(story_brief, "get_data", counting_get_data)
+    monkeypatch.setattr(story_brief, "get_normalized_story_data", counting_get_data)
     story_brief.pick_story_fields(random.Random(321), selected_date=date(2000, 1, 1))
 
     assert calls["count"] == 1
@@ -244,7 +244,7 @@ def test_pick_story_fields_handles_partner_distribution_gap_year(
     data[story_brief.PARTNER_DISTRIBUTIONS_KEY]["Alex"] = gap_eras
     data[story_brief.PARTNER_DISTRIBUTIONS_KEY]["Jordan"] = gap_eras
 
-    monkeypatch.setattr(story_brief, "get_data", lambda: data)
+    monkeypatch.setattr(story_brief, "get_normalized_story_data", lambda: data)
     fields = story_brief.pick_story_fields(random.Random(9), selected_date=selected_date)
 
     assert fields["sexual_content_level"] == "suggestive"
@@ -268,7 +268,7 @@ def test_pick_story_fields_handles_missing_partner_distribution_for_protagonist(
     data[story_brief.PARTNER_DISTRIBUTIONS_KEY].pop("Alex", None)
     data[story_brief.PARTNER_DISTRIBUTIONS_KEY].pop("Jordan", None)
 
-    monkeypatch.setattr(story_brief, "get_data", lambda: data)
+    monkeypatch.setattr(story_brief, "get_normalized_story_data", lambda: data)
     fields = story_brief.pick_story_fields(random.Random(1), selected_date=selected_date)
 
     assert fields["sexual_content_level"] == "suggestive"

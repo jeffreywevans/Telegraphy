@@ -9,7 +9,7 @@ import sys
 from collections.abc import Mapping, Sequence
 from datetime import date
 from pathlib import Path
-from typing import Any, Union
+from typing import Any
 
 from . import generate_story_brief as story_brief_cli
 from .data_io import DataDirError, get_normalized_story_data
@@ -26,7 +26,7 @@ from .linting import emit_lint_report, lint_story_data
 
 StoryData = story_brief_cli.StoryData
 StoryFields = Mapping[str, Any]
-StoryRng = Union[random.Random, secrets.SystemRandom]
+StoryRng = random.Random | secrets.SystemRandom
 
 
 def _parse_story_date(raw_date: str) -> date:

@@ -20,8 +20,8 @@ from .filenames import (
     resolve_output_path,
     write_output_markdown,
 )
-from .linting import emit_lint_report, lint_story_data
 from .generation_invariants import validate_story_data_strict
+from .linting import emit_lint_report, lint_story_data
 
 StoryData = story_brief_cli.StoryData
 StoryFields = Mapping[str, Any]

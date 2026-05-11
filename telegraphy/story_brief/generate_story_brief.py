@@ -17,12 +17,8 @@ from .filenames import build_auto_filename
 from .generation import pick_story_fields as _pick_story_fields
 from .linting import emit_lint_report
 from .rendering import to_markdown as _to_markdown
-from .schema_validation_config import (
-    EXPECTED_GENERATED_FIELD_KEYS as _EXPECTED_GENERATED_FIELD_KEYS,
-)
+from .schema_validation_config import EXPECTED_GENERATED_FIELD_KEYS
 from .story_data import NormalizedPartnerEra, StoryData
-
-EXPECTED_GENERATED_FIELD_KEYS = frozenset(_EXPECTED_GENERATED_FIELD_KEYS)
 
 
 # Public exports for this module.

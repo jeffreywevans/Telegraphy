@@ -28,21 +28,50 @@ jobs:
 
             const repo = { owner: context.repo.owner, repo: context.repo.repo };
             const existing = await github.paginate(github.rest.issues.listLabelsForRepo, { ...repo, per_page: 100 });
-            const current = new Map(existing.map((l) => [l.name, { color: l.color.toLowerCase(), description: l.description ?? '' }]));
+            const current = new Map(
+              existing.map((label) => [
+                label.name.toLowerCase(),
+                {
+                  name: label.name,
+                  color: label.color.toLowerCase(),
+                  description: label.description ?? '',
+                },
+              ]),
+            );
 
             for (const [name, color, description] of labels) {
-              const found = current.get(name);
+              const normalizedName = name.toLowerCase();
+              const found = current.get(normalizedName);
+
               if (!found) {
-                await github.rest.issues.createLabel({ ...repo, name, color, description });
-                core.info(`Created label: ${name}`);
+                try {
+                  await github.rest.issues.createLabel({ ...repo, name, color, description });
+                  core.info(`Created label: ${name}`);
+                } catch (error) {
+                  if (error.status === 422) {
+                    await github.rest.issues.updateLabel({ ...repo, name, color, description });
+                    core.info(`Updated existing label after create conflict: ${name}`);
+                  } else {
+                    throw error;
+                  }
+                }
                 continue;
               }
 
-              if (found.color === color.toLowerCase() && found.description === description) {
+              if (found.color === color.toLowerCase() && found.description === description && found.name === name) {
                 core.info(`No changes needed: ${name}`);
                 continue;
               }
 
-              await github.rest.issues.updateLabel({ ...repo, name, color, description });
-              core.info(`Updated label: ${name}`);
+              try {
+                await github.rest.issues.updateLabel({ ...repo, name: found.name, new_name: name, color, description });
+                core.info(`Updated label: ${name}`);
+              } catch (error) {
+                if (error.status === 404) {
+                  await github.rest.issues.createLabel({ ...repo, name, color, description });
+                  core.info(`Created label after update missed: ${name}`);
+                } else {
+                  throw error;
+                }
+              }
             }

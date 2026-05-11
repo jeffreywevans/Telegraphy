@@ -33,7 +33,7 @@ CONFIG_REQUIRED_KEYS = frozenset({
     "writing_preamble",
 })
 
-EXPECTED_GENERATED_FIELD_KEYS = {
+EXPECTED_GENERATED_FIELD_KEYS = frozenset({
     "title",
     "protagonist",
     "secondary_character",
@@ -48,7 +48,7 @@ EXPECTED_GENERATED_FIELD_KEYS = {
     "sexual_partner",
     "sexual_scene_tags",
     "word_count_target",
-}
+})
 MAX_SEXUAL_SCENE_TAG_GROUPS = 10
 UNSUPPORTED_CONFIG_ALIAS_KEYS = (
     "sexual_content_options",

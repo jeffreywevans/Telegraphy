@@ -170,20 +170,6 @@
     0.09,
     0.05
   ],
-  "sexual_content_story_role_options": [
-    "incidental",
-    "character_revealing",
-    "plot_bearing",
-    "relationship_defining",
-    "structural_centerpiece"
-  ],
-  "sexual_content_story_role_weights": [
-    0.15,
-    0.35,
-    0.25,
-    0.2,
-    0.05
-  ],
   "sexual_scene_tag_count_weights_by_presence": {
     "none": {
       "0": 1.0

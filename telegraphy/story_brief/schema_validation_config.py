@@ -22,8 +22,6 @@ CONFIG_REQUIRED_KEYS = frozenset({
     "date_end",
     "sexual_content_presence_options",
     "sexual_content_presence_weights",
-    "sexual_content_story_role_options",
-    "sexual_content_story_role_weights",
     "sexual_scene_tag_groups",
     "sexual_scene_tag_count_weights_by_presence",
     "sexual_scene_required_tag_groups_by_presence",
@@ -123,12 +121,6 @@ def validate_sexual_content_weights(config: dict[str, Any]) -> None:
     validate_string_list(
         "config", "sexual_content_presence_options", config["sexual_content_presence_options"]
     )
-    validate_string_list(
-        "config",
-        "sexual_content_story_role_options",
-        config["sexual_content_story_role_options"],
-    )
-
     presence_options = config["sexual_content_presence_options"]
     _validate_non_negative_real_weights(
         config["sexual_content_presence_weights"],
@@ -140,18 +132,6 @@ def validate_sexual_content_weights(config: dict[str, Any]) -> None:
         ),
         item_field_prefix="config.sexual_content_presence_weights",
         sum_error="config.sexual_content_presence_weights must sum to > 0",
-    )
-
-    _validate_non_negative_real_weights(
-        config["sexual_content_story_role_weights"],
-        config["sexual_content_story_role_options"],
-        list_error="config.sexual_content_story_role_weights must be a non-empty list",
-        length_error=(
-            "config sexual_content_story_role_options/"
-            "sexual_content_story_role_weights must be the same length"
-        ),
-        item_field_prefix="config.sexual_content_story_role_weights",
-        sum_error="config.sexual_content_story_role_weights must sum to > 0",
     )
 
 
@@ -436,8 +416,5 @@ def normalize_config(config: dict[str, Any]) -> dict[str, Any]:
         joined = ", ".join(sorted(present_unsupported_aliases))
         raise ValueError(f"{UNSUPPORTED_CONFIG_ALIAS_ERROR_PREFIX}{joined}")
 
-    if "sexual_content_story_role_options" not in normalized:
-        normalized["sexual_content_story_role_options"] = ["incidental"]
-        normalized["sexual_content_story_role_weights"] = [1.0]
     normalized.setdefault("sexual_scene_optional_tag_groups", [])
     return normalized

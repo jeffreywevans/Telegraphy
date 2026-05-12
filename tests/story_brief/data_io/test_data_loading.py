@@ -44,8 +44,6 @@ def _write_minimal_dataset(data_dir: Path) -> None:
             "date_end": "2005-12-31",
             "sexual_content_presence_options": ["none"],
             "sexual_content_presence_weights": [1],
-            "sexual_content_story_role_options": ["incidental"],
-            "sexual_content_story_role_weights": [1.0],
             "sexual_scene_tag_groups": {
                 "tone": ["tender"],
                 "partner": ["married"],
@@ -126,8 +124,6 @@ def test_load_story_data_normalizes_sexual_scene_tag_count_weights_by_presence(
             "date_end": "2005-12-31",
             "sexual_content_presence_options": ["none"],
             "sexual_content_presence_weights": [1],
-            "sexual_content_story_role_options": ["incidental"],
-            "sexual_content_story_role_weights": [1.0],
             "sexual_scene_tag_groups": {
                 "tone": ["tender"],
                 "partner": ["married"],

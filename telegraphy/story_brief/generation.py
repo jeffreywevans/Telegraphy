@@ -127,7 +127,10 @@ def _pick_data_value(
         Mapping[SortedStringPoolKey | Literal["word_count_targets"], Sequence[str] | Sequence[int]],
         data,
     )
-    return cast(str | int, rng.choice(stable_sorted_pool(selectable_pools[key])))
+    pool = selectable_pools[key]
+    if isinstance(pool, tuple):
+        return cast(str | int, rng.choice(pool))
+    return cast(str | int, rng.choice(stable_sorted_pool(pool)))
 
 
 def pick_story_characters(

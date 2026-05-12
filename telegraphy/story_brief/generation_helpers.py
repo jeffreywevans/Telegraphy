@@ -12,7 +12,7 @@ from ._constants import CHARACTER_AVAILABILITY_KEY, SETTING_AVAILABILITY_KEY
 RandomSource: TypeAlias = random.Random | secrets.SystemRandom
 PoolValue = TypeVar("PoolValue", bound=str | int | tuple[str, float])
 OptionT = TypeVar("OptionT")
-AvailabilityRows = Sequence[tuple[str, date, date]]
+AvailabilityRows: TypeAlias = Sequence[tuple[str, date, date]]
 
 
 def stable_sorted_pool(values: Iterable[PoolValue]) -> list[PoolValue]:

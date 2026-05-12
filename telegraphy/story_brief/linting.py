@@ -125,11 +125,6 @@ def _next_day_or_final_day(day: date) -> date:
     return day if day == date.max else day + _ONE_DAY
 
 
-def _date_range_contains(*, start_date: date, selected_date: date, end_date: date) -> bool:
-    """Return whether ``selected_date`` is inside the closed date range."""
-    return start_date <= selected_date <= end_date
-
-
 def _resolve_interval_end(
     *,
     index: int,
@@ -170,11 +165,7 @@ def _era_covers_date(era: Mapping[str, Any], *, selected_date: date) -> bool:
     date_start = cast(date, era["date_start"])
     date_end = cast(date, era["date_end"])
 
-    return _date_range_contains(
-        start_date=date_start,
-        selected_date=selected_date,
-        end_date=date_end,
-    )
+    return date_start <= selected_date <= date_end
 
 
 def _has_partner_data(eras: PartnerEras, *, selected_date: date) -> bool:

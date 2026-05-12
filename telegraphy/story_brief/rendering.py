@@ -57,11 +57,6 @@ def escape_markdown_heading(text: str) -> str:
     return re.sub(r"([\\`*_{}\[\]()#+\-.!])", r"\\\1", text)
 
 
-def _format_yaml_list(values: Sequence[str]) -> list[str]:
-    """YAML list serializer hook for future list-shaping behavior."""
-    return [str(value) for value in values]
-
-
 def to_markdown(
     fields: Mapping[str, Any],
     *,
@@ -78,7 +73,7 @@ def to_markdown(
     for key in ordered_keys:
         value = fields[key]
         if isinstance(value, list) and all(isinstance(item, str) for item in value):
-            ordered_fields[key] = _format_yaml_list(value)
+            ordered_fields[key] = list(value)
         else:
             ordered_fields[key] = value
 

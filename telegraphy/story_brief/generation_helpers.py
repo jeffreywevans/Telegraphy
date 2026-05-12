@@ -29,7 +29,11 @@ def sorted_pool_from_data(data: Mapping[str, Any], key: str) -> Sequence[PoolVal
 
     direct_values = data.get(key)
     if direct_values is not None:
-        return cast(Sequence[PoolValue], direct_values)
+        if isinstance(direct_values, tuple):
+            return cast(Sequence[PoolValue], direct_values)
+        return cast(
+            Sequence[PoolValue], stable_sorted_pool(cast(Iterable[PoolValue], direct_values))
+        )
 
     raise KeyError(f"Missing story-data pool for '{key}' or '{sorted_key}'.")
 

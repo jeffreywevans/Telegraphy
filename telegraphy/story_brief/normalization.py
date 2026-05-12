@@ -16,7 +16,14 @@ def _build_story_data(dataset_payloads: dict[str, Any]) -> dict[str, Any]:
     config = dataset_payloads["config"]
     partner_distributions = dataset_payloads["partner_distributions"]
 
-    validated = validate_story_data(titles, entities, prompts, weather, config, partner_distributions)
+    validated = validate_story_data(
+        titles,
+        entities,
+        prompts,
+        weather,
+        config,
+        partner_distributions,
+    )
     normalized_config = validated.normalized_config
 
     normalized_titles = tuple(stable_sorted_pool(str(value) for value in titles["titles"]))

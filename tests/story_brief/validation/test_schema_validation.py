@@ -579,7 +579,9 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
             r"titles\.titles must be a non-empty list",
         ),
         (
-            lambda _titles, _entities, _prompts, weather, _config: weather.update({"weather": [" "]}),
+            lambda _titles, _entities, _prompts, weather, _config: weather.update(
+                {"weather": [" "]}
+            ),
             r"weather\.weather\[0\] must be a non-empty string",
         ),
         (

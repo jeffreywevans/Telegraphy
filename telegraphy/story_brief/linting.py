@@ -38,6 +38,7 @@ class DatasetLintReport(NamedTuple):
 
 
 class IntervalLintResults(NamedTuple):
+    """Results of the interval-based linting process, detailing coverage gaps and fragile areas."""
     """Summarized interval-level lint findings for coverage and partner data gaps."""
 
     missing_character_ranges: list[DateRange]

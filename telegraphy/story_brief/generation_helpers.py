@@ -24,10 +24,11 @@ def sorted_pool_from_data(data: Mapping[str, Any], key: str) -> Sequence[PoolVal
     """Read a normalized sorted pool, supporting transitional ``*_sorted`` keys."""
     direct_values = data.get(key)
     if direct_values is not None:
-        sorted_direct_values = stable_sorted_pool(
-            cast(Iterable[PoolValue], direct_values)
+        if isinstance(direct_values, tuple):
+            return cast(Sequence[PoolValue], direct_values)
+        return cast(
+            Sequence[PoolValue], stable_sorted_pool(cast(Iterable[PoolValue], direct_values))
         )
-        return cast(Sequence[PoolValue], sorted_direct_values)
 
     sorted_key = f"{key}_sorted"
     fallback_values = data.get(sorted_key)

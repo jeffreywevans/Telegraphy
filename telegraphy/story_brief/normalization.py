@@ -61,9 +61,7 @@ def _build_story_data(dataset_payloads: dict[str, Any]) -> dict[str, Any]:
         ),
         "sexual_scene_tag_groups": sexual_scene_tag_groups,
         "sexual_scene_tag_group_names_sorted": tuple(stable_sorted_pool(sexual_scene_tag_groups)),
-        "sexual_scene_tag_groups_sorted": {
-            group_name: tags for group_name, tags in sexual_scene_tag_groups.items()
-        },
+        "sexual_scene_tag_groups_sorted": sexual_scene_tag_groups,
         "sexual_scene_tag_count_weights_by_presence": sexual_scene_tag_count_weights_by_presence,
         "sexual_scene_required_tag_groups_by_presence": {
             str(presence): tuple(str(group_name) for group_name in groups)

@@ -2,7 +2,7 @@
 
 - Version: `0.5.2`
 - Build date (UTC): `2026-05-12`
-- Commit hash at build-check start: `1b8fdef`
+- Commit hash at build-check start: `1b8fdef7ed8f0232081b8bfa58c7e72c436f303b`
 - Python version: `Python 3.14.4`
 
 ## Quality and validation summary

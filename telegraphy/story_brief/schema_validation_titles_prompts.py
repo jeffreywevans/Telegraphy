@@ -16,7 +16,7 @@ MISSING_TITLE_AT_PATTERN = re.compile(
     rf"(?<!@)\b(?P<key>{'|'.join(re.escape(t) for t in sorted(ALLOWED_TITLE_TOKENS))})\b"
 )
 PROMPT_LIST_KEYS_SET = frozenset(PROMPT_LIST_KEYS)
-OPTIONAL_PROMPT_KEYS = frozenset()
+OPTIONAL_PROMPT_KEYS: frozenset[str] = frozenset()
 
 
 def validate_title_tokens(values: list[str]) -> None:

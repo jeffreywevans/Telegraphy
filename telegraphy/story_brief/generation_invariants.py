@@ -5,7 +5,7 @@ from datetime import date
 from typing import Any
 
 from ._constants import PARTNER_DISTRIBUTIONS_KEY
-from .linting import build_coverage_checkpoints, _collect_interval_lint_ranges
+from .linting import _collect_interval_lint_ranges, build_coverage_checkpoints
 
 
 def validate_story_data_strict(data: Mapping[str, Any]) -> None:

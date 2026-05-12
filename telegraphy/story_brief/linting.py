@@ -12,10 +12,10 @@ from ._constants import (
     SETTING_AVAILABILITY_KEY,
     TITLE_TOKEN_PATTERN,
 )
+from .generation_helpers import available_entities
 from ._range_utils import add_clipped_range_checkpoints
 
 DateRange = tuple[date, date]
-AvailabilityRows = Sequence[tuple[str, date, date]]
 PartnerEras = Sequence[Mapping[str, Any]]
 PartnerDistributions = Mapping[str, PartnerEras]
 PartnerGapRanges = dict[str, list[DateRange]]
@@ -125,26 +125,9 @@ def _next_day_or_final_day(day: date) -> date:
     return day if day == date.max else day + _ONE_DAY
 
 
-def _date_range_contains(
-    *, start_date: date, selected_date: date, end_date: date
-) -> bool:
+def _date_range_contains(*, start_date: date, selected_date: date, end_date: date) -> bool:
     """Return whether ``selected_date`` is inside the closed date range."""
     return start_date <= selected_date <= end_date
-
-
-def _available_entities(
-    availability_rows: AvailabilityRows, *, selected_date: date
-) -> list[str]:
-    """Return names whose closed availability window contains ``selected_date``."""
-    return [
-        name
-        for name, start_date, end_date in availability_rows
-        if _date_range_contains(
-            start_date=start_date,
-            selected_date=selected_date,
-            end_date=end_date,
-        )
-    ]
 
 
 def _resolve_interval_end(
@@ -238,10 +221,10 @@ def _collect_interval_lint_ranges(
             continue
 
         interval = (current_start, interval_end)
-        characters = _available_entities(
+        characters = available_entities(
             data[CHARACTER_AVAILABILITY_KEY], selected_date=current_start
         )
-        settings = _available_entities(
+        settings = available_entities(
             data[SETTING_AVAILABILITY_KEY], selected_date=current_start
         )
         gap_flags = _availability_gap_flags(characters=characters, settings=settings)

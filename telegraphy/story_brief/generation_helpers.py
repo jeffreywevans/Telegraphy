@@ -21,9 +21,17 @@ def stable_sorted_pool(values: Iterable[PoolValue]) -> list[PoolValue]:
 
 
 def sorted_pool_from_data(data: Mapping[str, Any], key: str) -> Sequence[PoolValue]:
-    """Read a pre-sorted pool from normalized story data."""
+    """Read a normalized sorted pool, supporting transitional ``*_sorted`` keys."""
+    direct_values = data.get(key)
+    if direct_values is not None:
+        return cast(Sequence[PoolValue], stable_sorted_pool(cast(Iterable[PoolValue], direct_values)))
+
     sorted_key = f"{key}_sorted"
-    return cast(Sequence[PoolValue], data[sorted_key])
+    fallback_values = data.get(sorted_key)
+    if fallback_values is not None:
+        return cast(Sequence[PoolValue], fallback_values)
+
+    raise KeyError(f"Missing story-data pool for '{key}' or '{sorted_key}'.")
 
 
 def _date_in_range(selected_date: date, start_date: date, end_date: date) -> bool:

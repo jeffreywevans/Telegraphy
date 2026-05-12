@@ -37,12 +37,18 @@ class DatasetLintReport(NamedTuple):
         return bool(self.errors)  # pragma: no cover - trivial attribute facade.
 
 
-class _IntervalLintResults(NamedTuple):
+class IntervalLintResults(NamedTuple):
+    """Results of the interval-based linting process, detailing coverage gaps and fragile areas."""
+    """Summarized interval-level lint findings for coverage and partner data gaps."""
+
     missing_character_ranges: list[DateRange]
     thin_character_ranges: list[DateRange]
     missing_setting_ranges: list[DateRange]
     thin_setting_ranges: list[DateRange]
     partner_data_gap_ranges_by_protagonist: PartnerGapRanges
+
+
+_IntervalLintResults = IntervalLintResults
 
 
 class _AvailabilityGapFlags(NamedTuple):
@@ -193,7 +199,12 @@ def _record_partner_gaps(
 
 def collect_interval_lint_ranges(
     data: Mapping[str, Any], *, sorted_checkpoints: Sequence[date], range_end: date
-) -> _IntervalLintResults:
+) -> IntervalLintResults:
+    """
+    Analyze the dataset over time intervals to identify coverage gaps and fragile availability.
+    """
+    """Collect interval-level coverage gaps and fragile spans across the dataset."""
+
     missing_character_ranges: list[DateRange] = []
     thin_character_ranges: list[DateRange] = []
     missing_setting_ranges: list[DateRange] = []
@@ -237,7 +248,7 @@ def collect_interval_lint_ranges(
             partner_data_gap_ranges_by_protagonist=partner_data_gap_ranges_by_protagonist,
         )
 
-    return _IntervalLintResults(
+    return IntervalLintResults(
         missing_character_ranges=missing_character_ranges,
         thin_character_ranges=thin_character_ranges,
         missing_setting_ranges=missing_setting_ranges,
@@ -257,7 +268,7 @@ def _append_coverage_messages(
     *,
     errors: list[str],
     warnings: list[str],
-    interval_results: _IntervalLintResults,
+    interval_results: IntervalLintResults,
 ) -> None:
     """Append blocking errors and non-blocking warnings from interval analysis."""
     if interval_results.missing_character_ranges:

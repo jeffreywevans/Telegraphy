@@ -18,15 +18,15 @@ def _build_story_data(dataset_payloads: dict[str, Any]) -> dict[str, Any]:
     validated = validate_story_data(titles, entities, prompts, config, partner_distributions)
     normalized_config = validated.normalized_config
 
-    normalized_titles = tuple(str(value) for value in titles["titles"])
-    prompt_lists = {key: tuple(str(value) for value in prompts[key]) for key in PROMPT_LIST_KEYS}
-    sorted_prompt_lists = {
-        f"{key}_sorted": tuple(stable_sorted_pool(values))
-        for key, values in prompt_lists.items()
+    normalized_titles = tuple(stable_sorted_pool(str(value) for value in titles["titles"]))
+    prompt_lists = {
+        key: tuple(stable_sorted_pool(str(value) for value in prompts[key]))
+        for key in PROMPT_LIST_KEYS
     }
+    sorted_prompt_lists = {f"{key}_sorted": values for key, values in prompt_lists.items()}
 
     sexual_scene_tag_groups = {
-        str(group_name): tuple(str(tag) for tag in tags)
+        str(group_name): tuple(stable_sorted_pool(str(tag) for tag in tags))
         for group_name, tags in normalized_config["sexual_scene_tag_groups"].items()
     }
     sexual_scene_tag_count_weights_by_presence = {
@@ -41,11 +41,13 @@ def _build_story_data(dataset_payloads: dict[str, Any]) -> dict[str, Any]:
     sexual_content_presence_options = tuple(
         str(v) for v in normalized_config["sexual_content_presence_options"]
     )
-    word_count_targets = tuple(int(value) for value in normalized_config["word_count_targets"])
+    word_count_targets = tuple(
+        stable_sorted_pool(int(value) for value in normalized_config["word_count_targets"])
+    )
 
     return {
         "titles": normalized_titles,
-        "titles_sorted": tuple(stable_sorted_pool(normalized_titles)),
+        "titles_sorted": normalized_titles,
         "character_availability": tuple(validated.character_availability),
         "setting_availability": tuple(validated.setting_availability),
         **prompt_lists,
@@ -59,10 +61,7 @@ def _build_story_data(dataset_payloads: dict[str, Any]) -> dict[str, Any]:
         ),
         "sexual_scene_tag_groups": sexual_scene_tag_groups,
         "sexual_scene_tag_group_names_sorted": tuple(stable_sorted_pool(sexual_scene_tag_groups)),
-        "sexual_scene_tag_groups_sorted": {
-            group_name: tuple(stable_sorted_pool(tags))
-            for group_name, tags in sexual_scene_tag_groups.items()
-        },
+        "sexual_scene_tag_groups_sorted": sexual_scene_tag_groups,
         "sexual_scene_tag_count_weights_by_presence": sexual_scene_tag_count_weights_by_presence,
         "sexual_scene_required_tag_groups_by_presence": {
             str(presence): tuple(str(group_name) for group_name in groups)
@@ -74,7 +73,7 @@ def _build_story_data(dataset_payloads: dict[str, Any]) -> dict[str, Any]:
             str(group_name) for group_name in normalized_config["sexual_scene_optional_tag_groups"]
         ),
         "word_count_targets": word_count_targets,
-        "word_count_targets_sorted": tuple(stable_sorted_pool(word_count_targets)),
+        "word_count_targets_sorted": word_count_targets,
         "ordered_keys": tuple(str(v) for v in normalized_config["ordered_keys"]),
         "writing_preamble": str(normalized_config["writing_preamble"]),
         "dataset_version": str(normalized_config["dataset_version"]),

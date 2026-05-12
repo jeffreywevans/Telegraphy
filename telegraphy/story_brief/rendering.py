@@ -71,11 +71,7 @@ def to_markdown(
 
     ordered_fields: dict[str, Any] = {}
     for key in ordered_keys:
-        value = fields[key]
-        if isinstance(value, list) and all(isinstance(item, str) for item in value):
-            ordered_fields[key] = list(value)
-        else:
-            ordered_fields[key] = value
+        ordered_fields[key] = fields[key]
 
     yaml_text = yaml.dump(
         ordered_fields,

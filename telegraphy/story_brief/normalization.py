@@ -41,7 +41,9 @@ def _build_story_data(dataset_payloads: dict[str, Any]) -> dict[str, Any]:
     sexual_content_presence_options = tuple(
         str(v) for v in normalized_config["sexual_content_presence_options"]
     )
-    word_count_targets = tuple(stable_sorted_pool(int(value) for value in normalized_config["word_count_targets"]))
+    word_count_targets = tuple(
+        stable_sorted_pool(int(value) for value in normalized_config["word_count_targets"])
+    )
 
     return {
         "titles": normalized_titles,

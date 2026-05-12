@@ -59,8 +59,8 @@ local_settings.py
 db.sqlite3
 db.sqlite3-journal
 instance/
-.webassets-cache
-.scrapy
+.webassets-cache/
+.scrapy/
 
 # Sphinx documentation
 docs/_build/
@@ -97,10 +97,10 @@ env.bak/
 venv.bak/
 
 # Tooling caches and local project settings
-.spyderproject
-.spyproject
-.ropeproject
-/site
+.spyderproject/
+.spyproject/
+.ropeproject/
+/site/
 .mypy_cache/
 .dmypy.json
 dmypy.json

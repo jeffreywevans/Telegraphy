@@ -49,4 +49,4 @@ def validate_story_data_strict(data: Mapping[str, Any]) -> None:
 
 def _earliest_gap_date(gap_ranges: list[tuple[date, date]]) -> date | None:
     """Return the earliest date represented by one or more closed date ranges."""
-    return min((start for start, _ in gap_ranges), default=None)
+    return gap_ranges[0][0] if gap_ranges else None

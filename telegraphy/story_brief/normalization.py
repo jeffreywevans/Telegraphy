@@ -12,10 +12,18 @@ def _build_story_data(dataset_payloads: dict[str, Any]) -> dict[str, Any]:
     titles = dataset_payloads["titles"]
     entities = dataset_payloads["entities"]
     prompts = dataset_payloads["prompts"]
+    weather = dataset_payloads["weather"]
     config = dataset_payloads["config"]
     partner_distributions = dataset_payloads["partner_distributions"]
 
-    validated = validate_story_data(titles, entities, prompts, config, partner_distributions)
+    validated = validate_story_data(
+        titles,
+        entities,
+        prompts,
+        weather,
+        config,
+        partner_distributions,
+    )
     normalized_config = validated.normalized_config
 
     normalized_titles = tuple(stable_sorted_pool(str(value) for value in titles["titles"]))
@@ -49,7 +57,8 @@ def _build_story_data(dataset_payloads: dict[str, Any]) -> dict[str, Any]:
         "character_availability": tuple(validated.character_availability),
         "setting_availability": tuple(validated.setting_availability),
         **prompt_lists,
-        "weather_comment": str(prompts.get("weather_comment", "")),
+        "weather_comment": str(weather.get("weather_comment", "")),
+        "weather": tuple(stable_sorted_pool(str(value) for value in weather["weather"])),
         "date_start": validated.date_start,
         "date_end": validated.date_end,
         "sexual_content_presence_options": sexual_content_presence_options,

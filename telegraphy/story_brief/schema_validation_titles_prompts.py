@@ -16,7 +16,7 @@ MISSING_TITLE_AT_PATTERN = re.compile(
     rf"(?<!@)\b(?P<key>{'|'.join(re.escape(t) for t in sorted(ALLOWED_TITLE_TOKENS))})\b"
 )
 PROMPT_LIST_KEYS_SET = frozenset(PROMPT_LIST_KEYS)
-OPTIONAL_PROMPT_KEYS = frozenset({"weather_comment"})
+OPTIONAL_PROMPT_KEYS: frozenset[str] = frozenset()
 
 
 def validate_title_tokens(values: list[str]) -> None:
@@ -45,10 +45,6 @@ def validate_prompt_lists(prompts: dict[str, Any]) -> None:
     for key in PROMPT_LIST_KEYS:
         validate_string_list("prompts", key, prompts[key])
         validate_no_duplicate_strings("prompts", key, prompts[key])
-    if "weather_comment" in prompts and (
-        not isinstance(prompts["weather_comment"], str) or not prompts["weather_comment"].strip()
-    ):
-        raise ValueError("prompts.weather_comment must be a non-empty string when provided")
 
 
 def validate_titles(titles: dict[str, Any]) -> None:

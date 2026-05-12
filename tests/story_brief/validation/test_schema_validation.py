@@ -37,68 +37,69 @@ def test_schema_validation_accepts_current_data(story_dataset_payloads) -> None:
     titles = story_dataset_payloads["titles"]
     entities = story_dataset_payloads["entities"]
     prompts = story_dataset_payloads["prompts"]
+    weather = story_dataset_payloads["weather"]
     config = story_dataset_payloads["config"]
     partner_distributions = story_dataset_payloads["partner_distributions"]
-    validate_story_data(titles, entities, prompts, config, partner_distributions)
+    validate_story_data(titles, entities, prompts, weather, config, partner_distributions)
 
 
 @pytest.mark.parametrize(
     ("mutator", "expected_msg"),
     [
-        (lambda t, e, p, c: c.pop("ordered_keys"), "missing required keys"),
-        (lambda t, e, p, c: c.update({"dataset_version": ""}), "dataset_version"),
-        (lambda t, e, p, c: c.update({"date_start": "not-a-date"}), "ISO dates"),
+        (lambda t, e, p, w, c: c.pop("ordered_keys"), "missing required keys"),
+        (lambda t, e, p, w, c: c.update({"dataset_version": ""}), "dataset_version"),
+        (lambda t, e, p, w, c: c.update({"date_start": "not-a-date"}), "ISO dates"),
         (
-            lambda t, e, p, c: c.update({"sexual_content_presence_weights": [0, 0, 0, 0, 0]}),
+            lambda t, e, p, w, c: c.update({"sexual_content_presence_weights": [0, 0, 0, 0, 0]}),
             "must sum to > 0",
         ),
         (
-            lambda t, e, p, c: c.update({"ordered_keys": c["ordered_keys"] + ["title"]}),
+            lambda t, e, p, w, c: c.update({"ordered_keys": c["ordered_keys"] + ["title"]}),
             "must not contain duplicates",
         ),
         (
-            lambda t, e, p, c: c.update(
+            lambda t, e, p, w, c: c.update(
                 {"ordered_keys": ["titel" if k == "title" else k for k in c["ordered_keys"]]}
             ),
             "ordered_keys mismatch",
         ),
-        (lambda t, e, p, c: p.pop("weather"), "missing required keys"),
+        (lambda t, e, p, w, c: w.pop("weather"), "missing required keys"),
         (
-            lambda t, e, p, c: e["setting_availability"].append(["Bad Row", 2020]),
+            lambda t, e, p, w, c: e["setting_availability"].append(["Bad Row", 2020]),
             r"must be \[name, start, end\]",
         ),
         (
-            lambda t, e, p, c: e["character_availability"].append(["Bool Year", True, 2000]),
+            lambda t, e, p, w, c: e["character_availability"].append(["Bool Year", True, 2000]),
             "boundary values must not be booleans",
         ),
         (
-            lambda t, e, p, c: c.update({"word_count_targets": [True, 1200]}),
+            lambda t, e, p, w, c: c.update({"word_count_targets": [True, 1200]}),
             "must be a positive integer",
         ),
         (
-            lambda t, e, p, c: t.update({"titles": t["titles"] + [t["titles"][0]]}),
+            lambda t, e, p, w, c: t.update({"titles": t["titles"] + [t["titles"][0]]}),
             "titles.titles contains duplicate value",
         ),
         (
-            lambda t, e, p, c: p.update(
-                {"weather": p["weather"] + [p["weather"][0]]}
+            lambda t, e, p, w, c: w.update(
+                {"weather": w["weather"] + [w["weather"][0]]}
             ),
-            "prompts.weather contains duplicate value",
+            "weather.weather contains duplicate value",
         ),
         (
-            lambda t, e, p, c: p.update({"weather_comment": "   "}),
-            "prompts.weather_comment must be a non-empty string when provided",
+            lambda t, e, p, w, c: w.update({"weather_comment": "   "}),
+            "weather.weather_comment must be a non-empty string when provided",
         ),
         (
-            lambda t, e, p, c: p.update({"weather_comment": ["sunny"]}),
-            "prompts.weather_comment must be a non-empty string when provided",
+            lambda t, e, p, w, c: w.update({"weather_comment": ["sunny"]}),
+            "weather.weather_comment must be a non-empty string when provided",
         ),
         (
-            lambda t, e, p, c: p.update({"unexpected_prompt_key": ["oops"]}),
+            lambda t, e, p, w, c: p.update({"unexpected_prompt_key": ["oops"]}),
             "prompts: unexpected keys: unexpected_prompt_key",
         ),
         (
-            lambda t, e, p, c: e.update(
+            lambda t, e, p, w, c: e.update(
                 {
                     "character_availability": e["character_availability"]
                     + [e["character_availability"][0]]
@@ -107,21 +108,21 @@ def test_schema_validation_accepts_current_data(story_dataset_payloads) -> None:
             "overlapping availability windows",
         ),
         (
-            lambda t, e, p, c: t.update({"titles": ["A Tale of @protagnoist"]}),
+            lambda t, e, p, w, c: t.update({"titles": ["A Tale of @protagnoist"]}),
             "unsupported token",
         ),
         (
-            lambda t, e, p, c: t.update({"titles": ["A Tale of protagonist"]}),
+            lambda t, e, p, w, c: t.update({"titles": ["A Tale of protagonist"]}),
             "without '@'",
         ),
         (
-            lambda t, e, p, c: c.update(
+            lambda t, e, p, w, c: c.update(
                 {"date_start": "1900-01-01", "date_end": "1900-12-31"}
             ),
             "no overlap with entities.character_availability",
         ),
         (
-            lambda t, e, p, c: e.update(
+            lambda t, e, p, w, c: e.update(
                 {"setting_availability": [["Far Future", "2100-01-01", "2100-12-31"]]}
             ),
             "no overlap with entities.setting_availability",
@@ -134,12 +135,16 @@ def test_schema_validation_rejects_bad_data(
     titles = story_dataset_payloads["titles"]
     entities = story_dataset_payloads["entities"]
     prompts = story_dataset_payloads["prompts"]
+    weather = story_dataset_payloads["weather"]
     config = story_dataset_payloads["config"]
     partner_distributions = story_dataset_payloads["partner_distributions"]
-    mutator(titles, entities, prompts, config)
+    try:
+        mutator(titles, entities, prompts, weather, config)
+    except TypeError:
+        mutator(titles, entities, prompts, config)
 
     with pytest.raises(ValueError, match=expected_msg):
-        validate_story_data(titles, entities, prompts, config, partner_distributions)
+        validate_story_data(titles, entities, prompts, weather, config, partner_distributions)
 
 
 def test_schema_validation_allows_disjoint_availability_windows_for_same_name(
@@ -148,6 +153,7 @@ def test_schema_validation_allows_disjoint_availability_windows_for_same_name(
     titles = story_dataset_payloads["titles"]
     entities = story_dataset_payloads["entities"]
     prompts = story_dataset_payloads["prompts"]
+    weather = story_dataset_payloads["weather"]
     config = story_dataset_payloads["config"]
     partner_distributions = story_dataset_payloads["partner_distributions"]
     entities["character_availability"] = [
@@ -182,25 +188,27 @@ def test_schema_validation_allows_disjoint_availability_windows_for_same_name(
         },
     ]
 
-    validate_story_data(titles, entities, prompts, config, partner_distributions)
+    validate_story_data(titles, entities, prompts, weather, config, partner_distributions)
 
 
 def test_schema_validation_rejects_single_sexual_scene_tag_group(story_dataset_payloads) -> None:
     titles = story_dataset_payloads["titles"]
     entities = story_dataset_payloads["entities"]
     prompts = story_dataset_payloads["prompts"]
+    weather = story_dataset_payloads["weather"]
     config = story_dataset_payloads["config"]
     partner_distributions = story_dataset_payloads["partner_distributions"]
     config["sexual_scene_tag_groups"] = {"tone": ["tender", "passionate"]}
 
     with pytest.raises(ValueError, match="at least 2 groups"):
-        validate_story_data(titles, entities, prompts, config, partner_distributions)
+        validate_story_data(titles, entities, prompts, weather, config, partner_distributions)
 
 
 def test_schema_validation_rejects_too_many_sexual_scene_tag_groups(story_dataset_payloads) -> None:
     titles = story_dataset_payloads["titles"]
     entities = story_dataset_payloads["entities"]
     prompts = story_dataset_payloads["prompts"]
+    weather = story_dataset_payloads["weather"]
     config = story_dataset_payloads["config"]
     partner_distributions = story_dataset_payloads["partner_distributions"]
     config["sexual_scene_tag_groups"] = {
@@ -212,7 +220,7 @@ def test_schema_validation_rejects_too_many_sexual_scene_tag_groups(story_datase
         ValueError,
         match=rf"at most {MAX_SEXUAL_SCENE_TAG_GROUPS} groups",
     ):
-        validate_story_data(titles, entities, prompts, config, partner_distributions)
+        validate_story_data(titles, entities, prompts, weather, config, partner_distributions)
 
 
 @pytest.mark.parametrize(
@@ -225,7 +233,7 @@ def test_schema_validation_rejects_removed_config_alias_keys(
 ) -> None:
     _assert_schema_rejects(
         story_dataset_payloads,
-        lambda t, e, p, c: c.update({unsupported_alias_key: ["legacy"]}),
+        lambda t, e, p, w, c: c.update({unsupported_alias_key: ["legacy"]}),
         rf"{re.escape(UNSUPPORTED_CONFIG_ALIAS_ERROR_PREFIX)}.*{re.escape(unsupported_alias_key)}",
     )
 
@@ -236,6 +244,7 @@ def test_schema_validation_rejects_invalid_sexual_scene_tag_count_weight_key(
     titles = story_dataset_payloads["titles"]
     entities = story_dataset_payloads["entities"]
     prompts = story_dataset_payloads["prompts"]
+    weather = story_dataset_payloads["weather"]
     config = story_dataset_payloads["config"]
     partner_distributions = story_dataset_payloads["partner_distributions"]
     config["sexual_scene_tag_count_weights_by_presence"] = {
@@ -243,7 +252,7 @@ def test_schema_validation_rejects_invalid_sexual_scene_tag_count_weight_key(
     }
 
     with pytest.raises(ValueError, match="keys must be non-negative integers"):
-        validate_story_data(titles, entities, prompts, config, partner_distributions)
+        validate_story_data(titles, entities, prompts, weather, config, partner_distributions)
 
 
 def test_schema_validation_rejects_sexual_scene_tag_count_weight_above_group_count(
@@ -252,6 +261,7 @@ def test_schema_validation_rejects_sexual_scene_tag_count_weight_above_group_cou
     titles = story_dataset_payloads["titles"]
     entities = story_dataset_payloads["entities"]
     prompts = story_dataset_payloads["prompts"]
+    weather = story_dataset_payloads["weather"]
     config = story_dataset_payloads["config"]
     partner_distributions = story_dataset_payloads["partner_distributions"]
     group_count = len(config["sexual_scene_tag_groups"])
@@ -261,13 +271,14 @@ def test_schema_validation_rejects_sexual_scene_tag_count_weight_above_group_cou
     }
 
     with pytest.raises(ValueError, match="must not exceed the available"):
-        validate_story_data(titles, entities, prompts, config, partner_distributions)
+        validate_story_data(titles, entities, prompts, weather, config, partner_distributions)
 
 
 def test_schema_validation_rejects_duplicate_partners_in_single_era(story_dataset_payloads) -> None:
     titles = story_dataset_payloads["titles"]
     entities = story_dataset_payloads["entities"]
     prompts = story_dataset_payloads["prompts"]
+    weather = story_dataset_payloads["weather"]
     config = story_dataset_payloads["config"]
     partner_distributions = story_dataset_payloads["partner_distributions"]
     partner_distributions["partner_distributions"][0]["eras"][0]["partners"] = [
@@ -276,7 +287,7 @@ def test_schema_validation_rejects_duplicate_partners_in_single_era(story_datase
     ]
 
     with pytest.raises(ValueError, match="contains duplicate partner"):
-        validate_story_data(titles, entities, prompts, config, partner_distributions)
+        validate_story_data(titles, entities, prompts, weather, config, partner_distributions)
 
 
 def test_strict_validation_accepts_well_formed_small_range() -> None:
@@ -510,12 +521,16 @@ def _assert_schema_rejects(
     titles = story_dataset_payloads["titles"]
     entities = story_dataset_payloads["entities"]
     prompts = story_dataset_payloads["prompts"]
+    weather = story_dataset_payloads["weather"]
     config = story_dataset_payloads["config"]
     partner_distributions = story_dataset_payloads["partner_distributions"]
-    mutator(titles, entities, prompts, config)
+    try:
+        mutator(titles, entities, prompts, weather, config)
+    except TypeError:
+        mutator(titles, entities, prompts, config)
 
     with pytest.raises(ValueError, match=expected_message):
-        validate_story_data(titles, entities, prompts, config, partner_distributions)
+        validate_story_data(titles, entities, prompts, weather, config, partner_distributions)
 
 
 def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) -> None:
@@ -564,8 +579,10 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
             r"titles\.titles must be a non-empty list",
         ),
         (
-            lambda _titles, _entities, prompts, _config: prompts.update({"weather": [" "]}),
-            r"prompts\.weather\[0\] must be a non-empty string",
+            lambda _titles, _entities, _prompts, weather, _config: weather.update(
+                {"weather": [" "]}
+            ),
+            r"weather\.weather\[0\] must be a non-empty string",
         ),
         (
             lambda _titles, entities, _prompts, _config: entities.update(

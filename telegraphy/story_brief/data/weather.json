@@ -1,0 +1,10 @@
+{
+  "weather_comment": "Must always include all five weather options exactly as listed to preserve random generation behavior.",
+  "weather": [
+    "great",
+    "good",
+    "typical",
+    "lousy",
+    "the sky is trying to kill someone"
+  ]
+}

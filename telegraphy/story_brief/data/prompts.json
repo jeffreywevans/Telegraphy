@@ -271,13 +271,5 @@
     "spectacle-driven storytelling with public performance and media attention. Concerts, TV appearances, interviews, and large public moments.",
     "warm, bruised character-driven storytelling with quiet emotional stakes. Relationships matter more than plot, but the emotional pressure keeps rising.",
     "warm, character-driven storytelling with quiet stakes.  Collaboration is beneficial and creativity is rewarded"
-  ],
-  "weather_comment": "Must always include all five weather options exactly as listed to preserve random generation behavior.",
-  "weather": [
-    "great",
-    "good",
-    "typical",
-    "lousy",
-    "the sky is trying to kill someone"
   ]
 }

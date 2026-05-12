@@ -341,6 +341,14 @@ def _append_prompt_depth_warnings(data: Mapping[str, Any], *, warnings: list[str
 
     _append_minimum_option_warning(
         warnings=warnings,
+        key="weather",
+        option_count=len(data["weather"]),
+        minimum_count=_MINIMUM_PROMPT_OPTIONS,
+        recommendation=recommendation_for_prompts,
+    )
+
+    _append_minimum_option_warning(
+        warnings=warnings,
         key=_WORD_COUNT_TARGETS_KEY,
         option_count=len(data[_WORD_COUNT_TARGETS_KEY]),
         minimum_count=_MINIMUM_PROMPT_OPTIONS,

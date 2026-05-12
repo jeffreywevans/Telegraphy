@@ -123,12 +123,7 @@ def _pick_data_value(
     key: SortedStringPoolKey | Literal["word_count_targets"],
 ) -> str | int:
     """Pick one deterministic value from a canonical top-level story-data pool."""
-    if key == "word_count_targets":
-        return rng.choice(stable_sorted_pool(data[key]))
-
     pool = data[key]
-    if isinstance(pool, tuple):
-        return rng.choice(pool)
     return rng.choice(stable_sorted_pool(pool))
 
 

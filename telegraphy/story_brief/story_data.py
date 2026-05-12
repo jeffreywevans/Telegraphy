@@ -30,8 +30,6 @@ class StoryData(TypedDict):
     date_end: date
     sexual_content_presence_options: tuple[str, ...]
     sexual_content_presence_weights: tuple[float, ...]
-    sexual_content_story_role_options: tuple[str, ...]
-    sexual_content_story_role_weights: tuple[float, ...]
     sexual_scene_tag_groups: dict[str, tuple[str, ...]]
     sexual_scene_tag_group_names_sorted: tuple[str, ...]
     sexual_scene_tag_groups_sorted: dict[str, tuple[str, ...]]

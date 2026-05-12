@@ -57,12 +57,6 @@ def _build_story_data(dataset_payloads: dict[str, Any]) -> dict[str, Any]:
         "sexual_content_presence_weights": tuple(
             float(v) for v in normalized_config["sexual_content_presence_weights"]
         ),
-        "sexual_content_story_role_options": tuple(
-            str(v) for v in normalized_config["sexual_content_story_role_options"]
-        ),
-        "sexual_content_story_role_weights": tuple(
-            float(v) for v in normalized_config["sexual_content_story_role_weights"]
-        ),
         "sexual_scene_tag_groups": sexual_scene_tag_groups,
         "sexual_scene_tag_group_names_sorted": tuple(stable_sorted_pool(sexual_scene_tag_groups)),
         "sexual_scene_tag_groups_sorted": {

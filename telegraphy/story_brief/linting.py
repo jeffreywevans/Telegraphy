@@ -37,7 +37,7 @@ class DatasetLintReport(NamedTuple):
         return bool(self.errors)  # pragma: no cover - trivial attribute facade.
 
 
-class _IntervalLintResults(NamedTuple):
+class IntervalLintResults(NamedTuple):
     missing_character_ranges: list[DateRange]
     thin_character_ranges: list[DateRange]
     missing_setting_ranges: list[DateRange]
@@ -193,7 +193,7 @@ def _record_partner_gaps(
 
 def collect_interval_lint_ranges(
     data: Mapping[str, Any], *, sorted_checkpoints: Sequence[date], range_end: date
-) -> _IntervalLintResults:
+) -> IntervalLintResults:
     missing_character_ranges: list[DateRange] = []
     thin_character_ranges: list[DateRange] = []
     missing_setting_ranges: list[DateRange] = []
@@ -237,7 +237,7 @@ def collect_interval_lint_ranges(
             partner_data_gap_ranges_by_protagonist=partner_data_gap_ranges_by_protagonist,
         )
 
-    return _IntervalLintResults(
+    return IntervalLintResults(
         missing_character_ranges=missing_character_ranges,
         thin_character_ranges=thin_character_ranges,
         missing_setting_ranges=missing_setting_ranges,
@@ -257,7 +257,7 @@ def _append_coverage_messages(
     *,
     errors: list[str],
     warnings: list[str],
-    interval_results: _IntervalLintResults,
+    interval_results: IntervalLintResults,
 ) -> None:
     """Append blocking errors and non-blocking warnings from interval analysis."""
     if interval_results.missing_character_ranges:

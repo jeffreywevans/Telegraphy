@@ -80,7 +80,7 @@ def remove_prompt_key(
     patch_json: Callable[[Path, str, Callable[[dict[str, object]], object]], None],
 ) -> None:
     """Remove a prompt key from prompts.json."""
-    patch_json(data_dir, "prompts.json", lambda prompts: prompts.pop(key))
+    patch_json(data_dir, "prompts.json", lambda prompts: prompts.pop(key, None))
 
 
 def run_cli(
@@ -278,7 +278,7 @@ def test_cli_lint_dataset_handles_invalid_dataset_without_traceback(
     tmp_path: Path,
 ) -> None:
     data_dir = cli_dataset_factory("invalid-data")
-    remove_prompt_key(data_dir, "weather", patch_json)
+    remove_prompt_key(data_dir, "central_conflicts", patch_json)
 
     result = run_cli(
         "--lint-dataset",

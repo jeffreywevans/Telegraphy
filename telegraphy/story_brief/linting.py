@@ -200,6 +200,9 @@ def _record_partner_gaps(
 def collect_interval_lint_ranges(
     data: Mapping[str, Any], *, sorted_checkpoints: Sequence[date], range_end: date
 ) -> IntervalLintResults:
+    """
+    Analyze the dataset over time intervals to identify coverage gaps and fragile availability.
+    """
     """Collect interval-level coverage gaps and fragile spans across the dataset."""
 
     missing_character_ranges: list[DateRange] = []

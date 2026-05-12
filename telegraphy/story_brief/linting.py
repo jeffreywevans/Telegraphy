@@ -339,13 +339,15 @@ def _append_prompt_depth_warnings(data: Mapping[str, Any], *, warnings: list[str
             recommendation=recommendation_for_prompts,
         )
 
-    _append_minimum_option_warning(
-        warnings=warnings,
-        key="weather",
-        option_count=len(data["weather"]),
-        minimum_count=_MINIMUM_PROMPT_OPTIONS,
-        recommendation=recommendation_for_prompts,
-    )
+    weather_options = data.get("weather")
+    if isinstance(weather_options, (list, tuple)):
+        _append_minimum_option_warning(
+            warnings=warnings,
+            key="weather",
+            option_count=len(weather_options),
+            minimum_count=_MINIMUM_PROMPT_OPTIONS,
+            recommendation=recommendation_for_prompts,
+        )
 
     _append_minimum_option_warning(
         warnings=warnings,

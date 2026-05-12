@@ -5,7 +5,7 @@ from datetime import date
 from typing import Any
 
 from ._constants import PARTNER_DISTRIBUTIONS_KEY
-from .linting import _collect_interval_lint_ranges, build_coverage_checkpoints
+from .linting import build_coverage_checkpoints, collect_interval_lint_ranges
 
 
 def validate_story_data_strict(data: Mapping[str, Any]) -> None:
@@ -23,7 +23,7 @@ def validate_story_data_strict(data: Mapping[str, Any]) -> None:
         range_start=range_start,
         range_end=range_end,
     )
-    interval_results = _collect_interval_lint_ranges(
+    interval_results = collect_interval_lint_ranges(
         lint_data,
         sorted_checkpoints=sorted_checkpoints,
         range_end=range_end,

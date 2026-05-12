@@ -260,7 +260,8 @@ def _candidate_sexual_scene_tag_groups(
 
 def _sexual_scene_tag_group_names(data: StoryData) -> Sequence[str]:
     """Return deterministic sexual-scene tag group names."""
-    return stable_sorted_pool(data["sexual_scene_tag_group_names"])
+    names = data["sexual_scene_tag_group_names"]
+    return names if isinstance(names, tuple) else stable_sorted_pool(names)
 
 
 def build_sexual_scene_tag_count_distribution(

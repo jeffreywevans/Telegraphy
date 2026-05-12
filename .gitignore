@@ -90,9 +90,9 @@ celerybeat.pid
 .env
 .envrc
 .venv
-env/
-venv/
-ENV/
+env
+venv
+ENV
 env.bak/
 venv.bak/
 
@@ -126,7 +126,7 @@ __marimo__/
 
 # PDM local files
 .pdm-python
-.pdm-build/
+.pdm-build
 
 # Pixi local environment
 .pixi

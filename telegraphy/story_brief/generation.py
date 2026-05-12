@@ -123,14 +123,13 @@ def _pick_data_value(
     key: SortedStringPoolKey | Literal["word_count_targets"],
 ) -> str | int:
     """Pick one deterministic value from a canonical top-level story-data pool."""
-    selectable_pools = cast(
-        Mapping[SortedStringPoolKey | Literal["word_count_targets"], Sequence[str] | Sequence[int]],
-        data,
-    )
-    pool = selectable_pools[key]
+    if key == "word_count_targets":
+        return rng.choice(stable_sorted_pool(data[key]))
+
+    pool = data[key]
     if isinstance(pool, tuple):
-        return cast(str | int, rng.choice(pool))
-    return cast(str | int, rng.choice(stable_sorted_pool(pool)))
+        return rng.choice(pool)
+    return rng.choice(stable_sorted_pool(pool))
 
 
 def pick_story_characters(

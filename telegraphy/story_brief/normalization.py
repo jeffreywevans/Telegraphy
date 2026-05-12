@@ -23,7 +23,6 @@ def _build_story_data(dataset_payloads: dict[str, Any]) -> dict[str, Any]:
         key: tuple(stable_sorted_pool(str(value) for value in prompts[key]))
         for key in PROMPT_LIST_KEYS
     }
-    sorted_prompt_lists = {f"{key}_sorted": values for key, values in prompt_lists.items()}
 
     sexual_scene_tag_groups = {
         str(group_name): tuple(stable_sorted_pool(str(tag) for tag in tags))
@@ -47,12 +46,10 @@ def _build_story_data(dataset_payloads: dict[str, Any]) -> dict[str, Any]:
 
     return {
         "titles": normalized_titles,
-        "titles_sorted": normalized_titles,
         "character_availability": tuple(validated.character_availability),
         "setting_availability": tuple(validated.setting_availability),
         **prompt_lists,
         "weather_comment": str(prompts.get("weather_comment", "")),
-        **sorted_prompt_lists,
         "date_start": validated.date_start,
         "date_end": validated.date_end,
         "sexual_content_presence_options": sexual_content_presence_options,
@@ -60,8 +57,7 @@ def _build_story_data(dataset_payloads: dict[str, Any]) -> dict[str, Any]:
             float(v) for v in normalized_config["sexual_content_presence_weights"]
         ),
         "sexual_scene_tag_groups": sexual_scene_tag_groups,
-        "sexual_scene_tag_group_names_sorted": tuple(stable_sorted_pool(sexual_scene_tag_groups)),
-        "sexual_scene_tag_groups_sorted": sexual_scene_tag_groups,
+        "sexual_scene_tag_group_names": tuple(stable_sorted_pool(sexual_scene_tag_groups)),
         "sexual_scene_tag_count_weights_by_presence": sexual_scene_tag_count_weights_by_presence,
         "sexual_scene_required_tag_groups_by_presence": {
             str(presence): tuple(str(group_name) for group_name in groups)
@@ -73,7 +69,6 @@ def _build_story_data(dataset_payloads: dict[str, Any]) -> dict[str, Any]:
             str(group_name) for group_name in normalized_config["sexual_scene_optional_tag_groups"]
         ),
         "word_count_targets": word_count_targets,
-        "word_count_targets_sorted": word_count_targets,
         "ordered_keys": tuple(str(v) for v in normalized_config["ordered_keys"]),
         "writing_preamble": str(normalized_config["writing_preamble"]),
         "dataset_version": str(normalized_config["dataset_version"]),

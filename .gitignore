@@ -89,7 +89,7 @@ celerybeat.pid
 # Environments
 .env
 .envrc
-.venv/
+.venv
 env/
 venv/
 ENV/
@@ -129,4 +129,4 @@ __marimo__/
 .pdm-build/
 
 # Pixi local environment
-.pixi/
+.pixi

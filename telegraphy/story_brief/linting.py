@@ -191,7 +191,7 @@ def _record_partner_gaps(
         )
 
 
-def _collect_interval_lint_ranges(
+def collect_interval_lint_ranges(
     data: Mapping[str, Any], *, sorted_checkpoints: Sequence[date], range_end: date
 ) -> _IntervalLintResults:
     missing_character_ranges: list[DateRange] = []
@@ -244,6 +244,9 @@ def _collect_interval_lint_ranges(
         thin_setting_ranges=thin_setting_ranges,
         partner_data_gap_ranges_by_protagonist=partner_data_gap_ranges_by_protagonist,
     )
+
+
+_collect_interval_lint_ranges = collect_interval_lint_ranges
 
 
 def _coalesced_date_ranges(ranges: list[DateRange]) -> str:
@@ -355,7 +358,7 @@ def lint_story_data(data: Mapping[str, Any]) -> DatasetLintReport:
     sorted_checkpoints = build_coverage_checkpoints(
         data, range_start=range_start, range_end=range_end
     )
-    interval_results = _collect_interval_lint_ranges(
+    interval_results = collect_interval_lint_ranges(
         data, sorted_checkpoints=sorted_checkpoints, range_end=range_end
     )
 

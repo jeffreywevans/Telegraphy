@@ -4,33 +4,7 @@ import math
 import re
 from dataclasses import dataclass
 from datetime import date
-from typing import AbstractSet, TypedDict, cast
-
-
-class PartnerWeightInput(TypedDict):
-    partner: str
-    weight: float | int
-
-
-class PartnerEraInput(TypedDict):
-    date_start: str
-    date_end: str
-    partners: list[PartnerWeightInput]
-
-
-class CharacterPartnerDistributionInput(TypedDict):
-    character: str
-    date_start: str
-    date_end: str
-    eras: list[PartnerEraInput]
-
-
-class PartnerDistributionPayloadInput(TypedDict):
-    schema_version: int
-    dataset_version: str
-    date_start: str
-    date_end: str
-    partner_distributions: list[CharacterPartnerDistributionInput]
+from typing import AbstractSet, cast
 
 
 _ISO_DATE_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}$")
@@ -141,6 +115,7 @@ def _parse_partners(era_section: str, partners_raw: object) -> tuple[PartnerWeig
 
     partners: list[PartnerWeight] = []
     seen_partners: dict[str, int] = {}
+    total_weight = 0.0
     for partner_idx, partner_item_raw in enumerate(cast(list[object], partners_raw)):
         partner_section = f"{era_section}.partners[{partner_idx}]"
         partner_item = _require_dict(partner_item_raw, field=partner_section)
@@ -157,17 +132,11 @@ def _parse_partners(era_section: str, partners_raw: object) -> tuple[PartnerWeig
         )
         seen_partners[partner_key] = partner_idx
 
-        partners.append(
-            PartnerWeight(
-                partner=partner_name,
-                weight=_parse_weight(partner_item["weight"], field=f"{partner_section}.weight"),
-            )
-        )
+        weight = _parse_weight(partner_item["weight"], field=f"{partner_section}.weight")
+        partners.append(PartnerWeight(partner=partner_name, weight=weight))
+        total_weight += weight
 
-    _reject_when(
-        bool(partners) and sum(entry.weight for entry in partners) <= 0,
-        f"{era_section}.partners must sum to > 0",
-    )
+    _reject_when(bool(partners) and total_weight <= 0, f"{era_section}.partners must sum to > 0")
     return tuple(partners)
 
 

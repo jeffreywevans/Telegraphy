@@ -11,7 +11,6 @@ from .generation_helpers import (
     _date_in_range,
     available_characters,
     available_settings,
-    sorted_pool_from_data,
     stable_sorted_pool,
     weighted_choice,
 )
@@ -64,7 +63,7 @@ def pick_story_fields(
     protagonist, secondary_character = pick_story_characters(rng, selected_date, data)
     setting = pick_story_setting(rng, selected_date, data)
 
-    title_template = _pick_sorted_data_value(rng, data, "titles")
+    title_template = _pick_data_value(rng, data, "titles")
     sexual_content_level = weighted_choice(
         rng,
         data["sexual_content_presence_options"],
@@ -91,19 +90,19 @@ def pick_story_fields(
             data["weather"],
             symmetric_peak_weights(len(data["weather"])),
         ),
-        "central_conflict": _pick_sorted_data_value(rng, data, "central_conflicts"),
-        "inciting_pressure": _pick_sorted_data_value(rng, data, "inciting_pressures"),
-        "ending_type": _pick_sorted_data_value(rng, data, "ending_types"),
-        "style_guidance": _pick_sorted_data_value(rng, data, "style_guidance"),
+        "central_conflict": _pick_data_value(rng, data, "central_conflicts"),
+        "inciting_pressure": _pick_data_value(rng, data, "inciting_pressures"),
+        "ending_type": _pick_data_value(rng, data, "ending_types"),
+        "style_guidance": _pick_data_value(rng, data, "style_guidance"),
         "sexual_content_level": sexual_content_level,
         "sexual_partner": sexual_partner,
         "sexual_scene_tags": sexual_scene_tags,
-        "word_count_target": _pick_sorted_data_value(rng, data, "word_count_targets"),
+        "word_count_target": _pick_data_value(rng, data, "word_count_targets"),
     }
 
 
 @overload
-def _pick_sorted_data_value(
+def _pick_data_value(
     rng: RandomSource,
     data: StoryData,
     key: Literal["word_count_targets"],
@@ -111,20 +110,20 @@ def _pick_sorted_data_value(
 
 
 @overload
-def _pick_sorted_data_value(
+def _pick_data_value(
     rng: RandomSource,
     data: StoryData,
     key: SortedStringPoolKey,
 ) -> str: ...
 
 
-def _pick_sorted_data_value(
+def _pick_data_value(
     rng: RandomSource,
     data: StoryData,
     key: SortedStringPoolKey | Literal["word_count_targets"],
 ) -> str | int:
-    """Pick one deterministic value from a sorted top-level story-data pool."""
-    return cast(str | int, rng.choice(sorted_pool_from_data(data, key)))
+    """Pick one deterministic value from a canonical top-level story-data pool."""
+    return cast(str | int, rng.choice(stable_sorted_pool(data[key])))
 
 
 def pick_story_characters(
@@ -261,7 +260,8 @@ def _candidate_sexual_scene_tag_groups(
 
 def _sexual_scene_tag_group_names(data: StoryData) -> Sequence[str]:
     """Return deterministic sexual-scene tag group names."""
-    return data["sexual_scene_tag_group_names_sorted"]
+    names = data["sexual_scene_tag_group_names"]
+    return names if isinstance(names, tuple) else stable_sorted_pool(names)
 
 
 def build_sexual_scene_tag_count_distribution(
@@ -352,16 +352,17 @@ def pick_tags_from_selected_groups(
 ) -> list[str]:
     """Pick one random tag from each selected tag group."""
     return [
-        rng.choice(_sorted_tags_for_group(group_name, data))
+        rng.choice(_tags_for_group(group_name, data))
         for group_name in selected_tag_groups
     ]
 
 
-def _sorted_tags_for_group(group_name: str, data: StoryData) -> Sequence[str]:
+def _tags_for_group(group_name: str, data: StoryData) -> Sequence[str]:
     """Return deterministic tags for one sexual-scene tag group."""
-    tag_groups_sorted = data["sexual_scene_tag_groups_sorted"]
+    tag_groups = data["sexual_scene_tag_groups"]
     try:
-        return tag_groups_sorted[group_name]
+        tags = tag_groups[group_name]
+        return tags if isinstance(tags, tuple) else stable_sorted_pool(tags)
     except KeyError as exc:
         raise ValueError(f"Unknown sexual scene tag group: {group_name}") from exc
 

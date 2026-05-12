@@ -5,7 +5,7 @@ import random
 import secrets
 from collections.abc import Iterable, Mapping, Sequence
 from datetime import date
-from typing import Any, TypeAlias, TypeVar, cast
+from typing import Any, TypeAlias, TypeVar
 
 from ._constants import CHARACTER_AVAILABILITY_KEY, SETTING_AVAILABILITY_KEY
 
@@ -18,24 +18,6 @@ AvailabilityRows: TypeAlias = Sequence[tuple[str, date, date]]
 def stable_sorted_pool(values: Iterable[PoolValue]) -> list[PoolValue]:
     """Return a consistently sorted copy for seed-stable random selection."""
     return sorted(values)
-
-
-def sorted_pool_from_data(data: Mapping[str, Any], key: str) -> Sequence[PoolValue]:
-    """Read a normalized sorted pool, supporting transitional ``*_sorted`` keys."""
-    sorted_key = f"{key}_sorted"
-    fallback_values = data.get(sorted_key)
-    if fallback_values is not None:
-        return cast(Sequence[PoolValue], fallback_values)
-
-    direct_values = data.get(key)
-    if direct_values is not None:
-        if isinstance(direct_values, tuple):
-            return cast(Sequence[PoolValue], direct_values)
-        return cast(
-            Sequence[PoolValue], stable_sorted_pool(cast(Iterable[PoolValue], direct_values))
-        )
-
-    raise KeyError(f"Missing story-data pool for '{key}' or '{sorted_key}'.")
 
 
 def _date_in_range(selected_date: date, start_date: date, end_date: date) -> bool:

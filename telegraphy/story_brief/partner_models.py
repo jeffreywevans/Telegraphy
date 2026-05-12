@@ -6,7 +6,6 @@ from dataclasses import dataclass
 from datetime import date
 from typing import AbstractSet, cast
 
-
 _ISO_DATE_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 _ISO_DATE_ERROR = "must be an ISO date (YYYY-MM-DD)"
 

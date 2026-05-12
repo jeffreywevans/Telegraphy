@@ -138,10 +138,7 @@ def test_schema_validation_rejects_bad_data(
     weather = story_dataset_payloads["weather"]
     config = story_dataset_payloads["config"]
     partner_distributions = story_dataset_payloads["partner_distributions"]
-    try:
-        mutator(titles, entities, prompts, weather, config)
-    except TypeError:
-        mutator(titles, entities, prompts, config)
+    mutator(titles, entities, prompts, weather, config)
 
     with pytest.raises(ValueError, match=expected_msg):
         validate_story_data(titles, entities, prompts, weather, config, partner_distributions)
@@ -508,7 +505,7 @@ def test_dataset_lint_treats_empty_partner_eras_as_intentional_celibacy() -> Non
 
 
 PayloadMutator = Callable[
-    [dict[str, Any], dict[str, Any], dict[str, Any], dict[str, Any]],
+    [dict[str, Any], dict[str, Any], dict[str, Any], dict[str, Any], dict[str, Any]],
     None,
 ]
 
@@ -524,10 +521,7 @@ def _assert_schema_rejects(
     weather = story_dataset_payloads["weather"]
     config = story_dataset_payloads["config"]
     partner_distributions = story_dataset_payloads["partner_distributions"]
-    try:
-        mutator(titles, entities, prompts, weather, config)
-    except TypeError:
-        mutator(titles, entities, prompts, config)
+    mutator(titles, entities, prompts, weather, config)
 
     with pytest.raises(ValueError, match=expected_message):
         validate_story_data(titles, entities, prompts, weather, config, partner_distributions)
@@ -575,7 +569,7 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
     ("mutator", "expected_message"),
     [
         (
-            lambda titles, _entities, _prompts, _config: titles.update({"titles": []}),
+            lambda titles, _entities, _prompts, _weather, _config: titles.update({"titles": []}),
             r"titles\.titles must be a non-empty list",
         ),
         (
@@ -585,59 +579,59 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
             r"weather\.weather\[0\] must be a non-empty string",
         ),
         (
-            lambda _titles, entities, _prompts, _config: entities.update(
+            lambda _titles, entities, _prompts, _weather, _config: entities.update(
                 {"character_availability": []}
             ),
             r"entities\.character_availability must be a non-empty list",
         ),
         (
-            lambda _titles, entities, _prompts, _config: entities[
+            lambda _titles, entities, _prompts, _weather, _config: entities[
                 "character_availability"
             ].append(["Bad Date", "not-a-date", 2000]),
             r"boundary string values must be ISO dates",
         ),
         (
-            lambda _titles, entities, _prompts, _config: entities[
+            lambda _titles, entities, _prompts, _weather, _config: entities[
                 "character_availability"
             ].append(["Integer Boundary", 2000, "2000-12-31"]),
             r"boundary values must be ISO date strings \(YYYY-MM-DD\)",
         ),
         (
-            lambda _titles, entities, _prompts, _config: entities[
+            lambda _titles, entities, _prompts, _weather, _config: entities[
                 "character_availability"
             ].append(["Bad Boundary", None, 2000]),
             r"boundary values must be ISO date strings \(YYYY-MM-DD\)",
         ),
         (
-            lambda _titles, entities, _prompts, _config: entities[
+            lambda _titles, entities, _prompts, _weather, _config: entities[
                 "character_availability"
             ].append([" ", 2000, 2001]),
             r"entities\.character_availability\[\d+\]\[0\] must be a non-empty string",
         ),
         (
-            lambda _titles, entities, _prompts, _config: entities[
+            lambda _titles, entities, _prompts, _weather, _config: entities[
                 "character_availability"
             ].append(["Backward", "2001-01-01", "2000-01-01"]),
             r"start must be <= end",
         ),
         (
-            lambda _titles, _entities, _prompts, config: config.update({"schema_version": 0}),
+            lambda _titles, _entities, _prompts, _weather, config: config.update({"schema_version": 0}),
             r"config\.schema_version must be an integer >= 1",
         ),
         (
-            lambda _titles, _entities, _prompts, config: config.update(
+            lambda _titles, _entities, _prompts, _weather, config: config.update(
                 {"date_start": "2001-01-01", "date_end": "2000-01-01"}
             ),
             r"config\.date_start must be <= config\.date_end",
         ),
         (
-            lambda _titles, _entities, _prompts, config: config.update(
+            lambda _titles, _entities, _prompts, _weather, config: config.update(
                 {"sexual_content_presence_weights": []}
             ),
             r"config\.sexual_content_presence_weights must be a non-empty list",
         ),
         (
-            lambda _titles, _entities, _prompts, config: config.update(
+            lambda _titles, _entities, _prompts, _weather, config: config.update(
                 {"sexual_content_presence_weights": [1.0]}
             ),
             (
@@ -646,49 +640,49 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
             ),
         ),
         (
-            lambda _titles, _entities, _prompts, config: config.update(
+            lambda _titles, _entities, _prompts, _weather, config: config.update(
                 {"sexual_content_presence_weights": [True, 1.0, 1.0, 1.0, 1.0]}
             ),
             r"config\.sexual_content_presence_weights\[0\] must be a real number",
         ),
         (
-            lambda _titles, _entities, _prompts, config: config.update(
+            lambda _titles, _entities, _prompts, _weather, config: config.update(
                 {"sexual_content_presence_weights": [math.inf, 1.0, 1.0, 1.0, 1.0]}
             ),
             r"config\.sexual_content_presence_weights\[0\] must be finite",
         ),
         (
-            lambda _titles, _entities, _prompts, config: config.update(
+            lambda _titles, _entities, _prompts, _weather, config: config.update(
                 {"sexual_content_presence_weights": [-1.0, 1.0, 1.0, 1.0, 1.0]}
             ),
             r"config\.sexual_content_presence_weights\[0\] must be non-negative",
         ),
         (
-            lambda _titles, _entities, _prompts, config: config.update(
+            lambda _titles, _entities, _prompts, _weather, config: config.update(
                 {"word_count_targets": []}
             ),
             r"config\.word_count_targets must be a non-empty list",
         ),
         (
-            lambda _titles, _entities, _prompts, config: config.update(
+            lambda _titles, _entities, _prompts, _weather, config: config.update(
                 {"sexual_scene_tag_groups": {}}
             ),
             r"config\.sexual_scene_tag_groups must be a non-empty object",
         ),
         (
-            lambda _titles, _entities, _prompts, config: config.update(
+            lambda _titles, _entities, _prompts, _weather, config: config.update(
                 {"sexual_scene_tag_groups": {"": ["one"], "tone": ["two"]}}
             ),
             r"config\.sexual_scene_tag_groups keys must be non-empty strings",
         ),
         (
-            lambda _titles, _entities, _prompts, config: config.update(
+            lambda _titles, _entities, _prompts, _weather, config: config.update(
                 {"sexual_scene_tag_count_weights_by_presence": {}}
             ),
             r"config\.sexual_scene_tag_count_weights_by_presence must be a non-empty object",
         ),
         (
-            lambda _titles, _entities, _prompts, config: config.update(
+            lambda _titles, _entities, _prompts, _weather, config: config.update(
                 {
                     "sexual_scene_tag_count_weights_by_presence": (
                         _tag_count_weights_with_none_entry({"abc": 1.0})
@@ -698,7 +692,7 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
             r"sexual_scene_tag_count_weights_by_presence\.none keys must be non-negative integers",
         ),
         (
-            lambda _titles, _entities, _prompts, config: config.update(
+            lambda _titles, _entities, _prompts, _weather, config: config.update(
                 {
                     "sexual_scene_tag_count_weights_by_presence": (
                         _tag_count_weights_with_none_entry({"1": 0.0, "2": 0.0})
@@ -708,7 +702,7 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
             r"sexual_scene_tag_count_weights_by_presence\.none values must sum to > 0",
         ),
         (
-            lambda _titles, _entities, _prompts, config: config.update(
+            lambda _titles, _entities, _prompts, _weather, config: config.update(
                 {
                     "sexual_scene_tag_count_weights_by_presence": (
                         _tag_count_weights_with_none_entry({"1": True})
@@ -718,7 +712,7 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
             r"sexual_scene_tag_count_weights_by_presence\.none values must be real numbers",
         ),
         (
-            lambda _titles, _entities, _prompts, config: config.update(
+            lambda _titles, _entities, _prompts, _weather, config: config.update(
                 {
                     "sexual_scene_tag_count_weights_by_presence": (
                         _tag_count_weights_with_none_entry({"1": math.inf})
@@ -728,7 +722,7 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
             r"sexual_scene_tag_count_weights_by_presence\.none values must be finite",
         ),
         (
-            lambda _titles, _entities, _prompts, config: config.update(
+            lambda _titles, _entities, _prompts, _weather, config: config.update(
                 {
                     "sexual_scene_tag_count_weights_by_presence": (
                         _tag_count_weights_with_none_entry({"1": -1.0})
@@ -738,25 +732,25 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
             r"sexual_scene_tag_count_weights_by_presence\.none values must be non-negative",
         ),
         (
-            lambda _titles, _entities, _prompts, config: config.update(
+            lambda _titles, _entities, _prompts, _weather, config: config.update(
                 {"sexual_scene_optional_tag_groups": ["unknown"]}
             ),
             r"config\.sexual_scene_optional_tag_groups contains unknown groups: unknown",
         ),
         (
-            lambda _titles, _entities, _prompts, config: config.update(
+            lambda _titles, _entities, _prompts, _weather, config: config.update(
                 {"sexual_scene_optional_tag_groups": ["tone", "tone"]}
             ),
             r"config\.sexual_scene_optional_tag_groups contains duplicate value at index 1",
         ),
         (
-            lambda _titles, _entities, _prompts, config: config.update(
+            lambda _titles, _entities, _prompts, _weather, config: config.update(
                 {"sexual_scene_optional_tag_groups": ["tone", " "]}
             ),
             r"config\.sexual_scene_optional_tag_groups\[1\] must be a non-empty string",
         ),
         (
-            lambda _titles, _entities, _prompts, config: config.update(
+            lambda _titles, _entities, _prompts, _weather, config: config.update(
                 {"sexual_scene_required_tag_groups_by_presence": {"unknown": ["tone"]}}
             ),
             (
@@ -765,7 +759,7 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
             ),
         ),
         (
-            lambda _titles, _entities, _prompts, config: config.update(
+            lambda _titles, _entities, _prompts, _weather, config: config.update(
                 {
                     "sexual_scene_required_tag_groups_by_presence": {
                         "none": [],
@@ -778,7 +772,7 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
             ),
         ),
         (
-            lambda _titles, _entities, _prompts, config: config.update(
+            lambda _titles, _entities, _prompts, _weather, config: config.update(
                 {"sexual_scene_required_tag_groups_by_presence": {"none": ["unknown"]}}
             ),
             (
@@ -787,7 +781,7 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
             ),
         ),
         (
-            lambda _titles, _entities, _prompts, config: config.update(
+            lambda _titles, _entities, _prompts, _weather, config: config.update(
                 {"sexual_scene_required_tag_groups_by_presence": {"none": ["tone", "tone"]}}
             ),
             (
@@ -796,7 +790,7 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
             ),
         ),
         (
-            lambda _titles, _entities, _prompts, config: config.update(
+            lambda _titles, _entities, _prompts, _weather, config: config.update(
                 {
                     "sexual_scene_required_tag_groups_by_presence": {
                         "none": ["tone", " "],
@@ -816,7 +810,7 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
             ),
         ),
         (
-            lambda _titles, _entities, _prompts, config: (
+            lambda _titles, _entities, _prompts, _weather, config: (
                 config["sexual_scene_tag_count_weights_by_presence"]
                 .setdefault("none", {})
                 .update({"1": 1.0, "2": 0.0}),
@@ -842,7 +836,7 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
             ),
         ),
         (
-            lambda _titles, _entities, _prompts, config: (
+            lambda _titles, _entities, _prompts, _weather, config: (
                 config["sexual_scene_tag_count_weights_by_presence"]
                 .setdefault("none", {})
                 .update({"0": 1.0, "1": 1.0}),
@@ -868,29 +862,29 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
             ),
         ),
         (
-            lambda _titles, _entities, _prompts, config: config.update({"ordered_keys": []}),
+            lambda _titles, _entities, _prompts, _weather, config: config.update({"ordered_keys": []}),
             r"config\.ordered_keys must be a non-empty list",
         ),
         (
-            lambda _titles, _entities, _prompts, config: config.update(
+            lambda _titles, _entities, _prompts, _weather, config: config.update(
                 {"ordered_keys": [" ", *config["ordered_keys"][1:]]}
             ),
             r"config\.ordered_keys\[0\] must be a non-empty string",
         ),
         (
-            lambda _titles, _entities, _prompts, config: config.update(
+            lambda _titles, _entities, _prompts, _weather, config: config.update(
                 {"ordered_keys": [key for key in config["ordered_keys"] if key != "title"]}
             ),
             r"missing expected keys: title",
         ),
         (
-            lambda _titles, _entities, _prompts, config: config.update(
+            lambda _titles, _entities, _prompts, _weather, config: config.update(
                 {"ordered_keys": [*config["ordered_keys"], "bonus_field"]}
             ),
             r"unexpected keys: bonus_field",
         ),
         (
-            lambda _titles, _entities, _prompts, config: config.update({"writing_preamble": ""}),
+            lambda _titles, _entities, _prompts, _weather, config: config.update({"writing_preamble": ""}),
             r"config\.writing_preamble must be a non-empty string",
         ),
     ],

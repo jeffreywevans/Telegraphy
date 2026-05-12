@@ -93,8 +93,8 @@ celerybeat.pid
 env
 venv
 ENV
-env.bak/
-venv.bak/
+env.bak
+venv.bak
 
 # Tooling caches and local project settings
 .spyderproject/

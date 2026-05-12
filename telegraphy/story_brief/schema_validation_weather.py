@@ -10,6 +10,9 @@ WEATHER_OPTIONAL_KEYS = frozenset({"weather_comment"})
 
 
 def validate_weather(weather: dict[str, Any]) -> None:
+    if not isinstance(weather, dict):
+        raise ValueError(f"weather: expected mapping, got {type(weather).__name__}")
+
     require_keys("weather", weather, WEATHER_REQUIRED_KEYS)
     unexpected = sorted(set(weather) - (WEATHER_REQUIRED_KEYS | WEATHER_OPTIONAL_KEYS))
     if unexpected:

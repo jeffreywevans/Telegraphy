@@ -12,6 +12,7 @@ from ._constants import CHARACTER_AVAILABILITY_KEY, SETTING_AVAILABILITY_KEY
 RandomSource: TypeAlias = random.Random | secrets.SystemRandom
 PoolValue = TypeVar("PoolValue", bound=str | int | tuple[str, float])
 OptionT = TypeVar("OptionT")
+AvailabilityRows: TypeAlias = Sequence[tuple[str, date, date]]
 
 
 def stable_sorted_pool(values: Iterable[PoolValue]) -> list[PoolValue]:
@@ -30,22 +31,25 @@ def _date_in_range(selected_date: date, start_date: date, end_date: date) -> boo
     return start_date <= selected_date <= end_date
 
 
-def available_characters(selected_date: date, data: Mapping[str, Any]) -> list[str]:
-    """Return characters available for the selected date."""
+def available_entities(availability_rows: AvailabilityRows, *, selected_date: date) -> list[str]:
+    """Return names whose closed availability window contains ``selected_date``."""
     return [
         name
-        for name, start_date, end_date in data[CHARACTER_AVAILABILITY_KEY]
+        for name, start_date, end_date in availability_rows
         if _date_in_range(selected_date, start_date, end_date)
     ]
+
+
+def available_characters(selected_date: date, data: Mapping[str, Any]) -> list[str]:
+    """Return characters available for the selected date."""
+    return available_entities(
+        data[CHARACTER_AVAILABILITY_KEY], selected_date=selected_date
+    )
 
 
 def available_settings(selected_date: date, data: Mapping[str, Any]) -> list[str]:
     """Return settings available for the selected date."""
-    return [
-        setting
-        for setting, start_date, end_date in data[SETTING_AVAILABILITY_KEY]
-        if _date_in_range(selected_date, start_date, end_date)
-    ]
+    return available_entities(data[SETTING_AVAILABILITY_KEY], selected_date=selected_date)
 
 
 def weighted_choice(

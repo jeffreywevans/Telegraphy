@@ -615,7 +615,9 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
             r"start must be <= end",
         ),
         (
-            lambda _titles, _entities, _prompts, _weather, config: config.update({"schema_version": 0}),
+            lambda _titles, _entities, _prompts, _weather, config: config.update(
+                {"schema_version": 0}
+            ),
             r"config\.schema_version must be an integer >= 1",
         ),
         (
@@ -862,7 +864,9 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
             ),
         ),
         (
-            lambda _titles, _entities, _prompts, _weather, config: config.update({"ordered_keys": []}),
+            lambda _titles, _entities, _prompts, _weather, config: config.update(
+                {"ordered_keys": []}
+            ),
             r"config\.ordered_keys must be a non-empty list",
         ),
         (
@@ -884,7 +888,9 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
             r"unexpected keys: bonus_field",
         ),
         (
-            lambda _titles, _entities, _prompts, _weather, config: config.update({"writing_preamble": ""}),
+            lambda _titles, _entities, _prompts, _weather, config: config.update(
+                {"writing_preamble": ""}
+            ),
             r"config\.writing_preamble must be a non-empty string",
         ),
     ],

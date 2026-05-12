@@ -38,11 +38,16 @@ class DatasetLintReport(NamedTuple):
 
 
 class IntervalLintResults(NamedTuple):
+    """Summarized interval-level lint findings for coverage and partner data gaps."""
+
     missing_character_ranges: list[DateRange]
     thin_character_ranges: list[DateRange]
     missing_setting_ranges: list[DateRange]
     thin_setting_ranges: list[DateRange]
     partner_data_gap_ranges_by_protagonist: PartnerGapRanges
+
+
+_IntervalLintResults = IntervalLintResults
 
 
 class _AvailabilityGapFlags(NamedTuple):
@@ -194,6 +199,8 @@ def _record_partner_gaps(
 def collect_interval_lint_ranges(
     data: Mapping[str, Any], *, sorted_checkpoints: Sequence[date], range_end: date
 ) -> IntervalLintResults:
+    """Collect interval-level coverage gaps and fragile spans across the dataset."""
+
     missing_character_ranges: list[DateRange] = []
     thin_character_ranges: list[DateRange] = []
     missing_setting_ranges: list[DateRange] = []

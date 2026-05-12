@@ -21,10 +21,8 @@ from .schema_validation_config import (
     validate_word_count_targets,
     validate_writing_preamble,
 )
-from .schema_validation_titles_prompts import (
-    validate_prompt_lists,
-    validate_titles,
-)
+from .schema_validation_titles_prompts import validate_prompt_lists, validate_titles
+from .schema_validation_weather import validate_weather
 
 ENTITY_AVAILABILITY_KEYS = frozenset({CHARACTER_AVAILABILITY_KEY, SETTING_AVAILABILITY_KEY})
 
@@ -55,6 +53,7 @@ def validate_story_data(
     titles: dict[str, Any],
     entities: dict[str, Any],
     prompts: dict[str, Any],
+    weather: dict[str, Any],
     config: dict[str, Any],
     partner_distributions: dict[str, Any],
 ) -> ValidatedStoryData:
@@ -63,6 +62,7 @@ def validate_story_data(
     character_rows, setting_rows = _validate_entities(entities)
 
     validate_prompt_lists(prompts)
+    validate_weather(weather)
     normalized_config = normalize_config(config)
 
     require_keys("config", normalized_config, CONFIG_REQUIRED_KEYS)

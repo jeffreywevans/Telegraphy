@@ -28,6 +28,7 @@ DATA_FILENAMES: Final[dict[str, str]] = {
     "titles": "titles.json",
     "entities": "entities.json",
     "prompts": "prompts.json",
+    "weather": "weather.json",
     "config": "config.json",
     "partner_distributions": "partner_distributions.json",
 }

@@ -7,7 +7,6 @@ PROMPT_LIST_KEYS = (
     "inciting_pressures",
     "ending_types",
     "style_guidance",
-    "weather",
 )
 CHARACTER_AVAILABILITY_KEY = "character_availability"
 SETTING_AVAILABILITY_KEY = "setting_availability"

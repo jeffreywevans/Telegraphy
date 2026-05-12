@@ -32,9 +32,9 @@ def _write_minimal_dataset(data_dir: Path) -> None:
             "inciting_pressures": ["Pressure"],
             "ending_types": ["Open"],
             "style_guidance": ["Tight"],
-            "weather": ["good"],
         },
     )
+    _write_payload(data_dir / "weather.json", {"weather": ["good"]})
     _write_payload(
         data_dir / "config.json",
         {

@@ -361,7 +361,8 @@ def _tags_for_group(group_name: str, data: StoryData) -> Sequence[str]:
     """Return deterministic tags for one sexual-scene tag group."""
     tag_groups = data["sexual_scene_tag_groups"]
     try:
-        return stable_sorted_pool(tag_groups[group_name])
+        tags = tag_groups[group_name]
+        return tags if isinstance(tags, tuple) else stable_sorted_pool(tags)
     except KeyError as exc:
         raise ValueError(f"Unknown sexual scene tag group: {group_name}") from exc
 

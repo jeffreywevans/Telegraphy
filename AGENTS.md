@@ -10,9 +10,9 @@ This file defines coding, testing, and review expectations for AI coding agents 
 - Treat every change as production-grade.
 
 ## Python Standards
-- Target Python 3.11+ syntax unless the repository specifies otherwise.
+- Target Python 3.14+ syntax unless the repository specifies otherwise.
 - Use type hints for all public functions, methods, and module-level constants.
-- Avoid `Any` unless unavoidable; prefer precise types (`TypedDict`, `Protocol`, generics, enums).
+- Avoid Any unless unavoidable; prefer precise types (TypedDict, Protocol, generics, enums). All code must pass `mypy --strict`.
 - Keep functions small and single-purpose.
 - Document non-obvious logic with concise docstrings or comments.
 - Use dataclasses for structured data when appropriate.
@@ -59,7 +59,7 @@ This file defines coding, testing, and review expectations for AI coding agents 
 Agents should run relevant checks locally before committing (adjust to project tooling):
 - Formatter/linter (e.g., `ruff format`, `ruff check`)
 - Type checks (e.g., `mypy` with strict settings where configured)
-- Tests (e.g., `pytest` including targeted integration tests when touched)
+- Tests (e.g., `tox`, or `pytest` including targeted integration tests when touched)
 - Security/static checks if configured in repo
 
 If any check fails:

@@ -3,22 +3,25 @@
 from __future__ import annotations
 
 import argparse
-import os
 import queue
-import subprocess
 import sys
 import threading
 import tkinter as tk
-from dataclasses import dataclass
-from locale import getpreferredencoding
 from tkinter import font as tkfont
 from tkinter import ttk
 from typing import Final
 
+from telegraphy.gui.cli_runner import build_cli_command, decode_output, run_story_brief_cli
+from telegraphy.gui.models import (
+    DEFAULT_CLI_TIMEOUT_SECONDS,
+    RunOptions,
+    RunOptionsValidationError,
+    resolve_run_options,
+)
+
 APP_TITLE: Final = "Telegraphy Tablet"
 TABLET_BUTTON_STYLE: Final = "Tablet.TButton"
 DEFAULT_FONT_FAMILY: Final = "Segoe UI"
-DEFAULT_CLI_TIMEOUT_SECONDS: Final = 30
 TABLET_EXTRA_WIDTH_INCHES_PER_SIDE: Final = 2
 TABLET_BASE_WIDTH_PIXELS: Final = 860
 TABLET_BASE_HEIGHT_PIXELS: Final = 620
@@ -34,20 +37,8 @@ TABLET_OUTER_OUTLINE_COLOR: Final = "#A6A6A6"
 TABLET_MIDDLE_OUTLINE_COLOR: Final = "#1f2937"
 
 
-@dataclass(frozen=True)
-class RunOptions:
-    seed: int | None = None
-    date: str | None = None
-    timeout_seconds: float = DEFAULT_CLI_TIMEOUT_SECONDS
-
-
 def _build_cli_command(options: RunOptions) -> list[str]:
-    command = [sys.executable, "-m", "telegraphy.story_brief", "--print-only"]
-    if options.seed is not None:
-        command.extend(["--seed", str(options.seed)])
-    if options.date:
-        command.extend(["--date", options.date])
-    return command
+    return build_cli_command(options)
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -368,23 +359,15 @@ class TelegraphyTablet(tk.Tk):
         )
 
     def _resolve_run_options(self) -> RunOptions | None:
-        seed_text = self.seed_var.get().strip()
-        date_text = self.date_var.get().strip()
-
-        seed_value = self.run_options.seed
-        if seed_text:
-            try:
-                seed_value = int(seed_text)
-            except ValueError:
-                self.result_queue.put(("error", f"Invalid seed: {seed_text!r}. Enter an integer."))
-                return None
-
-        date_value = date_text or self.run_options.date
-        return RunOptions(
-            seed=seed_value,
-            date=date_value,
-            timeout_seconds=self.run_options.timeout_seconds,
+        result = resolve_run_options(
+            seed_text=self.seed_var.get(),
+            date_text=self.date_var.get(),
+            current_options=self.run_options,
         )
+        if isinstance(result, RunOptionsValidationError):
+            self.result_queue.put(("error", result.message))
+            return None
+        return result
 
     def generate_story_brief(self) -> None:
         self.generate_button.configure(state="disabled")
@@ -404,44 +387,11 @@ class TelegraphyTablet(tk.Tk):
         worker.start()
 
     def _run_cli_worker(self) -> None:
-        try:
-            completed = subprocess.run(
-                _build_cli_command(self.run_options),
-                check=False,
-                capture_output=True,
-                text=False,
-                timeout=self.run_options.timeout_seconds,
-                env=os.environ.copy(),
-            )
-        except subprocess.TimeoutExpired:
-            self.result_queue.put(
-                (
-                    "error",
-                    f"CLI worker timed out after {self.run_options.timeout_seconds:g}s.",
-                )
-            )
-            return
-        except OSError as exc:
-            self.result_queue.put(("error", f"Could not run Telegraphy CLI:\n{exc}"))
-            return
-
-        stdout = self._decode_output(completed.stdout)
-        stderr = self._decode_output(completed.stderr)
-
-        if completed.returncode == 0:
-            self.result_queue.put(("success", stdout.strip()))
-            return
-
-        message = stderr.strip() or stdout.strip() or "Unknown CLI failure."
-        self.result_queue.put(("error", message))
+        result = run_story_brief_cli(self.run_options)
+        self.result_queue.put((result.status, result.message))
 
     def _decode_output(self, output: bytes) -> str:
-        preferred_encoding = getpreferredencoding(False) or "utf-8"
-
-        try:
-            return output.decode(preferred_encoding)
-        except (UnicodeDecodeError, LookupError):
-            return output.decode("utf-8", errors="replace")
+        return decode_output(output)
 
     def _poll_worker_queue(self) -> None:
         if not self._worker_active:

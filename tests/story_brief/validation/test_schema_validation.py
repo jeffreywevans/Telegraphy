@@ -143,6 +143,13 @@ def test_schema_validation_rejects_bad_data(
     with pytest.raises(ValueError, match=expected_msg):
         validate_story_data(titles, entities, prompts, weather, config, partner_distributions)
 
+def test_schema_validation_rejects_weather_with_unexpected_key(story_dataset_payloads) -> None:
+    _assert_schema_rejects(
+        story_dataset_payloads,
+        lambda _t, _e, _p, weather, _c: weather.update({"unexpected": "value"}),
+        "weather: unexpected keys: unexpected",
+    )
+
 
 def test_schema_validation_allows_disjoint_availability_windows_for_same_name(
     story_dataset_payloads,

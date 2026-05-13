@@ -18,8 +18,9 @@ def validate_weather(weather: dict[str, Any]) -> None:
     if unexpected:
         raise ValueError(f"weather: unexpected keys: {', '.join(unexpected)}")
 
-    validate_string_list("weather", "weather", weather["weather"])
-    validate_no_duplicate_strings("weather", "weather", weather["weather"])
+    weather_values = weather["weather"]
+    validate_string_list("weather", "weather", weather_values)
+    validate_no_duplicate_strings("weather", "weather", weather_values)
 
     if "weather_comment" in weather and (
         not isinstance(weather["weather_comment"], str)

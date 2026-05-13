@@ -693,6 +693,52 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
             ),
             r"sexual_scene_tag_count_weights_by_presence\.none keys must be non-negative integers",
         ),
+
+        (
+            lambda _titles, _entities, _prompts, _weather, config: config.update(
+                {
+                    "sexual_scene_tag_count_weights_by_presence": (
+                        _tag_count_weights_with_none_entry({True: 1.0})
+                    )
+                }
+            ),
+            r"sexual_scene_tag_count_weights_by_presence\.none keys must be non-negative integers",
+        ),
+        (
+            lambda _titles, _entities, _prompts, _weather, config: config.update(
+                {
+                    "sexual_scene_tag_count_weights_by_presence": (
+                        _tag_count_weights_with_none_entry({"01": 1.0})
+                    )
+                }
+            ),
+            r"sexual_scene_tag_count_weights_by_presence\.none keys must be non-negative integers",
+        ),
+        (
+            lambda _titles, _entities, _prompts, _weather, config: config.update(
+                {
+                    "sexual_scene_tag_count_weights_by_presence": {
+                        **config["sexual_scene_tag_count_weights_by_presence"],
+                        "none": {"0": 1.0},
+                    },
+                    "sexual_scene_required_tag_groups_by_presence": {
+                        "none": ["tone"],
+                        **{
+                            key: value
+                            for key, value in config[
+                                "sexual_scene_required_tag_groups_by_presence"
+                            ].items()
+                            if key != "none"
+                        },
+                    },
+                }
+            ),
+            (
+                r"config\.sexual_scene_required_tag_groups_by_presence\.none requires 1 group, "
+                r"but config\.sexual_scene_tag_count_weights_by_presence\.none allows as few "
+                r"as 0 tags"
+            ),
+        ),
         (
             lambda _titles, _entities, _prompts, _weather, config: config.update(
                 {

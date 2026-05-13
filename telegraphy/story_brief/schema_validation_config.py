@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+import re
 from datetime import date
 from typing import Any
 
@@ -163,14 +164,24 @@ def validate_sexual_scene_tag_groups(config: dict[str, Any]) -> None:
         validate_no_duplicate_strings("config", f"sexual_scene_tag_groups.{group_name}", tags)
 
 
+_NON_NEGATIVE_INT_PATTERN = re.compile(r"0|[1-9]\d*")
+
+
 def _parse_non_negative_weight_count(raw_count: Any, field_name: str, min_count: int = 0) -> int:
     minimum_label = "positive" if min_count > 0 else "non-negative"
     error_message = f"{field_name} must be {minimum_label} integers, got {raw_count!r}"
-    try:
+
+    if isinstance(raw_count, bool):
+        raise ValueError(error_message)
+
+    if isinstance(raw_count, int):
+        count = raw_count
+    elif isinstance(raw_count, str) and _NON_NEGATIVE_INT_PATTERN.fullmatch(raw_count):
         count = int(raw_count)
-    except (TypeError, ValueError) as exc:
-        raise ValueError(error_message) from exc
-    if str(count) != str(raw_count) or count < min_count:
+    else:
+        raise ValueError(error_message)
+
+    if count < min_count:
         raise ValueError(error_message)
     return count
 
@@ -193,7 +204,6 @@ def validate_sexual_scene_tag_count_weights_by_presence(config: dict[str, Any]) 
         )
 
     group_count = len(config["sexual_scene_tag_groups"])
-    min_count = 0
     for presence in config["sexual_content_presence_options"]:
         raw_weights = raw_by_presence.get(presence)
         if not isinstance(raw_weights, dict) or not raw_weights:
@@ -207,7 +217,7 @@ def validate_sexual_scene_tag_count_weights_by_presence(config: dict[str, Any]) 
             count = _parse_non_negative_weight_count(
                 raw_count,
                 field_name=f"sexual_scene_tag_count_weights_by_presence.{presence} keys",
-                min_count=min_count,
+                min_count=0,
             )
             if count > group_count:
                 raise ValueError(

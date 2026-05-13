@@ -47,6 +47,7 @@ def test_init_and_configure_style_and_build(monkeypatch):
         widget = FakeWidget()
         widget._bg = kwargs.get("bg")
         return widget
+
     canvas = make_widget()
     canvas.create_window = MagicMock(return_value=111)
     canvas.create_oval = MagicMock()
@@ -116,14 +117,8 @@ def test_init_and_configure_style_and_build(monkeypatch):
 def test_decode_output_paths(monkeypatch):
     tablet = _make_tablet()
 
-    monkeypatch.setattr(tablet_app, "getpreferredencoding", lambda _flag: "utf-8")
-    assert tablet._decode_output("ok".encode("utf-8")) == "ok"
-
-    monkeypatch.setattr(tablet_app, "getpreferredencoding", lambda _flag: "bad-encoding")
-    assert "�" in tablet._decode_output(b"\xff")
-
-    monkeypatch.setattr(tablet_app, "getpreferredencoding", lambda _flag: "")
-    assert tablet._decode_output(b"fallback") == "fallback"
+    monkeypatch.setattr(tablet_app, "decode_output", lambda _value: "decoded")
+    assert tablet._decode_output(b"ok") == "decoded"
 
 
 def test_generate_story_brief_starts_worker_and_starts_polling(monkeypatch):
@@ -163,8 +158,6 @@ def test_generate_story_brief_starts_worker_and_starts_polling(monkeypatch):
     assert poll_called == [True]
 
 
-
-
 def test_generate_story_brief_invalid_seed_starts_poll_but_not_worker(monkeypatch):
     tablet = _make_tablet()
     tablet.generate_button = MagicMock()
@@ -196,7 +189,6 @@ def test_generate_story_brief_invalid_seed_starts_poll_but_not_worker(monkeypatc
     assert tablet._worker_active is True
     assert tablet.generate_button.configure.call_args_list == [call(state="disabled")]
     assert tablet.result_queue.get_nowait()[0] == "error"
-
 
 
 def test_generate_story_brief_invalid_seed_queue_message_is_consumed(monkeypatch):
@@ -241,6 +233,7 @@ def test_generate_story_brief_invalid_seed_queue_message_is_consumed(monkeypatch
     assert tablet.generate_button.configure.call_args_list[-1] == call(state="normal")
     assert tablet.copy_button.configure.call_args_list[-1] == call(state="disabled")
 
+
 def test_resolve_run_options_invalid_seed(monkeypatch):
     tablet = _make_tablet()
     tablet.result_queue = queue.Queue()
@@ -252,8 +245,6 @@ def test_resolve_run_options_invalid_seed(monkeypatch):
     status, message = tablet.result_queue.get_nowait()
     assert status == "error"
     assert "Invalid seed" in message
-
-
 
 
 def test_resolve_run_options_preserves_startup_seed_and_date_when_blank():
@@ -285,50 +276,22 @@ def test_build_cli_command_handles_optional_seed_and_date_arguments():
 def test_run_cli_worker_success_error_and_exception(monkeypatch):
     tablet = _make_tablet()
     tablet.result_queue = queue.Queue()
-
-    monkeypatch.setattr(tablet, "_decode_output", lambda value: value.decode("utf-8"))
-
     tablet.run_options = tablet_app.RunOptions(timeout_seconds=1.5)
-
     monkeypatch.setattr(
-        tablet_app.subprocess,
-        "run",
-        lambda *args, **kwargs: SimpleNamespace(returncode=0, stdout=b" done ", stderr=b""),
+        tablet_app,
+        "run_story_brief_cli",
+        lambda _options: SimpleNamespace(status="success", message="done"),
     )
     tablet._run_cli_worker()
     assert tablet.result_queue.get_nowait() == ("success", "done")
 
     monkeypatch.setattr(
-        tablet_app.subprocess,
-        "run",
-        lambda *args, **kwargs: SimpleNamespace(returncode=3, stdout=b" output ", stderr=b" err "),
+        tablet_app,
+        "run_story_brief_cli",
+        lambda _options: SimpleNamespace(status="error", message="err"),
     )
     tablet._run_cli_worker()
     assert tablet.result_queue.get_nowait() == ("error", "err")
-
-    monkeypatch.setattr(
-        tablet_app.subprocess,
-        "run",
-        lambda *args, **kwargs: SimpleNamespace(returncode=2, stdout=b" ", stderr=b" "),
-    )
-    tablet._run_cli_worker()
-    assert tablet.result_queue.get_nowait() == ("error", "Unknown CLI failure.")
-
-    def _raise_oserror(*_args, **_kwargs):
-        raise OSError("boom")
-
-    monkeypatch.setattr(tablet_app.subprocess, "run", _raise_oserror)
-    tablet._run_cli_worker()
-    status, message = tablet.result_queue.get_nowait()
-    assert status == "error"
-    assert "Could not run Telegraphy CLI" in message
-
-    def _raise_timeout(*_args, **_kwargs):
-        raise tablet_app.subprocess.TimeoutExpired(cmd=["x"], timeout=1.5)
-
-    monkeypatch.setattr(tablet_app.subprocess, "run", _raise_timeout)
-    tablet._run_cli_worker()
-    assert tablet.result_queue.get_nowait() == ("error", "CLI worker timed out after 1.5s.")
 
 
 def test_poll_queue_and_copy_and_output_and_draw(monkeypatch):
@@ -413,6 +376,7 @@ def test_set_output_updates_text_widget_state():
     assert tablet.output.configure.call_args_list[-1] == call(state="disabled")
     tablet.output.see.assert_called_once_with("1.0")
 
+
 def test_redraw_tablet_updates_canvas_geometry(monkeypatch):
     tablet = _make_tablet()
     tablet.canvas = MagicMock()
@@ -426,6 +390,7 @@ def test_redraw_tablet_updates_canvas_geometry(monkeypatch):
     tablet.canvas.delete.assert_called_once_with("tablet")
     tablet.canvas.coords.assert_called_once_with(7, 40, 40)
     tablet.canvas.itemconfigure.assert_called_once_with(7, width=420, height=220)
+
 
 def test_rounded_rectangle_creates_polygon():
     tablet = _make_tablet()
@@ -445,7 +410,6 @@ def test_rounded_rectangle_creates_polygon():
     )
     assert polygon_id is None
     tablet.canvas.create_polygon.assert_called_once()
-
 
 
 def test_font_selection_by_platform(monkeypatch):
@@ -469,20 +433,27 @@ def test_font_selection_by_platform(monkeypatch):
 
 
 def test_font_fallback_helpers():
-    assert tablet_app.TelegraphyTablet._pick_first_available_font(
-        ("One", "Two", "Three"),
-        {"zero", "three"},
-    ) == "Three"
+    assert (
+        tablet_app.TelegraphyTablet._pick_first_available_font(
+            ("One", "Two", "Three"),
+            {"zero", "three"},
+        )
+        == "Three"
+    )
 
-    assert tablet_app.TelegraphyTablet._pick_first_available_font(
-        ("One", "Two", "Three"),
-        {"zero"},
-    ) == "One"
+    assert (
+        tablet_app.TelegraphyTablet._pick_first_available_font(
+            ("One", "Two", "Three"),
+            {"zero"},
+        )
+        == "One"
+    )
 
     assert (
         tablet_app.TelegraphyTablet._pick_first_available_font((), set())
         == tablet_app.DEFAULT_FONT_FAMILY
     )
+
 
 def test_main_invokes_mainloop(monkeypatch):
     called: list[str] = []

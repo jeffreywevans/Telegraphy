@@ -87,7 +87,7 @@ class TelegraphyTablet(tk.Tk):
             return self._dpi_cache
         try:
             self._dpi_cache = max(int(round(float(self.winfo_fpixels("1i")))), 1)
-        except tk.TclError, ValueError, AttributeError, RecursionError:
+        except (tk.TclError, ValueError, AttributeError, RecursionError):
             self._dpi_cache = DEFAULT_DPI
         return self._dpi_cache
 

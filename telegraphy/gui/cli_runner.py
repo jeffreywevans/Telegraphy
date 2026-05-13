@@ -32,7 +32,7 @@ def decode_output(output: bytes) -> str:
 
     try:
         return output.decode(preferred_encoding)
-    except UnicodeDecodeError, LookupError:
+    except (UnicodeDecodeError, LookupError):
         return output.decode("utf-8", errors="replace")
 
 

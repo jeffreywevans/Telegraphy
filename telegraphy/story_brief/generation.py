@@ -201,18 +201,21 @@ def pick_sexual_scene_tags(
         tag_count_options,
         tag_count_weights,
     )
+    optional_needed = selected_tag_count - len(required_tag_groups)
+    if optional_needed <= 0:
+        return pick_tags_from_selected_groups(rng, required_tag_groups, data)
+
     required_names_set = set(required_tag_groups)
     optional_groups = [
         group_name
         for group_name in candidate_tag_groups
         if group_name not in required_names_set
     ]
-    optional_needed = selected_tag_count - len(required_tag_groups)
-    selected_tag_groups = [
-        *required_tag_groups,
-        *rng.sample(optional_groups, optional_needed),
-    ]
-    return pick_tags_from_selected_groups(rng, selected_tag_groups, data)
+    return pick_tags_from_selected_groups(
+        rng,
+        [*required_tag_groups, *rng.sample(optional_groups, optional_needed)],
+        data,
+    )
 
 
 def _required_sexual_scene_tag_groups(

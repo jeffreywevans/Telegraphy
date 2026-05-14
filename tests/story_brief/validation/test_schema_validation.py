@@ -8,6 +8,7 @@ import pytest
 
 from telegraphy.story_brief.generate_story_brief import get_normalized_story_data
 from telegraphy.story_brief.linting import lint_story_data
+from telegraphy.story_brief.schema_validation_weather import validate_weather
 from telegraphy.story_brief.validation import (
     MAX_SEXUAL_SCENE_TAG_GROUPS,
     UNSUPPORTED_CONFIG_ALIAS_ERROR_PREFIX,
@@ -149,6 +150,11 @@ def test_schema_validation_rejects_weather_with_unexpected_key(story_dataset_pay
         lambda _t, _e, _p, weather, _c: weather.update({"unexpected": "value"}),
         "weather: unexpected keys: unexpected",
     )
+
+
+def test_validate_weather_rejects_non_mapping_input() -> None:
+    with pytest.raises(ValueError, match="weather: expected mapping, got list"):
+        validate_weather([])
 
 
 def test_schema_validation_allows_disjoint_availability_windows_for_same_name(

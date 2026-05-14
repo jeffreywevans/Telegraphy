@@ -174,10 +174,10 @@ def _parse_non_negative_weight_count(raw_count: Any, field_name: str, min_count:
     if isinstance(raw_count, bool):
         raise ValueError(error_message)
 
-    if isinstance(raw_count, int):
-        count = raw_count
-    elif isinstance(raw_count, str) and _NON_NEGATIVE_INT_PATTERN.fullmatch(raw_count):
+    if isinstance(raw_count, str) and _NON_NEGATIVE_INT_PATTERN.fullmatch(raw_count):
         count = int(raw_count)
+    elif isinstance(raw_count, int):
+        count = raw_count
     else:
         raise ValueError(error_message)
 

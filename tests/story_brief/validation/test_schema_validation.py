@@ -971,4 +971,5 @@ def test_schema_validation_defaults_missing_optional_tag_groups(
     partner_distributions = story_dataset_payloads["partner_distributions"]
     config.pop("sexual_scene_optional_tag_groups")
 
-    validate_story_data(titles, entities, prompts, weather, config, partner_distributions)
+    result = validate_story_data(titles, entities, prompts, weather, config, partner_distributions)
+    assert result.normalized_config["sexual_scene_optional_tag_groups"] == []

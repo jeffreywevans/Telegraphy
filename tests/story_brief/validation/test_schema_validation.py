@@ -812,6 +812,12 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
         ),
         (
             lambda _titles, _entities, _prompts, _weather, config: config.update(
+                {"sexual_scene_optional_tag_groups": "tone"}
+            ),
+            r"config\.sexual_scene_optional_tag_groups must be a list",
+        ),
+        (
+            lambda _titles, _entities, _prompts, _weather, config: config.update(
                 {"sexual_scene_required_tag_groups_by_presence": {"unknown": ["tone"]}}
             ),
             (
@@ -871,58 +877,6 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
             ),
         ),
         (
-            lambda _titles, _entities, _prompts, _weather, config: (
-                config["sexual_scene_tag_count_weights_by_presence"]
-                .setdefault("none", {})
-                .update({"1": 1.0, "2": 0.0}),
-                config.update(
-                    {
-                        "sexual_scene_required_tag_groups_by_presence": {
-                            "none": list(config["sexual_scene_tag_groups"].keys())[:2],
-                            **{
-                                key: value
-                                for key, value in config[
-                                    "sexual_scene_required_tag_groups_by_presence"
-                                ].items()
-                                if key != "none"
-                            },
-                        }
-                    }
-                ),
-            ),
-            (
-                r"config\.sexual_scene_required_tag_groups_by_presence\.none requires 2 groups, "
-                r"but config\.sexual_scene_tag_count_weights_by_presence\.none allows as few "
-                r"as 0 tags"
-            ),
-        ),
-        (
-            lambda _titles, _entities, _prompts, _weather, config: (
-                config["sexual_scene_tag_count_weights_by_presence"]
-                .setdefault("none", {})
-                .update({"0": 1.0, "1": 1.0}),
-                config.update(
-                    {
-                        "sexual_scene_required_tag_groups_by_presence": {
-                            "none": ["tone"],
-                            **{
-                                key: value
-                                for key, value in config[
-                                    "sexual_scene_required_tag_groups_by_presence"
-                                ].items()
-                                if key != "none"
-                            },
-                        }
-                    }
-                ),
-            ),
-            (
-                r"config\.sexual_scene_required_tag_groups_by_presence\.none requires 1 group, "
-                r"but config\.sexual_scene_tag_count_weights_by_presence\.none allows as few "
-                r"as 0 tags"
-            ),
-        ),
-        (
             lambda _titles, _entities, _prompts, _weather, config: config.update(
                 {"ordered_keys": []}
             ),
@@ -960,3 +914,61 @@ def test_schema_validation_rejects_uncovered_branch_conditions(
     expected_message: str,
 ) -> None:
     _assert_schema_rejects(story_dataset_payloads, mutator, expected_message)
+
+
+def test_schema_validation_rejects_non_string_dataset_version(
+    story_dataset_payloads: dict[str, dict[str, Any]],
+) -> None:
+    _assert_schema_rejects(
+        story_dataset_payloads,
+        lambda _titles, _entities, _prompts, _weather, config: config.update(
+            {"dataset_version": 20260514}
+        ),
+        r"config\.dataset_version must be a non-empty string",
+    )
+
+
+def test_schema_validation_rejects_invalid_date_end_format(
+    story_dataset_payloads: dict[str, dict[str, Any]],
+) -> None:
+    _assert_schema_rejects(
+        story_dataset_payloads,
+        lambda _titles, _entities, _prompts, _weather, config: config.update(
+            {"date_end": "31-12-2000"}
+        ),
+        r"config date_start/date_end must be ISO dates \(YYYY-MM-DD\)",
+    )
+
+
+def test_schema_validation_rejects_tag_count_exceeding_group_count(
+    story_dataset_payloads: dict[str, dict[str, Any]],
+) -> None:
+    _assert_schema_rejects(
+        story_dataset_payloads,
+        lambda _titles, _entities, _prompts, _weather, config: config.update(
+            {
+                "sexual_scene_tag_count_weights_by_presence": {
+                    **config["sexual_scene_tag_count_weights_by_presence"],
+                    "none": {"999": 1.0},
+                }
+            }
+        ),
+        (
+            r"sexual_scene_tag_count_weights_by_presence\.none keys must not exceed the "
+            r"available sexual_scene_tag_groups count"
+        ),
+    )
+
+
+def test_schema_validation_defaults_missing_optional_tag_groups(
+    story_dataset_payloads: dict[str, dict[str, Any]],
+) -> None:
+    titles = story_dataset_payloads["titles"]
+    entities = story_dataset_payloads["entities"]
+    prompts = story_dataset_payloads["prompts"]
+    weather = story_dataset_payloads["weather"]
+    config = story_dataset_payloads["config"]
+    partner_distributions = story_dataset_payloads["partner_distributions"]
+    config.pop("sexual_scene_optional_tag_groups")
+
+    validate_story_data(titles, entities, prompts, weather, config, partner_distributions)

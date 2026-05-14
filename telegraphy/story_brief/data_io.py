@@ -14,9 +14,7 @@ from .normalization import _build_story_data
 from .story_data import StoryData
 
 DATA_DIR_ENV_VAR: Final = "TELEGRAPHY_DATA_DIR"
-_CONFIGURED_DATA_DIR_LABEL: Final = (
-    "configured data directory (TELEGRAPHY_DATA_DIR)"
-)
+_CONFIGURED_DATA_DIR_LABEL: Final = "configured data directory (TELEGRAPHY_DATA_DIR)"
 _PACKAGE_DATA_RESOURCE: Final = "telegraphy.story_brief.data"
 
 
@@ -95,21 +93,20 @@ def _resolve_override_data_dir(raw_value: str) -> Path:
     candidate_text = _validated_override_path_text(raw_value)
     candidate = Path(candidate_text)
     if not candidate.is_absolute():
-        if os.name == "nt" and candidate_text.startswith(("/", "\\")):
-            candidate = candidate.absolute()
-        if not candidate.is_absolute():
+        if os.name != "nt":
             raise DataDirError("Configured data directory must be an absolute path")
+        if not candidate_text.startswith(("/", "\\")):
+            raise DataDirError("Configured data directory must be an absolute path")
+        candidate = candidate.absolute()
     try:
         resolved = candidate.resolve(strict=False)
         if not resolved.exists() or not resolved.is_dir():
             raise DataDirError(
-                "Configured data directory must be an existing directory: "
-                f"{candidate}"
+                f"Configured data directory must be an existing directory: {candidate}"
             )
     except OSError as exc:
         raise DataDirError(
-            "Configured data directory is unreachable or invalid: "
-            f"{candidate}"
+            f"Configured data directory is unreachable or invalid: {candidate}"
         ) from exc
     return resolved
 
@@ -127,7 +124,7 @@ def resolve_data_dir() -> Path | Traversable:
 
     try:
         return files(_PACKAGE_DATA_RESOURCE)
-    except (ModuleNotFoundError, FileNotFoundError, TypeError):
+    except ModuleNotFoundError, FileNotFoundError, TypeError:
         return _fallback_data_dir()
 
 
@@ -156,14 +153,11 @@ def _contained_child_path(data_dir: Path, filename: str) -> Path:
     base_resolved = data_dir.resolve(strict=True)
     if not base_resolved.is_dir():
         raise DataDirError(
-            "Configured data directory must be an existing directory: "
-            f"{base_resolved}"
+            f"Configured data directory must be an existing directory: {base_resolved}"
         )
     target_resolved = (base_resolved / filename).resolve(strict=False)
     if not target_resolved.is_relative_to(base_resolved):
-        raise DataDirError(
-            f"Resolved data file path escapes the data directory: {target_resolved}"
-        )
+        raise DataDirError(f"Resolved data file path escapes the data directory: {target_resolved}")
     return target_resolved
 
 

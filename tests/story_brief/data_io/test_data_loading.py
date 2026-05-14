@@ -214,9 +214,7 @@ def test_env_override_requires_absolute_directory(
         ("/tmp/../escape", "must not include parent-directory traversal"),
     ],
 )
-def test_resolve_override_data_dir_rejects_invalid_values(
-    raw_value: str, message: str
-) -> None:
+def test_resolve_override_data_dir_rejects_invalid_values(raw_value: str, message: str) -> None:
     with pytest.raises(data_io.DataDirError, match=message):
         data_io._resolve_override_data_dir(raw_value)
 
@@ -257,6 +255,36 @@ def test_resolve_override_data_dir_wraps_oserror(
     monkeypatch.setattr(data_io, "Path", _BrokenPath)
     with pytest.raises(data_io.DataDirError, match="is unreachable or invalid"):
         data_io._resolve_override_data_dir("/restricted/path")
+
+
+def test_resolve_override_data_dir_windows_rooted_path_becomes_absolute(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class _PathStub:
+        def __init__(self, _raw: str, absolute: bool = False) -> None:
+            self._absolute = absolute
+
+        def is_absolute(self) -> bool:
+            return self._absolute
+
+        def absolute(self) -> "_PathStub":
+            return _PathStub("", absolute=True)
+
+        def resolve(self, strict: bool = False) -> "_PathStub":
+            return self
+
+        def exists(self) -> bool:
+            return True
+
+        def is_dir(self) -> bool:
+            return True
+
+    monkeypatch.setattr(data_io.os, "name", "nt", raising=False)
+    monkeypatch.setattr(data_io, "Path", _PathStub)
+
+    resolved = data_io._resolve_override_data_dir("/windows/rooted/path")
+
+    assert resolved.is_absolute()
 
 
 def test_load_data_missing_filename_without_exc_filename(

@@ -57,9 +57,7 @@ def _validate_override_text(raw_value: str) -> str:
 def _home_directory_text() -> str:
     """Return home directory text, honoring explicit HOME overrides first."""
     home_env = os.environ.get("HOME")
-    if home_env:
-        return home_env
-    return str(Path.home())
+    return home_env or str(Path.home())
 
 
 def _expand_home_marker(path_text: str) -> str:

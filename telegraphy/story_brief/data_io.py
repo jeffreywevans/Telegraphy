@@ -124,7 +124,7 @@ def resolve_data_dir() -> Path | Traversable:
 
     try:
         return files(_PACKAGE_DATA_RESOURCE)
-    except ModuleNotFoundError, FileNotFoundError, TypeError:
+    except (ModuleNotFoundError, FileNotFoundError, TypeError):
         return _fallback_data_dir()
 
 

@@ -17,3 +17,4 @@ def test_poll_worker_queue_returns_without_side_effects_when_worker_is_inactive(
 
     tablet.result_queue.get_nowait.assert_not_called()
     after.assert_not_called()
+    assert tablet._worker_active is False

@@ -93,8 +93,7 @@ def _resolve_override_data_dir(raw_value: str) -> Path:
     if not candidate.is_absolute():
         if os.name != "nt":
             raise DataDirError("Configured data directory must be an absolute path")
-        has_windows_root = getattr(candidate, "anchor", "") in ("/", "\\")
-        if not has_windows_root and not candidate_text.startswith(("/", "\\")):
+        if not candidate_text.startswith(("/", "\\")):
             raise DataDirError("Configured data directory must be an absolute path")
         candidate = candidate.absolute()
     try:

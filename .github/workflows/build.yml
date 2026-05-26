@@ -32,11 +32,29 @@ jobs:
           PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
         run: pytest
 
+  sonar-token-check:
+    name: SonarQube Token Check
+    runs-on: ubuntu-latest
+    needs: test
+    outputs:
+      has_sonar_token: ${{ steps.detect.outputs.has_sonar_token }}
+    steps:
+      - name: Detect SONAR_TOKEN availability
+        id: detect
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          if [ -n "$SONAR_TOKEN" ]; then
+            echo "has_sonar_token=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_sonar_token=false" >> "$GITHUB_OUTPUT"
+          fi
+
   sonarqube-skipped:
     name: SonarQube (Skipped)
     runs-on: ubuntu-latest
-    needs: test
-    if: ${{ secrets.SONAR_TOKEN == '' }}
+    needs: [test, sonar-token-check]
+    if: ${{ needs.sonar-token-check.outputs.has_sonar_token == 'false' }}
     steps:
       - name: Explain skip reason
         run: |
@@ -46,8 +64,8 @@ jobs:
   sonarqube:
     name: SonarQube
     runs-on: ubuntu-latest
-    needs: test
-    if: ${{ secrets.SONAR_TOKEN != '' }}
+    needs: [test, sonar-token-check]
+    if: ${{ needs.sonar-token-check.outputs.has_sonar_token == 'true' }}
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2

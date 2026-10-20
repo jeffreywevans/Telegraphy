@@ -104,6 +104,32 @@ def test_assembly_rejects_non_string_keys() -> None:
         assemble_dataset_sections({"titles": {1: "invalid"}})
 
 
+@pytest.mark.parametrize(
+    ("filename", "missing_keys"),
+    [
+        ("titles.json", ("titles",)),
+        ("time_period.json", ("date_start",)),
+        ("time_period.json", ("date_start", "date_end")),
+    ],
+)
+def test_missing_required_keys_report_filename_and_sorted_keys(
+    filename: str, missing_keys: tuple[str, ...], cli_dataset_factory
+) -> None:
+    dataset = cli_dataset_factory("missing-required-keys")
+    path = dataset / filename
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    for key in missing_keys:
+        del payload[key]
+    path.write_text(json.dumps(payload), encoding="utf-8")
+
+    with pytest.raises(ValueError) as exc_info:
+        data_io.load_data(dataset)
+
+    assert str(exc_info.value) == (
+        f"{filename}: missing required keys: {', '.join(sorted(missing_keys))}"
+    )
+
+
 def test_independent_word_count_file_is_used_by_the_real_cli(
     cli_dataset_factory, monkeypatch: pytest.MonkeyPatch, capsys
 ) -> None:

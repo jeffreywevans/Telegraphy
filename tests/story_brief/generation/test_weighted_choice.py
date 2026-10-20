@@ -243,8 +243,9 @@ def test_pick_sexual_scene_tags_rejects_missing_required_group() -> None:
         "sexual_scene_required_tag_groups_by_presence": {"on_page_full": ("unknown",)},
     }
 
+    rng = random.Random(1)
     with pytest.raises(ValueError, match="missing"):
-        pick_sexual_scene_tags(random.Random(1), "on_page_full", data)
+        pick_sexual_scene_tags(rng, "on_page_full", data)
 
 
 def test_pick_sexual_scene_tags_rejects_unknown_optional_group() -> None:
@@ -254,14 +255,16 @@ def test_pick_sexual_scene_tags_rejects_unknown_optional_group() -> None:
         "sexual_scene_optional_tag_groups": ("unknown",),
     }
 
+    rng = random.Random(1)
     with pytest.raises(ValueError, match="unknown"):
-        pick_sexual_scene_tags(random.Random(1), "on_page_full", data)
+        pick_sexual_scene_tags(rng, "on_page_full", data)
 
 
 def test_pick_tags_from_selected_groups_rejects_unknown_group() -> None:
+    rng = random.Random(1)
     with pytest.raises(ValueError, match="Unknown sexual scene tag group"):
         pick_tags_from_selected_groups(
-            random.Random(1),
+            rng,
             ["missing"],
             {"sexual_scene_tag_groups": {"known": ("tag",)}},
         )

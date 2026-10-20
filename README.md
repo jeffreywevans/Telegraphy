@@ -673,7 +673,7 @@ Current package facts:
 | Field | Value |
 | --- | --- |
 | Package | `telegraphy` |
-| Current version | `0.6.0` |
+| Current version | `0.6.1` |
 | Python | `>=3.14` |
 | Runtime dependency | `PyYAML>=6.0.3` |
 | Console script | `story-brief = telegraphy.story_brief.cli:main` |
@@ -696,10 +696,11 @@ For generation changes, preserve deterministic seeded behavior unless the PR exp
 
 ## Release notes and status
 
-Current version: `0.6.0`.
+Current version: `0.6.1`.
 
-This version introduces independent data files for every generated field, with a
+The 0.6 series introduces independent data files for every generated field, with a
 shared character dataset for protagonist and secondary-character selection.
+Version 0.6.1 adds validation regression coverage and release version checks.
 
 Highlights:
 
@@ -713,7 +714,8 @@ See [CHANGELOG.md](https://github.com/jeffreywevans/Telegraphy/blob/HEAD/CHANGEL
 
 Telegraphy is usable as a local CLI and developer tool. The command-line interface and data schema are still young enough that maintainers should treat changes carefully and document migration impact in PRs.
 
-No published package distribution is assumed by this README. Install from the repository unless and until a release workflow says otherwise.
+Install the published distribution with `python -m pip install Commuted_Telegraphy`.
+For development, install from the repository as described above.
 
 ## Maintainer docs
 

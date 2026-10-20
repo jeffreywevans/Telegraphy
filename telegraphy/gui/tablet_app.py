@@ -7,6 +7,7 @@ import queue
 import sys
 import threading
 import tkinter as tk
+from importlib.metadata import PackageNotFoundError, version
 from tkinter import font as tkfont
 from tkinter import ttk
 from typing import Final
@@ -19,7 +20,17 @@ from telegraphy.gui.models import (
     resolve_run_options,
 )
 
-APP_TITLE: Final = "Telegraphy Tablet"
+
+def _read_app_version() -> str:
+    """Read the running distribution's version without a duplicated release number."""
+    try:
+        return version("Commuted_Telegraphy")
+    except PackageNotFoundError:
+        return "development"
+
+
+APP_VERSION: Final[str] = _read_app_version()
+APP_TITLE: Final = f"Telegraphy Tablet v{APP_VERSION}"
 TABLET_BUTTON_STYLE: Final = "Tablet.TButton"
 DEFAULT_FONT_FAMILY: Final = "Segoe UI"
 TABLET_EXTRA_WIDTH_INCHES_PER_SIDE: Final = 2
@@ -87,7 +98,7 @@ class TelegraphyTablet(tk.Tk):
             return self._dpi_cache
         try:
             self._dpi_cache = max(int(round(float(self.winfo_fpixels("1i")))), 1)
-        except (tk.TclError, ValueError, AttributeError, RecursionError):
+        except tk.TclError, ValueError, AttributeError, RecursionError:
             self._dpi_cache = DEFAULT_DPI
         return self._dpi_cache
 
@@ -167,7 +178,7 @@ class TelegraphyTablet(tk.Tk):
 
         title = tk.Label(
             self.screen,
-            text="TELEGRAPHY",
+            text=f"TELEGRAPHY  v{APP_VERSION}",
             bg=screen_bg,
             fg="#f9fafb",
             font=(self.font_family, 22, "bold"),

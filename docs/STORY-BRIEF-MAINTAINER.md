@@ -6,35 +6,64 @@ This document consolidates maintainer-facing guidance for the story brief system
 
 ### Recommendation
 
-Use a **small set of domain-based JSON files** (not one giant file, and not one file per key):
+Use **one JSON file per generated field**, sharing character availability for
+the protagonist and secondary character. All files live under
+`telegraphy/story_brief/data/`.
 
-- `telegraphy/story_brief/data/titles.json`
-- `telegraphy/story_brief/data/entities.json` (characters, settings, availability windows)
-- `telegraphy/story_brief/data/prompts.json` (conflicts, pressures, endings, style)
-- `telegraphy/story_brief/data/config.json` (ordered keys, weights, date range, word-count targets)
-- `telegraphy/story_brief/data/partner_distributions.json` (date-aware weighted `sexual_partner` pools; `[]` indicates celibacy, while omitted era data—a date window not covered by any era—indicates absent data)
+| Field | File |
+| --- | --- |
+| `title` | `titles.json` |
+| `protagonist`, `secondary_character` | `characters.json` |
+| `time_period` | `time_period.json` |
+| `setting` | `settings.json` |
+| `weather` | `weather.json` |
+| `central_conflict` | `central_conflicts.json` |
+| `inciting_pressure` | `inciting_pressures.json` |
+| `ending_type` | `ending_types.json` |
+| `style_guidance` | `style_guidance.json` |
+| `sexual_content_level` | `sexual_content_levels.json` |
+| `sexual_partner` | `sexual_partners.json` |
+| `sexual_scene_tags` | `sexual_scene_tags.json` |
+| `word_count_target` | `word_count_targets.json` |
+
+Keep field-specific weights, availability, and selection rules in that field's
+file. Keep only `schema_version`, `dataset_version`, and `ordered_keys` in
+`config.json`. Keep the writing instructions in `writing_preamble.json`.
+
+An empty partner list in `sexual_partners.json` represents intentional celibacy;
+an omitted era is missing data.
 
 ### Why this split
 
-Compared with one giant JSON file, domain-based files reduce merge conflicts and keep diffs easier to review.
-Compared with one-file-per-key, domain-based files avoid sprawl while keeping related content together.
+Each editable file has one clear purpose, so a conflict-pool edit does not touch
+style guidance, endings, or character availability. Related rules remain beside
+their choices. The complete field-to-file mapping is also in the README.
+
+`dataset_layout.FIELD_FILES` is the single registry of filenames, required keys,
+optional keys, and destination validation sections. `data_io` reads only these
+files. The loader assembles the existing `titles`, `entities`, `prompts`,
+`weather`, `config`, and `partner_distributions` sections in memory to preserve
+the validation API and cross-field checks. No aggregate JSON files are stored.
 
 ### Future-proofing
 
 1. Keep `ordered_keys` and key metadata in `config.json`.
-2. Validate required keys/types/ranges with loader checks.
-3. Maintain defaults/fallback behavior so adding a key does not break older datasets.
-4. Keep `schema_version` in `config.json` and validate at load time.
+2. Validate file ownership first, then types, ranges, and cross-field constraints.
+3. Treat changes to required files or their keys as explicit data-format changes.
+4. Keep `schema_version: 2` in `config.json`; unsupported physical layout versions fail at load time. The partner dataset retains its own internal schema version.
 
 ### Generated-field extension checklist
 
-When adding a new generated story-brief field, treat this as a **three-part coordinated change** to avoid validation mismatches:
+When adding a generated field, coordinate these changes:
 
 1. **Generation path:** update `telegraphy/story_brief/generation.py` (specifically `pick_story_fields`) so the new field is emitted in output. If the field is used in title templates, also update `telegraphy/story_brief/rendering.py` (`render_title` signature and internal token-value mapping), and then update the `render_title` call to pass the new field as a keyword argument.
-2. **Data config:** add the field name in `telegraphy/story_brief/data/config.json` under `ordered_keys` (and any associated metadata if required).
-3. **Schema validation constant:** update `EXPECTED_GENERATED_FIELD_KEYS` in `telegraphy/story_brief/schema_validation.py` to include the new field. If the field is used in title templates (for example, `@my_new_field`), also update the allowed token set in `_validate_title_tokens` in the same module.
+2. **Field file:** create its owning JSON file, including any field-specific weights and rules, and register it in `dataset_layout.FIELD_FILES`.
+3. **Output order and types:** add the field to `config.json` under `ordered_keys`, and update `StoryData` and the normalization path when needed.
+4. **Schema validation:** add the field to `EXPECTED_GENERATED_FIELD_KEYS` in `schema_validation_config.py` and validate its data. For new title tokens, update `ALLOWED_TITLE_TOKENS` in `schema_validation_titles_prompts.py` as well as the renderer.
 
-`schema_validation` intentionally enforces parity between `ordered_keys` and `EXPECTED_GENERATED_FIELD_KEYS`; if you touch only one side, tests will fail. Include this checklist in extension PRs to make the required change set explicit for new maintainers.
+Validation enforces parity between `ordered_keys` and `EXPECTED_GENERATED_FIELD_KEYS`.
+Update the README mapping, packaged-file manifest test, and override fixtures
+when adding or removing a file.
 
 ### Practical compatibility cleanup checklist
 

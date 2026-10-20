@@ -4,7 +4,7 @@ Thanks for contributing to Telegraphy.
 
 ## Development setup
 
-1. Use Python 3.12 or newer.
+1. Use Python 3.14 or newer.
 2. Create and activate a virtual environment.
 3. Install the project with development dependencies:
 
@@ -26,7 +26,7 @@ pytest
 For the full suite in a consistent environment, run:
 
 ```bash
-tox -e py312
+tox -e py314
 ```
 
 If you change generation logic, add or update tests in `tests/` to cover both success and failure cases.
@@ -34,6 +34,7 @@ If you change generation logic, add or update tests in `tests/` to cover both su
 ## Dataset and behavior changes
 
 - Keep JSON data changes focused and intentional.
+- Store every field's choices and rules in its owning JSON file; share `characters.json` between protagonist and secondary-character selection. See the field-file mapping and migration instructions in `README.md`.
 - If changing `telegraphy/story_brief/data/*`, run `story-brief --lint-dataset` and a generation command (e.g., `story-brief --print-only`) to validate behavior.
 - Preserve deterministic behavior for seeded generation.
 

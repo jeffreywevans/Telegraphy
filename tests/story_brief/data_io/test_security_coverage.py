@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import os
 import unicodedata
 from pathlib import Path
@@ -131,12 +130,9 @@ def test_data_file_rejects_unicode_normalization_variant_that_collides() -> None
 
 
 def test_load_json_uses_o_nofollow_for_paths_from_fallback_data_dir(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    monkeypatch: pytest.MonkeyPatch, cli_dataset_factory
 ) -> None:
-    data_dir = tmp_path / "story-data"
-    data_dir.mkdir()
-    for filename in data_io.DATA_FILENAMES.values():
-        (data_dir / filename).write_text(json.dumps({}), encoding="utf-8")
+    data_dir = cli_dataset_factory("nofollow-data")
 
     opened_flags: list[int] = []
     real_open = os.open

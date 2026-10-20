@@ -10,6 +10,8 @@ from importlib.resources.abc import Traversable
 from pathlib import Path
 from typing import Any, Final, cast
 
+from .dataset_layout import DATA_FILENAMES as DATA_FILENAMES
+from .dataset_layout import assemble_dataset_sections
 from .normalization import _build_story_data
 from .story_data import StoryData
 
@@ -21,15 +23,6 @@ _PACKAGE_DATA_RESOURCE: Final = "telegraphy.story_brief.data"
 class DataDirError(RuntimeError):
     """Raised when the configured data directory is invalid or unreachable."""
 
-
-DATA_FILENAMES: Final[dict[str, str]] = {
-    "titles": "titles.json",
-    "entities": "entities.json",
-    "prompts": "prompts.json",
-    "weather": "weather.json",
-    "config": "config.json",
-    "partner_distributions": "partner_distributions.json",
-}
 
 _ALLOWED_FILENAMES: Final[frozenset[str]] = frozenset(DATA_FILENAMES.values())
 _ALLOWED_FILENAMES_SORTED: Final[str] = ", ".join(map(repr, sorted(_ALLOWED_FILENAMES)))
@@ -122,7 +115,7 @@ def resolve_data_dir() -> Path | Traversable:
 
     try:
         return files(_PACKAGE_DATA_RESOURCE)
-    except (ModuleNotFoundError, FileNotFoundError, TypeError):
+    except ModuleNotFoundError, FileNotFoundError, TypeError:
         return _fallback_data_dir()
 
 
@@ -221,10 +214,11 @@ def load_json(path: Path | Traversable) -> Any:
 def _load_required_dataset_files(
     data_dir: Path | Traversable,
 ) -> dict[str, Any]:
-    return {
+    payloads = {
         key: _load_json(_data_file_from_dir(data_dir, filename))
         for key, filename in DATA_FILENAMES.items()
     }
+    return assemble_dataset_sections(payloads)
 
 
 def _missing_file_name(exc: FileNotFoundError) -> str:
@@ -240,7 +234,7 @@ def _load_failure_location() -> str:
 
 
 def load_data(data_dir: Path | Traversable | None = None) -> dict[str, Any]:
-    """Load the raw story dataset JSON payloads."""
+    """Load field files and assemble the backward-compatible in-memory sections."""
     selected_data_dir = resolve_data_dir() if data_dir is None else data_dir
     try:
         return _load_required_dataset_files(selected_data_dir)

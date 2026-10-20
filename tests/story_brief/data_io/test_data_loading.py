@@ -16,34 +16,48 @@ def _write_payload(path: Path, payload: object) -> None:
 def _write_minimal_dataset(data_dir: Path) -> None:
     _write_payload(data_dir / "titles.json", {"titles": ["A Night in @setting"]})
     _write_payload(
-        data_dir / "entities.json",
+        data_dir / "characters.json",
         {
             "character_availability": [
                 ["Alex", "2000-01-01", "2005-12-31"],
                 ["Jordan", "2000-01-01", "2005-12-31"],
             ],
-            "setting_availability": [["Seattle", "2000-01-01", "2005-12-31"]],
         },
     )
     _write_payload(
-        data_dir / "prompts.json",
-        {
-            "central_conflicts": ["Conflict"],
-            "inciting_pressures": ["Pressure"],
-            "ending_types": ["Open"],
-            "style_guidance": ["Tight"],
-        },
+        data_dir / "settings.json",
+        {"setting_availability": [["Seattle", "2000-01-01", "2005-12-31"]]},
     )
+    for name, values in {
+        "central_conflicts": ["Conflict"],
+        "inciting_pressures": ["Pressure"],
+        "ending_types": ["Open"],
+        "style_guidance": ["Tight"],
+    }.items():
+        _write_payload(data_dir / f"{name}.json", {name: values})
     _write_payload(data_dir / "weather.json", {"weather": ["good"]})
     _write_payload(
         data_dir / "config.json",
         {
-            "schema_version": 1,
+            "schema_version": 2,
             "dataset_version": "test",
-            "date_start": "2000-01-01",
-            "date_end": "2005-12-31",
+            "ordered_keys": sorted(story_brief.EXPECTED_GENERATED_FIELD_KEYS),
+        },
+    )
+    _write_payload(
+        data_dir / "time_period.json",
+        {"date_start": "2000-01-01", "date_end": "2005-12-31"},
+    )
+    _write_payload(
+        data_dir / "sexual_content_levels.json",
+        {
             "sexual_content_presence_options": ["none"],
             "sexual_content_presence_weights": [1],
+        },
+    )
+    _write_payload(
+        data_dir / "sexual_scene_tags.json",
+        {
             "sexual_scene_tag_groups": {
                 "tone": ["tender"],
                 "partner": ["married"],
@@ -51,13 +65,12 @@ def _write_minimal_dataset(data_dir: Path) -> None:
             "sexual_scene_tag_count_weights_by_presence": {"none": {"1": 1, "2": 1}},
             "sexual_scene_required_tag_groups_by_presence": {"none": ["tone"]},
             "sexual_scene_optional_tag_groups": [],
-            "word_count_targets": [1200],
-            "ordered_keys": sorted(story_brief.EXPECTED_GENERATED_FIELD_KEYS),
-            "writing_preamble": "Write.",
         },
     )
+    _write_payload(data_dir / "word_count_targets.json", {"word_count_targets": [1200]})
+    _write_payload(data_dir / "writing_preamble.json", {"writing_preamble": "Write."})
     _write_payload(
-        data_dir / "partner_distributions.json",
+        data_dir / "sexual_partners.json",
         {
             "schema_version": 1,
             "dataset_version": "test",
@@ -115,27 +128,10 @@ def test_env_override_loads_dataset_from_custom_directory(
 def test_load_story_data_normalizes_sexual_scene_tag_count_weights_by_presence(
     override_data_dir: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    _write_payload(
-        override_data_dir / "config.json",
-        {
-            "schema_version": 1,
-            "dataset_version": "test",
-            "date_start": "2000-01-01",
-            "date_end": "2005-12-31",
-            "sexual_content_presence_options": ["none"],
-            "sexual_content_presence_weights": [1],
-            "sexual_scene_tag_groups": {
-                "tone": ["tender"],
-                "partner": ["married"],
-            },
-            "sexual_scene_tag_count_weights_by_presence": {"none": {"2": 0.3, "1": 0.7}},
-            "sexual_scene_required_tag_groups_by_presence": {"none": ["tone"]},
-            "sexual_scene_optional_tag_groups": [],
-            "word_count_targets": [1200],
-            "ordered_keys": sorted(story_brief.EXPECTED_GENERATED_FIELD_KEYS),
-            "writing_preamble": "Write.",
-        },
-    )
+    tag_path = override_data_dir / "sexual_scene_tags.json"
+    tags = json.loads(tag_path.read_text(encoding="utf-8"))
+    tags["sexual_scene_tag_count_weights_by_presence"] = {"none": {"2": 0.3, "1": 0.7}}
+    _write_payload(tag_path, tags)
     monkeypatch.setenv("TELEGRAPHY_DATA_DIR", str(override_data_dir))
     data_io.clear_data_cache()
 
@@ -160,14 +156,17 @@ def test_load_story_data_strips_availability_names(
     override_data_dir: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     _write_payload(
-        override_data_dir / "entities.json",
+        override_data_dir / "characters.json",
         {
             "character_availability": [
                 ["  Alex  ", "2000-01-01", "2005-12-31"],
                 [" Jordan", "2000-01-01", "2005-12-31"],
             ],
-            "setting_availability": [[" Seattle ", "2000-01-01", "2005-12-31"]],
         },
+    )
+    _write_payload(
+        override_data_dir / "settings.json",
+        {"setting_availability": [[" Seattle ", "2000-01-01", "2005-12-31"]]},
     )
 
     monkeypatch.setenv("TELEGRAPHY_DATA_DIR", str(override_data_dir))

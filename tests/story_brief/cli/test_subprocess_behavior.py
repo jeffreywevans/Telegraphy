@@ -37,22 +37,28 @@ def make_single_character_single_setting_dataset(
     """Mutate dataset to a single-character/single-setting configuration."""
     patch_json(
         data_dir,
-        "config.json",
+        "time_period.json",
         lambda config: config.update({"date_start": "2000-01-01", "date_end": "2000-01-01"}),
     )
     patch_json(
         data_dir,
-        "entities.json",
+        "characters.json",
         lambda entities: entities.update(
             {
                 "character_availability": [["Only One", "2000-01-01", "2000-01-01"]],
-                "setting_availability": [["Only Place", "2000-01-01", "2000-01-01"]],
             }
         ),
     )
     patch_json(
         data_dir,
-        "partner_distributions.json",
+        "settings.json",
+        lambda settings: settings.update(
+            {"setting_availability": [["Only Place", "2000-01-01", "2000-01-01"]]}
+        ),
+    )
+    patch_json(
+        data_dir,
+        "sexual_partners.json",
         lambda payload: payload.update(
             {
                 "partner_distributions": [
@@ -79,8 +85,8 @@ def remove_prompt_key(
     key: str,
     patch_json: Callable[[Path, str, Callable[[dict[str, object]], object]], None],
 ) -> None:
-    """Remove a prompt key from prompts.json."""
-    patch_json(data_dir, "prompts.json", lambda prompts: prompts.pop(key, None))
+    """Remove a required key from the corresponding field file."""
+    patch_json(data_dir, f"{key}.json", lambda payload: payload.pop(key, None))
 
 
 def run_cli(
@@ -93,9 +99,9 @@ def run_cli(
     env.pop("TELEGRAPHY_DATA_DIR", None)
     if data_dir is not None:
         env["TELEGRAPHY_DATA_DIR"] = str(data_dir)
-    env["PYTHONPATH"] = os.pathsep.join(
-        [str(REPO_ROOT), env.get("PYTHONPATH", "")]
-    ).rstrip(os.pathsep)
+    env["PYTHONPATH"] = os.pathsep.join([str(REPO_ROOT), env.get("PYTHONPATH", "")]).rstrip(
+        os.pathsep
+    )
     if env_overrides:
         env.update(env_overrides)
     return subprocess.run(

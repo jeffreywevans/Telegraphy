@@ -1,0 +1,16 @@
+{
+  "sexual_content_presence_options": [
+    "none",
+    "implied",
+    "off_page",
+    "on_page_brief",
+    "on_page_full"
+  ],
+  "sexual_content_presence_weights": [
+    0.6,
+    0.16,
+    0.1,
+    0.09,
+    0.05
+  ]
+}

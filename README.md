@@ -199,7 +199,7 @@ Press **COPY!** to copy the most recent successful brief to your clipboard.
 
 ## Using the GUI
 
-The 0.5.2 GUI is intentionally focused: it is a tablet-shaped desktop wrapper around the existing `story-brief` engine.
+The GUI is intentionally focused: it is a tablet-shaped desktop wrapper around the existing `story-brief` engine.
 
 ### What happens when you click GENERATE!
 
@@ -342,14 +342,26 @@ Telegraphy ships with its canonical dataset inside the package:
 telegraphy/story_brief/data/
 ```
 
-The packaged dataset contains five required JSON files:
+The packaged dataset contains fifteen required JSON files. Thirteen files own
+the fourteen generated fields; `characters.json` supplies both character fields.
+The remaining two files hold shared metadata and the writing preamble.
 
 ```text
-config.json
-entities.json
-partner_distributions.json
-prompts.json
 titles.json
+characters.json
+time_period.json
+settings.json
+weather.json
+central_conflicts.json
+inciting_pressures.json
+ending_types.json
+style_guidance.json
+sexual_content_levels.json
+sexual_partners.json
+sexual_scene_tags.json
+word_count_targets.json
+config.json
+writing_preamble.json
 ```
 
 For experiments, alternate timelines, review fixtures, or private datasets, point Telegraphy at another directory:
@@ -364,7 +376,7 @@ Override directories must:
 
 - be absolute paths after optional current-user `~` expansion;
 - already exist;
-- contain all five required JSON files;
+- contain all fifteen required JSON files in the field-file layout;
 - avoid parent-directory traversal;
 - avoid `~user` expansion;
 - avoid NUL bytes.
@@ -373,7 +385,30 @@ Only the known dataset filenames are loaded. Telegraphy refuses unknown data-fil
 
 ### Data-file responsibilities
 
-`titles.json` contains title templates. Supported title tokens are:
+Each generated field has a single owning file. Its choices, weights, availability
+windows, and selection rules stay together in that file.
+
+| Generated field | File | Contents |
+| --- | --- | --- |
+| `title` | `titles.json` | Title templates. |
+| `protagonist`, `secondary_character` | `characters.json` | Shared date-bounded character availability. |
+| `time_period` | `time_period.json` | Inclusive story-date range (`date_start`, `date_end`). |
+| `setting` | `settings.json` | Date-bounded setting availability. |
+| `weather` | `weather.json` | Weather choices and optional explanatory comment. |
+| `central_conflict` | `central_conflicts.json` | Conflict choices. |
+| `inciting_pressure` | `inciting_pressures.json` | Inciting-pressure choices. |
+| `ending_type` | `ending_types.json` | Ending choices. |
+| `style_guidance` | `style_guidance.json` | Writing-style choices. |
+| `sexual_content_level` | `sexual_content_levels.json` | Content-presence options and their weights. |
+| `sexual_partner` | `sexual_partners.json` | Date-aware partner distributions and counting policy. |
+| `sexual_scene_tags` | `sexual_scene_tags.json` | Tag groups, count weights, required groups, and optional groups. |
+| `word_count_target` | `word_count_targets.json` | Word-count choices. |
+
+`config.json` contains only `schema_version`, `dataset_version`, and `ordered_keys`.
+The physical file layout uses schema version `2`. `writing_preamble.json`
+contains only `writing_preamble`.
+
+Supported title tokens in `titles.json` are:
 
 ```text
 @protagonist
@@ -381,13 +416,37 @@ Only the known dataset filenames are loaded. Telegraphy refuses unknown data-fil
 @time_period
 ```
 
-`entities.json` contains date-bounded character and setting availability.
+An empty partner list in `sexual_partners.json` means intentional celibacy for that
+era. A missing era means absent data and should be treated as a dataset problem.
 
-`prompts.json` contains narrative prompt pools such as conflicts, pressures, endings, style guidance, and weather.
+The loader reads only the explicitly allowed filenames and rejects keys placed in
+the wrong file. It assembles the files in memory for the existing cross-field
+validation and generation pipeline. The CLI flags, front-matter keys, canon
+content, and seeded generation behavior are preserved by this storage refactor.
 
-`config.json` contains schema metadata, dataset version, date range, output key order, word-count targets, sexual-content options and weights, tag groups, and the writing preamble.
+### Migrating a custom dataset from the aggregate layout
 
-`partner_distributions.json` contains date-aware weighted partner pools by protagonist. An empty partner list means intentional celibacy for that era. A missing era means absent data and should be treated as a dataset problem.
+Existing override directories need the new layout before use. Create a new
+directory and copy the listed keys into their owning files; keep the old
+directory as a backup.
+
+- Split `entities.json` into `characters.json` (`character_availability`) and
+  `settings.json` (`setting_availability`).
+- Split `prompts.json` into `central_conflicts.json`, `inciting_pressures.json`,
+  `ending_types.json`, and `style_guidance.json`, retaining each matching key.
+- Move `date_start` and `date_end` from the old `config.json` to `time_period.json`.
+- Move `sexual_content_presence_options` and `sexual_content_presence_weights`
+  into `sexual_content_levels.json`.
+- Move every `sexual_scene_*` key into `sexual_scene_tags.json`.
+- Move `word_count_targets` and `writing_preamble` into their matching files.
+- Keep only `schema_version`, `dataset_version`, and `ordered_keys` in
+  `config.json`, setting `schema_version` to `2`.
+- Copy `partner_distributions.json` to `sexual_partners.json` without changing
+  its contents or its internal schema version.
+- Copy `titles.json` and `weather.json` unchanged.
+
+The old aggregate filenames are no longer loaded. Run dataset lint and strict
+validation against the new directory before using it for generation.
 
 ### Legacy tag-schema compatibility notes
 
@@ -402,7 +461,7 @@ Canonical replacement key:
 
 - `sexual_scene_tag_count_weights_by_presence`
 
-Manual update example (required):
+Manual update example in `sexual_scene_tags.json` (required):
 
 Before (removed shape):
 
@@ -500,6 +559,7 @@ The main modules are:
 | --- | --- |
 | `telegraphy.story_brief.cli` | Argument parsing and CLI orchestration. |
 | `telegraphy.story_brief.data_io` | Dataset discovery, package resources, environment overrides, JSON loading, cache management. |
+| `telegraphy.story_brief.dataset_layout` | Field-file ownership, layout validation, and in-memory assembly. |
 | `telegraphy.story_brief.validation` | Schema validation, semantic validation, strict date-range preconditions. |
 | `telegraphy.story_brief.linting` | Dataset coverage diagnostics and human-facing lint reports. |
 | `telegraphy.story_brief.generation` | Date selection, availability filtering, weighted choices, field selection. |
@@ -613,7 +673,7 @@ Current package facts:
 | Field | Value |
 | --- | --- |
 | Package | `telegraphy` |
-| Current version | `0.5.2` |
+| Current version | `0.6.0` |
 | Python | `>=3.14` |
 | Runtime dependency | `PyYAML>=6.0.3` |
 | Console script | `story-brief = telegraphy.story_brief.cli:main` |
@@ -636,15 +696,16 @@ For generation changes, preserve deterministic seeded behavior unless the PR exp
 
 ## Release notes and status
 
-Current status: `0.5.2`.
+Current version: `0.6.0`.
 
-This release declares the 0.5.2 line and rolls forward the validated build baseline with synchronized metadata, documentation, and SBOM artifacts.
+This version introduces independent data files for every generated field, with a
+shared character dataset for protagonist and secondary-character selection.
 
 Highlights:
 
-- launched the desktop `telegraphy-gui` command with a tablet-style interface backed by the existing CLI engine;
-- strengthened GUI reliability with threaded generation flow, robust subprocess decode fallback, and expanded GUI unit coverage;
-- kept package metadata, changelog references, README status text, and SBOM artifact versioning aligned for build consistency.
+- replaced aggregate entities, prompts, and content configuration with focused field files;
+- kept the existing CLI, GUI, front-matter schema, and seeded output behavior;
+- added filename-specific layout errors and documented custom-dataset migration.
 
 See [CHANGELOG.md](https://github.com/jeffreywevans/Telegraphy/blob/HEAD/CHANGELOG.md) for release notes.
 
@@ -707,14 +768,24 @@ Check that the override is absolute and contains the required JSON files:
 ls /absolute/path/to/story-data
 ```
 
-Expected files:
+Expected files (all fifteen are required):
 
 ```text
-config.json
-entities.json
-partner_distributions.json
-prompts.json
 titles.json
+characters.json
+time_period.json
+settings.json
+weather.json
+central_conflicts.json
+inciting_pressures.json
+ending_types.json
+style_guidance.json
+sexual_content_levels.json
+sexual_partners.json
+sexual_scene_tags.json
+word_count_targets.json
+config.json
+writing_preamble.json
 ```
 
 ### An output file already exists

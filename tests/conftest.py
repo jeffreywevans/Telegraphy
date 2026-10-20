@@ -13,7 +13,7 @@ from typing import Any
 
 import pytest
 
-from telegraphy.story_brief.data_io import DATA_FILENAMES, data_file, load_json
+from telegraphy.story_brief.data_io import DATA_FILENAMES, data_file, load_data
 from telegraphy.story_brief.partner_models import (
     PartnerDistributionDataset,
     parse_partner_distribution_payload,
@@ -28,10 +28,7 @@ PartnerPayloadParser = Callable[
 
 @lru_cache(maxsize=1)
 def _load_story_dataset_payloads() -> dict[str, dict[str, Any]]:
-    return {
-        key: load_json(data_file(filename))
-        for key, filename in DATA_FILENAMES.items()
-    }
+    return load_data()
 
 
 @pytest.fixture

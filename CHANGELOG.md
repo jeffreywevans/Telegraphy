@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## 0.6.0 - 2026-10-19
+
+### Changed
+- Split story data into thirteen field datasets, a metadata-only `config.json`, and `writing_preamble.json`.
+- Share `characters.json` between protagonist and secondary-character selection.
+- Move field choices, weights, and selection rules together into their owning files.
+- Require physical file-layout schema version 2 for packaged and override data.
+- Preserve the existing in-memory validation sections, CLI/GUI interface, front-matter fields, and seeded output.
+- Document migration from the aggregate data-file layout.
+
+### Added
+- Explicit per-file key ownership and filename-specific errors for malformed file roots, missing keys, and misplaced keys.
+- Regression checks for the independent data-file layout and custom field overrides.
+
 ## [0.5.2] - 2026-05-12
 
 Released Telegraphy 0.5.2 as a build declaration release that reruns the complete checklist and keeps metadata, docs, and SBOM artifacts synchronized.

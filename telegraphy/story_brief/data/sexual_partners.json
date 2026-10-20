@@ -3,20 +3,6 @@
   "dataset_version": "2026.04.26",
   "date_start": "1989-12-04",
   "date_end": "2032-07-23",
-  "model_definition": "Default partner distribution within the narrated canon window.",
-  "counting_policy": [
-    "Percentages model baseline partner distribution, not every singular event.",
-    "One-off exceptions may be canon without changing baseline weights.",
-    "Planned but unwritten canon events are excluded.",
-    "Post-story developments may be excluded even if later canon references exist.",
-    "An empty partners array means 0% counted partner activity within the modeled canon window."
-  ],
-  "placeholder_partner_keys": {
-    "third_party_male": "Unnamed or non-canonical male partner(s).",
-    "third_party_female": "Unnamed or non-canonical female partner(s).",
-    "lower_profile_female_celebrity": "Lower profile female celebrity partner(s), unnamed at this level.",
-    "lower_profile_celebrity": "Lower profile celebrity partner(s), gender unspecified at this level."
-  },
   "partner_distributions": [
     {
       "character": "Avril Lavigne",
@@ -708,5 +694,19 @@
         }
       ]
     }
-  ]
+  ],
+  "model_definition": "Default partner distribution within the narrated canon window.",
+  "counting_policy": [
+    "Percentages model baseline partner distribution, not every singular event.",
+    "One-off exceptions may be canon without changing baseline weights.",
+    "Planned but unwritten canon events are excluded.",
+    "Post-story developments may be excluded even if later canon references exist.",
+    "An empty partners array means 0% counted partner activity within the modeled canon window."
+  ],
+  "placeholder_partner_keys": {
+    "third_party_male": "Unnamed or non-canonical male partner(s).",
+    "third_party_female": "Unnamed or non-canonical female partner(s).",
+    "lower_profile_female_celebrity": "Lower profile female celebrity partner(s), unnamed at this level.",
+    "lower_profile_celebrity": "Lower profile celebrity partner(s), gender unspecified at this level."
+  }
 }

@@ -243,8 +243,9 @@ def test_parse_story_date_accepts_iso_date_and_rejects_invalid(
 ) -> None:
     assert story_cli._parse_story_date("2024-10-31").isoformat() == "2024-10-31"
 
+    parser = story_cli.build_parser()
     with pytest.raises(SystemExit) as exc_info:
-        story_cli.build_parser().parse_args(["--date", "31-10-2024"])
+        parser.parse_args(["--date", "31-10-2024"])
     assert exc_info.value.code == 2
 
     captured = capsys.readouterr()

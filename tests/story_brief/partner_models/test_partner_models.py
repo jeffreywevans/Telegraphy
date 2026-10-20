@@ -121,6 +121,8 @@ def test_parse_partners_rejects_case_insensitive_duplicates() -> None:
 
 
 def test_parse_eras_rejects_range_outside_parent_character() -> None:
+    char_start = date(2000, 1, 1)
+    char_end = date(2000, 12, 31)
     with pytest.raises(ValueError, match="must be within parent character date range"):
         _parse_eras(
             "partner_distributions.partner_distributions[0]",
@@ -131,18 +133,19 @@ def test_parse_eras_rejects_range_outside_parent_character() -> None:
                     "partners": [{"partner": "Jordan", "weight": 1.0}],
                 }
             ],
-            char_start=date(2000, 1, 1),
-            char_end=date(2000, 12, 31),
+            char_start=char_start,
+            char_end=char_end,
         )
 
 
 def test_parse_character_distribution_uses_partner_distribution_key_in_path() -> None:
+    seen_characters: set[str] = set()
     with pytest.raises(ValueError, match=r"partner_distributions\.entries\[0\] must be an object"):
         _parse_character_distribution(
             0,
             "bad-entry",
             known_characters={"Alex"},
-            seen_characters=set(),
+            seen_characters=seen_characters,
             partner_distributions_key="entries",
         )
 

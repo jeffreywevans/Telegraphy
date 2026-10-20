@@ -673,7 +673,7 @@ Current package facts:
 | Field | Value |
 | --- | --- |
 | Package | `telegraphy` |
-| Current version | `0.6.1` |
+| Current version | `0.6.2` |
 | Python | `>=3.14` |
 | Runtime dependency | `PyYAML>=6.0.3` |
 | Console script | `story-brief = telegraphy.story_brief.cli:main` |
@@ -696,11 +696,11 @@ For generation changes, preserve deterministic seeded behavior unless the PR exp
 
 ## Release notes and status
 
-Current version: `0.6.1`.
+Current version: `0.6.2`.
 
 The 0.6 series introduces independent data files for every generated field, with a
 shared character dataset for protagonist and secondary-character selection.
-Version 0.6.1 adds validation regression coverage and release version checks.
+Version 0.6.2 updates word-count targets, content-level weights, and scene tags.
 
 Highlights:
 

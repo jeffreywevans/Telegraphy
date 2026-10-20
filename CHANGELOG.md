@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## 0.6.2 - 2026-10-19
+
+### Changed
+- Replace word-count targets with 9000–9900 in increments of 100.
+- Set content-level weights to none 40%, implied 9%, off_page 16%, on_page_brief 5%, and on_page_full 30%.
+- Update and alphabetize dramatic-function and aftermath tags.
+- Expand and alphabetize physicality tags, retaining existing tags except the six explicitly removed.
+- Synchronize package metadata, README, and SBOM for build 0.6.2.
+
 ## 0.6.1 - 2026-10-19
 
 ### Fixed

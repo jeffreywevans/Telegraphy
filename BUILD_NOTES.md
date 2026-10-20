@@ -1,4 +1,32 @@
-# Build Notes — 0.6.0
+# Build Notes — 0.6.2
+
+## Release changes
+
+- Word-count targets are 9000 through 9900 in increments of 100.
+- Content-level weights are 40%, 9%, 16%, 5%, and 30% in configured option order.
+- Dramatic-function, aftermath, and physicality tag lists are updated and alphabetized.
+- Package metadata, README release references, changelog, and generated SBOM agree on 0.6.2.
+
+## Verification
+
+- Python 3.14.4 on Linux.
+- Full coverage workflow: 499 tests passed; 99% combined line/branch coverage.
+- Ruff lint and strict package mypy checks passed.
+- Dataset lint: no warnings or blocking gaps.
+- Strict validation and seeded CLI generation passed.
+- Source distribution and wheel builds passed.
+- Interactive desktop GUI testing was not performed in this headless environment.
+- SBOM describes the declared minimum runtime dependency, not a resolved dependency inventory.
+
+## Publication
+
+The release workflow checks tag/package-version agreement, builds distributions,
+and publishes to PyPI when a GitHub release is published. Local build validation
+does not establish successful deployment; verify the release workflow separately.
+
+## Historical build notes
+
+### Build 0.6.0
 
 - Prepared from the supplied 0.5.3 source archive on 2026-10-19.
 - Runtime used for validation: Python 3.14.4 on Linux.

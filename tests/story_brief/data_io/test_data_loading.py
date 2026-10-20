@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 
 import pytest
 
@@ -284,6 +284,34 @@ def test_resolve_override_data_dir_windows_rooted_path_becomes_absolute(
     resolved = data_io._resolve_override_data_dir("/windows/rooted/path")
 
     assert resolved.is_absolute()
+
+
+@pytest.mark.parametrize("raw_value", ["relative/data", r"C:relative\data"])
+def test_resolve_override_data_dir_windows_rejects_relative_paths(
+    raw_value: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    with monkeypatch.context() as patch:
+        patch.setattr(data_io.os, "name", "nt")
+        patch.setattr(data_io, "Path", PureWindowsPath)
+
+        with pytest.raises(data_io.DataDirError, match="must be an absolute path"):
+            data_io._resolve_override_data_dir(raw_value)
+
+
+def test_public_load_json_reads_utf8_payload(tmp_path: Path) -> None:
+    payload_path = tmp_path / "payload.json"
+    payload = {"title": "A night in Montréal", "weights": [1, 2], "enabled": True}
+    _write_payload(payload_path, payload)
+
+    assert data_io.load_json(payload_path) == payload
+
+
+def test_public_load_json_propagates_invalid_json(tmp_path: Path) -> None:
+    payload_path = tmp_path / "invalid.json"
+    payload_path.write_text("{invalid json}", encoding="utf-8")
+
+    with pytest.raises(json.JSONDecodeError):
+        data_io.load_json(payload_path)
 
 
 def test_load_data_missing_filename_without_exc_filename(

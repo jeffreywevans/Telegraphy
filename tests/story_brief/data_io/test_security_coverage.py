@@ -48,13 +48,15 @@ def test_override_rejects_named_user_home_expansion() -> None:
 
 
 def test_data_file_rejects_unknown_filename() -> None:
+    data_dir = Path.cwd()
     with pytest.raises(ValueError, match="Refusing to open unknown data file"):
-        data_io._data_file_from_dir(Path.cwd(), "../titles.json")
+        data_io._data_file_from_dir(data_dir, "../titles.json")
 
 
 def test_data_file_rejects_case_variant_of_allowed_filename() -> None:
+    data_dir = Path.cwd()
     with pytest.raises(ValueError, match="Refusing to open unknown data file"):
-        data_io._data_file_from_dir(Path.cwd(), "TITLES.JSON")
+        data_io._data_file_from_dir(data_dir, "TITLES.JSON")
 
 
 def test_validated_override_path_rejects_backslash_parent_traversal() -> None:
@@ -112,21 +114,23 @@ def test_load_data_reports_configured_missing_filename(
 
 
 def test_data_file_rejects_extremely_long_unicode_filename() -> None:
+    data_dir = Path.cwd()
     long_unicode_name = ("あ" * 90) + ".json"
     assert len(long_unicode_name.encode("utf-8")) > 255
 
     with pytest.raises(ValueError, match="Refusing to open unknown data file"):
-        data_io._data_file_from_dir(Path.cwd(), long_unicode_name)
+        data_io._data_file_from_dir(data_dir, long_unicode_name)
 
 
 def test_data_file_rejects_unicode_normalization_variant_that_collides() -> None:
+    data_dir = Path.cwd()
     decomposed = unicodedata.normalize("NFD", "títles.json")
     composed = unicodedata.normalize("NFC", "títles.json")
     assert decomposed != composed
     assert unicodedata.normalize("NFC", decomposed).casefold() == composed.casefold()
 
     with pytest.raises(ValueError, match="non-canonical data file"):
-        data_io._data_file_from_dir(Path.cwd(), decomposed)
+        data_io._data_file_from_dir(data_dir, decomposed)
 
 
 def test_load_json_uses_o_nofollow_for_paths_from_fallback_data_dir(
@@ -229,8 +233,9 @@ def test_validated_load_path_rejects_parent_traversal_for_traversable_name() -> 
 
 
 def test_validated_load_path_rejects_non_absolute_path_instance() -> None:
+    relative_path = Path("relative.json")
     with pytest.raises(ValueError, match="non-absolute filesystem path"):
-        data_io._validated_load_path(Path("relative.json"))
+        data_io._validated_load_path(relative_path)
 
 
 def test_validated_load_path_coerces_non_string_name_attribute() -> None:

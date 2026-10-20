@@ -24,6 +24,22 @@ jobs:
           python-version-file: .python-version
           cache: pip
 
+      - name: Check release tag matches package version
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          python - <<'PY'
+          import os
+          import tomllib
+          from pathlib import Path
+
+          tag = os.environ["RELEASE_TAG"]
+          version = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))["project"]["version"]
+          if tag.removeprefix("v") != version:
+              raise SystemExit(f"Release tag {tag!r} does not match package version {version!r}")
+          print(f"Release tag matches package version {version}")
+          PY
+
       - name: Build release distributions
         run: |
           python -m pip install --upgrade pip build

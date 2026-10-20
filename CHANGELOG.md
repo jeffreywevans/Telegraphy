@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## 0.6.1 - 2026-10-19
+
+### Fixed
+- Align package metadata with release 0.6.1 and reject mismatched release tags before building.
+
+### Added
+- Regression tests for validation failures, JSON loading, and GUI version fallback.
+- Isolated setup calls from exception assertions in tests.
+
 ## 0.6.0 - 2026-10-19
 
 ### Changed

@@ -7,10 +7,10 @@
     "on_page_full"
   ],
   "sexual_content_presence_weights": [
-    0.6,
-    0.16,
-    0.1,
+    0.4,
     0.09,
-    0.05
+    0.16,
+    0.05,
+    0.3
   ]
 }

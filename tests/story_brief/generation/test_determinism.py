@@ -36,8 +36,10 @@ def test_explicit_date_overrides_random_date() -> None:
 
 
 def test_explicit_date_out_of_range_fails() -> None:
+    rng = random.Random(1)
+    selected_date = date(1900, 1, 1)
     with pytest.raises(ValueError, match="outside available range"):
-        pick_story_fields(random.Random(1), selected_date=date(1900, 1, 1))
+        pick_story_fields(rng, selected_date=selected_date)
 
 
 @pytest.mark.slow
@@ -69,8 +71,10 @@ def test_duplicate_character_rows_require_two_distinct_names(
     ]
     monkeypatch.setattr(story_brief, "get_normalized_story_data", lambda: data)
 
+    rng = random.Random(7)
+    selected_date = date(2000, 1, 1)
     with pytest.raises(ValueError, match="two distinct available characters"):
-        pick_story_fields(random.Random(7), selected_date=date(2000, 1, 1))
+        pick_story_fields(rng, selected_date=selected_date)
 
 
 def test_weather_value_is_from_allowed_pool() -> None:

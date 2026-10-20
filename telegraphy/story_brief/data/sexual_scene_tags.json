@@ -42,19 +42,25 @@
       "worshipful"
     ],
     "dramatic_function": [
-      "avoidance",
+      "affection",
+      "bad_decision",
       "betrayal",
+      "calm_nerves",
+      "chasing_endorphins",
       "comfort",
       "control",
       "ego_repair",
+      "fun",
       "grief_response",
+      "grow_relationship",
       "jealousy",
+      "love",
+      "maintain_relationship",
+      "making_up",
       "power_struggle",
       "reconciliation",
-      "relapse",
       "revenge",
-      "self_sabotage",
-      "truth_telling"
+      "self_sabotage"
     ],
     "aftermath": [
       "awkward_morning",

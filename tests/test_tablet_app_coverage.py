@@ -10,6 +10,18 @@ import pytest
 from telegraphy.gui import tablet_app
 
 
+def test_read_app_version_falls_back_when_package_metadata_is_missing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def missing_version(distribution_name: str) -> str:
+        assert distribution_name == "Commuted_Telegraphy"
+        raise tablet_app.PackageNotFoundError(distribution_name)
+
+    monkeypatch.setattr(tablet_app, "version", missing_version)
+
+    assert tablet_app._read_app_version() == "development"
+
+
 def _make_tablet() -> tablet_app.TelegraphyTablet:
     return tablet_app.TelegraphyTablet.__new__(tablet_app.TelegraphyTablet)
 

@@ -98,76 +98,147 @@
       "tour_party_adjacent",
       "witness_nearby"
     ],
-    "position": [
-      "69",
-      "amazon",
-      "amazon_180",
-      "awkward",
-      "bent_spoons",
-      "bodyguard",
-      "butler",
-      "butterfly",
-      "closed_missionary",
-      "clumsy",
-      "cowgirl",
-      "crossed_butterfly",
-      "dancer_standing_missionary",
-      "doggy",
-      "downward_doggy",
-      "eagle",
-      "face_to_face_spoon",
-      "facedown_doggy",
-      "female_orgasm_failure",
-      "fingering_only",
-      "folded_butterfly",
-      "folded_guard",
-      "folded_lotus",
-      "folded_missionary",
-      "folded_sinner",
-      "froggy_doggy",
-      "fun",
-      "guard",
-      "inverted_69",
-      "kneeling_bodyguard",
-      "kneeling_scissors",
-      "lap_dance",
-      "lap_dance_180",
-      "lotus",
-      "lying_butler",
-      "lying_cowgirl",
-      "lying_rodeo",
-      "messy",
-      "missionary",
-      "northern_hospitality",
-      "oral_therapy",
-      "planted_cowgirl",
-      "plumber",
-      "raised_bodyguard",
-      "reclined_lap_dance_180",
-      "restrained_doggy",
-      "rodeo",
-      "scissored_flagpole",
-      "scissors",
-      "servant",
-      "sideways_69",
-      "sinner",
-      "sit_and_blow",
-      "sitting_bodyguard",
-      "southern_exposure",
-      "southern_headrest",
-      "spoons",
-      "squatting_cowgirl",
-      "stand_and_blow",
-      "sword_swallower",
-      "tender_contact",
-      "the_usual_bj",
-      "tucked_missionary",
-      "under_the_sink",
-      "upright_missionary",
-      "urgent",
-      "wrapped_missionary",
-      "wrapped_spoon"
-    ],
+    "position": {
+      "69": {
+        "weight": 5,
+        "variants": [
+          "69",
+          "inverted_69",
+          "sideways_69"
+        ]
+      },
+      "amazon": {
+        "weight": 2,
+        "variants": [
+          "amazon",
+          "amazon_180"
+        ]
+      },
+      "bodyguard": {
+        "weight": 4,
+        "variants": [
+          "bodyguard",
+          "kneeling_bodyguard",
+          "raised_bodyguard",
+          "sitting_bodyguard"
+        ]
+      },
+      "butterfly": {
+        "weight": 1,
+        "variants": [
+          "butterfly",
+          "crossed_butterfly",
+          "folded_butterfly"
+        ]
+      },
+      "cowgirl": {
+        "weight": 10,
+        "variants": [
+          "cowgirl",
+          "lying_cowgirl",
+          "planted_cowgirl",
+          "squatting_cowgirl"
+        ]
+      },
+      "cunnilingus": {
+        "weight": 10,
+        "variants": [
+          "butler",
+          "eagle",
+          "lying_butler",
+          "northern_hospitality",
+          "servant",
+          "under_the_sink"
+        ]
+      },
+      "doggy_style": {
+        "weight": 10,
+        "variants": [
+          "doggy",
+          "downward_doggy",
+          "facedown_doggy",
+          "froggy_doggy",
+          "restrained_doggy"
+        ]
+      },
+      "fellatio": {
+        "weight": 10,
+        "variants": [
+          "oral_therapy",
+          "plumber",
+          "sit_and_blow",
+          "southern_exposure",
+          "southern_headrest",
+          "stand_and_blow",
+          "sword_swallower",
+          "the_usual_bj"
+        ]
+      },
+      "guard": {
+        "weight": 2,
+        "variants": [
+          "folded_guard",
+          "guard"
+        ]
+      },
+      "lapdance": {
+        "weight": 1,
+        "variants": [
+          "lap_dance",
+          "lap_dance_180",
+          "reclined_lap_dance_180"
+        ]
+      },
+      "lotus": {
+        "weight": 2,
+        "variants": [
+          "folded_lotus",
+          "lotus"
+        ]
+      },
+      "missionary": {
+        "weight": 32,
+        "variants": [
+          "closed_missionary",
+          "dancer_standing_missionary",
+          "folded_missionary",
+          "missionary",
+          "tucked_missionary",
+          "upright_missionary",
+          "wrapped_missionary"
+        ]
+      },
+      "rodeo": {
+        "weight": 2,
+        "variants": [
+          "lying_rodeo",
+          "rodeo"
+        ]
+      },
+      "scissors": {
+        "weight": 2,
+        "variants": [
+          "scissored_flagpole",
+          "scissors"
+        ]
+      },
+      "sinner": {
+        "weight": 2,
+        "variants": [
+          "folded_sinner",
+          "sinner"
+        ]
+      },
+      "spoons": {
+        "weight": 5,
+        "variants": [
+          "bent_spoons",
+          "face_to_face_spoon",
+          "spoons",
+          "wrapped_spoon"
+        ]
+      }
+    },
     "sensory_anchor": [
       "aftershave",
       "amp_hum",

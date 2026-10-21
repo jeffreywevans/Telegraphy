@@ -11,6 +11,7 @@ from .partner_models import (
     PartnerDistributionDataset,
     parse_partner_distribution_payload,
 )
+from .position_groups import normalize_position_groups
 from .schema_validation_common import (
     validate_no_duplicate_strings,
     validate_string_list,
@@ -160,6 +161,9 @@ def validate_sexual_scene_tag_groups(config: dict[str, Any]) -> None:
     for group_name, tags in groups.items():
         if not isinstance(group_name, str) or not group_name.strip():
             raise ValueError("config.sexual_scene_tag_groups keys must be non-empty strings")
+        if group_name == "position" and isinstance(tags, dict):
+            normalize_position_groups(tags)
+            continue
         validate_string_list("config", f"sexual_scene_tag_groups.{group_name}", tags)
         validate_no_duplicate_strings("config", f"sexual_scene_tag_groups.{group_name}", tags)
 

@@ -358,9 +358,18 @@ def pick_tags_from_selected_groups(
 ) -> list[str]:
     """Pick one random tag from each selected tag group."""
     return [
-        rng.choice(_tags_for_group(group_name, data))
+        _pick_tag_for_group(rng, group_name, data)
         for group_name in selected_tag_groups
     ]
+
+
+def _pick_tag_for_group(rng: RandomSource, group_name: str, data: StoryData) -> str:
+    position_groups = data.get("position_groups", {})
+    if group_name == "position" and position_groups:
+        names = sorted(position_groups)
+        selected = weighted_choice(rng, names, [position_groups[name]["weight"] for name in names])
+        return rng.choice(position_groups[selected]["variants"])
+    return rng.choice(_tags_for_group(group_name, data))
 
 
 def _tags_for_group(group_name: str, data: StoryData) -> Sequence[str]:

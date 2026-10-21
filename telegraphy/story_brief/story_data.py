@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from datetime import date
-from typing import TypedDict
+from typing import NotRequired, TypedDict
+
+from .position_groups import PositionGroup
 
 
 class NormalizedPartnerEra(TypedDict):
@@ -11,6 +13,7 @@ class NormalizedPartnerEra(TypedDict):
 
 
 class StoryData(TypedDict):
+    position_groups: NotRequired[dict[str, PositionGroup]]
     titles: tuple[str, ...]
     character_availability: tuple[tuple[str, date, date], ...]
     setting_availability: tuple[tuple[str, date, date], ...]

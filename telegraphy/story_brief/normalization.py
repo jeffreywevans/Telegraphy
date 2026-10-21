@@ -4,6 +4,7 @@ from typing import Any
 
 from ._constants import PROMPT_LIST_KEYS
 from .generation_helpers import stable_sorted_pool
+from .position_groups import normalize_position_groups
 from .schema_validation import validate_story_data
 
 
@@ -32,10 +33,19 @@ def _build_story_data(dataset_payloads: dict[str, Any]) -> dict[str, Any]:
         for key in PROMPT_LIST_KEYS
     }
 
+    raw_position = normalized_config["sexual_scene_tag_groups"].get("position")
+    position_groups = (
+        normalize_position_groups(raw_position) if isinstance(raw_position, dict) else {}
+    )
     sexual_scene_tag_groups = {
         str(group_name): tuple(stable_sorted_pool(str(tag) for tag in tags))
         for group_name, tags in normalized_config["sexual_scene_tag_groups"].items()
+        if group_name != "position" or not position_groups
     }
+    if position_groups:
+        sexual_scene_tag_groups["position"] = tuple(
+            sorted({tag for group in position_groups.values() for tag in group["variants"]})
+        )
     sexual_scene_tag_count_weights_by_presence = {
         str(presence): {
             int(option_raw): float(weight_raw)
@@ -66,6 +76,7 @@ def _build_story_data(dataset_payloads: dict[str, Any]) -> dict[str, Any]:
             float(v) for v in normalized_config["sexual_content_presence_weights"]
         ),
         "sexual_scene_tag_groups": sexual_scene_tag_groups,
+        "position_groups": position_groups,
         "sexual_scene_tag_group_names": tuple(stable_sorted_pool(sexual_scene_tag_groups)),
         "sexual_scene_tag_count_weights_by_presence": sexual_scene_tag_count_weights_by_presence,
         "sexual_scene_required_tag_groups_by_presence": {

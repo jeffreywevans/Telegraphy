@@ -486,6 +486,21 @@ After (canonical shape):
 
 If legacy keys are present, schema validation fails fast and instructs you to use the canonical fields. Telegraphy does not perform runtime key migration for this schema.
 
+### Weighted position groups
+
+In `sexual_scene_tags.json`, `sexual_scene_tag_groups.position` contains named
+groups with a percentage `weight` and a `variants` list. Group weights must be
+between 1 and 32 and total 100. Groups and their variants are alphabetized.
+
+Whenever a position tag is needed, the generator selects a group by weight,
+then selects one variant uniformly. A variant's probability is its group's
+percentage divided by the number of variants in that group. These probabilities
+are conditional on a position being selected, not on every generated brief.
+For example, each Amazon variant has a 1% chance, and each of the seven
+Missionary variants has about a 4.57% chance. The brief includes the selected
+variant tag, without adding a separate group tag. Flat position lists in custom
+datasets remain supported with uniform selection.
+
 ## Validation and linting
 
 Telegraphy has two related safety nets: validation and linting.

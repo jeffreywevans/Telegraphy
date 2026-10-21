@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## 0.6.3 - 2026-10-21
+
 ### Changed
 - Rename the physicality tag group to position and increase on_page_full tag counts to 6–9.
 - Select positions from 16 weighted groups totaling 100%, with uniform selection among 59 variants.
@@ -218,7 +220,7 @@ This release marks the transition from a single-purpose generator script into a 
 - Refactored story brief generation into focused modules (CLI, data loading, validation, linting, etc.).
 - Hardened output-path handling and filename generation.
 
-[Unreleased]: https://github.com/jeffreywevans/Telegraphy/compare/v0.5.2...HEAD
+[Unreleased]: https://github.com/jeffreywevans/Telegraphy/compare/0.6.3...HEAD
 [0.5.2]: https://github.com/jeffreywevans/Telegraphy/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/jeffreywevans/Telegraphy/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/jeffreywevans/Telegraphy/compare/v0.4.3...v0.5.0

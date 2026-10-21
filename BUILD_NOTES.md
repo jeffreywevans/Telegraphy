@@ -1,4 +1,35 @@
-# Build Notes — 0.6.2
+# Build Notes — 0.6.3
+
+Prepared on 2026-10-21 from source baseline `c2b5679`, with release metadata and documentation updates.
+
+## Release contents
+
+- Weighted position selection: 16 groups totaling 100%, with uniform selection among 59 variants.
+- Rename physicality to position and use 6–9 tags for on_page_full.
+- Position validation and deterministic selection tests, plus repository formatting cleanup.
+- Package metadata, README, changelog, and regenerated SBOM synchronized to 0.6.3.
+
+## Validation
+
+- Python 3.14.4 on Linux; all 532 tests pass with 99% combined statement/branch coverage.
+- Ruff lint, full formatting check (72 files), and strict package mypy pass.
+- Dataset lint reports no warnings or blocking gaps; strict seeded generation passes.
+- Source and wheel builds pass: `commuted_telegraphy-0.6.3.tar.gz` and `commuted_telegraphy-0.6.3-py3-none-any.whl`.
+- Installed-wheel smoke checks pass in a clean virtual environment outside the checkout, including CLI generation, output safety, and copied-data overrides.
+- Bundled README and wheel metadata are verified as 0.6.3; all 15 JSON datasets are present.
+- SBOM component identity, version, and runtime dependency agree with pyproject metadata.
+
+## Manual publication
+
+Create a new GitHub tag `0.6.3` targeting the release-preparation commit on main,
+then publish a GitHub release for that tag. The Upload Python Package workflow
+checks tag/version agreement, builds distributions, and publishes to PyPI.
+No tag, GitHub release, or deployment is created by this preparation task.
+Interactive desktop GUI behavior and remote Actions/CodeQL status remain unverified.
+
+## Historical build notes
+
+### Build 0.6.2
 
 ## Checklist execution — 2026-10-21
 

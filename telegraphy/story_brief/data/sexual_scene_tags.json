@@ -98,7 +98,7 @@
       "tour_party_adjacent",
       "witness_nearby"
     ],
-    "physicality": [
+    "position": [
       "69",
       "amazon",
       "amazon_180",
@@ -216,10 +216,10 @@
       "6": 0.2
     },
     "on_page_full": {
-      "5": 0.25,
-      "6": 0.4,
-      "7": 0.25,
-      "8": 0.1
+      "6": 0.25,
+      "7": 0.4,
+      "8": 0.25,
+      "9": 0.1
     }
   },
   "sexual_scene_required_tag_groups_by_presence": {
@@ -246,12 +246,12 @@
       "tone",
       "dramatic_function",
       "aftermath",
-      "physicality"
+      "position"
     ]
   },
   "sexual_scene_optional_tag_groups": [
     "privacy_risk",
-    "physicality",
+    "position",
     "sensory_anchor",
     "archive_status"
   ]

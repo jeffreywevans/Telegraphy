@@ -212,9 +212,7 @@ def test_main_force_rejects_symlink_output_target(
     assert story_cli.main() == 1
 
 
-def test_main_write_failure_exits_cleanly(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_main_write_failure_exits_cleanly(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(
         sys,

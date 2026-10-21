@@ -15,9 +15,7 @@ def _reject_when(condition: bool, message: str) -> None:
         raise ValueError(message)
 
 
-def require_keys(
-    section_name: str, payload: dict[str, object], required: AbstractSet[str]
-) -> None:
+def require_keys(section_name: str, payload: dict[str, object], required: AbstractSet[str]) -> None:
     missing = sorted(required - payload.keys())
     _reject_when(
         bool(missing),

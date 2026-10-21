@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+- Rename the physicality tag group to position and increase on_page_full tag counts to 6–9.
+- Select positions from 16 weighted groups totaling 100%, with uniform selection among 59 variants.
+- Alphabetize position groups and variants; validate their weights and structure.
+- Apply repository-wide Ruff formatting to pass the build checklist formatting gate.
+
+### Added
+- Position-selection and validation regression tests; 532 tests now pass.
+- Build-checklist execution record, including installed-wheel smoke checks and outstanding GUI/remote CI verification.
+
 ## 0.6.2 - 2026-10-19
 
 ### Changed

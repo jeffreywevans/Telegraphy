@@ -17,38 +17,42 @@ from .schema_validation_common import (
     validate_string_list,
 )
 
-CONFIG_REQUIRED_KEYS = frozenset({
-    "schema_version",
-    "dataset_version",
-    "date_start",
-    "date_end",
-    "sexual_content_presence_options",
-    "sexual_content_presence_weights",
-    "sexual_scene_tag_groups",
-    "sexual_scene_tag_count_weights_by_presence",
-    "sexual_scene_required_tag_groups_by_presence",
-    "sexual_scene_optional_tag_groups",
-    "word_count_targets",
-    "ordered_keys",
-    "writing_preamble",
-})
+CONFIG_REQUIRED_KEYS = frozenset(
+    {
+        "schema_version",
+        "dataset_version",
+        "date_start",
+        "date_end",
+        "sexual_content_presence_options",
+        "sexual_content_presence_weights",
+        "sexual_scene_tag_groups",
+        "sexual_scene_tag_count_weights_by_presence",
+        "sexual_scene_required_tag_groups_by_presence",
+        "sexual_scene_optional_tag_groups",
+        "word_count_targets",
+        "ordered_keys",
+        "writing_preamble",
+    }
+)
 
-EXPECTED_GENERATED_FIELD_KEYS = frozenset({
-    "title",
-    "protagonist",
-    "secondary_character",
-    "time_period",
-    "setting",
-    "weather",
-    "central_conflict",
-    "inciting_pressure",
-    "ending_type",
-    "style_guidance",
-    "sexual_content_level",
-    "sexual_partner",
-    "sexual_scene_tags",
-    "word_count_target",
-})
+EXPECTED_GENERATED_FIELD_KEYS = frozenset(
+    {
+        "title",
+        "protagonist",
+        "secondary_character",
+        "time_period",
+        "setting",
+        "weather",
+        "central_conflict",
+        "inciting_pressure",
+        "ending_type",
+        "style_guidance",
+        "sexual_content_level",
+        "sexual_partner",
+        "sexual_scene_tags",
+        "word_count_target",
+    }
+)
 MAX_SEXUAL_SCENE_TAG_GROUPS = 10
 UNSUPPORTED_CONFIG_ALIAS_KEYS = (
     "sexual_content_options",
@@ -56,8 +60,7 @@ UNSUPPORTED_CONFIG_ALIAS_KEYS = (
     "sexual_scene_tag_count_weights",
 )
 UNSUPPORTED_CONFIG_ALIAS_ERROR_PREFIX = (
-    "The following config keys are no longer supported; "
-    "use canonical fields instead: "
+    "The following config keys are no longer supported; use canonical fields instead: "
 )
 
 
@@ -306,8 +309,7 @@ def _validate_required_groups_for_presence(
 ) -> None:
     if not isinstance(groups, list):
         raise ValueError(
-            "config.sexual_scene_required_tag_groups_by_presence."
-            f"{presence} must be a list"
+            f"config.sexual_scene_required_tag_groups_by_presence.{presence} must be a list"
         )
 
     if groups:

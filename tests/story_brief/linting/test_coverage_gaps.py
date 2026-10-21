@@ -171,13 +171,9 @@ def test_collect_interval_lint_ranges_covers_missing_and_stable_counts(
     )
 
     expected_interval = [(selected_day, selected_day)]
-    assert ranges.missing_character_ranges == (
-        expected_interval if expect_missing_chars else []
-    )
+    assert ranges.missing_character_ranges == (expected_interval if expect_missing_chars else [])
     assert ranges.thin_character_ranges == []
-    assert ranges.missing_setting_ranges == (
-        expected_interval if expect_missing_settings else []
-    )
+    assert ranges.missing_setting_ranges == (expected_interval if expect_missing_settings else [])
     assert ranges.thin_setting_ranges == []
 
 

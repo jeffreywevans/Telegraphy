@@ -39,6 +39,7 @@ class DatasetLintReport(NamedTuple):
 
 class IntervalLintResults(NamedTuple):
     """Results of the interval-based linting process, detailing coverage gaps and fragile areas."""
+
     """Summarized interval-level lint findings for coverage and partner data gaps."""
 
     missing_character_ranges: list[DateRange]
@@ -192,9 +193,7 @@ def _record_partner_gaps(
         eras = partner_distributions.get(protagonist, ())
         if _has_partner_data(eras, selected_date=current_start):
             continue
-        partner_data_gap_ranges_by_protagonist.setdefault(protagonist, []).append(
-            interval
-        )
+        partner_data_gap_ranges_by_protagonist.setdefault(protagonist, []).append(interval)
 
 
 def collect_interval_lint_ranges(
@@ -226,9 +225,7 @@ def collect_interval_lint_ranges(
         characters = available_entities(
             data[CHARACTER_AVAILABILITY_KEY], selected_date=current_start
         )
-        settings = available_entities(
-            data[SETTING_AVAILABILITY_KEY], selected_date=current_start
-        )
+        settings = available_entities(data[SETTING_AVAILABILITY_KEY], selected_date=current_start)
         gap_flags = _availability_gap_flags(characters=characters, settings=settings)
 
         if gap_flags.missing_characters:
@@ -296,9 +293,7 @@ def _append_coverage_messages(
         )
 
     for protagonist in sorted(interval_results.partner_data_gap_ranges_by_protagonist):
-        gap_ranges = interval_results.partner_data_gap_ranges_by_protagonist[
-            protagonist
-        ]
+        gap_ranges = interval_results.partner_data_gap_ranges_by_protagonist[protagonist]
         warnings.append(
             "Partner data coverage gap: protagonist "
             f"'{protagonist}' has no partner era data available on "
@@ -327,9 +322,7 @@ def _append_minimum_option_warning(
 
 def _append_prompt_depth_warnings(data: Mapping[str, Any], *, warnings: list[str]) -> None:
     """Warn when prompt lists are too shallow for durable random variety."""
-    recommendation_for_prompts = (
-        f"adding at least {_MINIMUM_PROMPT_OPTIONS} for variety"
-    )
+    recommendation_for_prompts = f"adding at least {_MINIMUM_PROMPT_OPTIONS} for variety"
     for key in PROMPT_LIST_KEYS:
         _append_minimum_option_warning(
             warnings=warnings,

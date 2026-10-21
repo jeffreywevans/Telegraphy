@@ -40,9 +40,7 @@ def _represent_story_scalar(dumper: _StoryBriefDumper, value: str) -> yaml.Scala
 _StoryBriefDumper.add_representer(str, _represent_story_scalar)
 
 
-def render_title(
-    template: str, *, protagonist: str, setting: str, time_period: str
-) -> str:
+def render_title(template: str, *, protagonist: str, setting: str, time_period: str) -> str:
     """Render @token placeholders in title templates."""
     values = {
         "protagonist": protagonist,

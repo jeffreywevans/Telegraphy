@@ -294,8 +294,7 @@ def test_parse_partner_distribution_payload_rejects_randomized_casefold_duplicat
     start = date(2000, 1, 1)
     end = date(2000, 12, 31)
     mask = [
-        str.upper if _seeded_int(seed, idx, 0, 1) else str.lower
-        for idx, _ in enumerate("Jordan")
+        str.upper if _seeded_int(seed, idx, 0, 1) else str.lower for idx, _ in enumerate("Jordan")
     ]
     variant = "".join(transform(char) for transform, char in zip(mask, "Jordan", strict=True))
     if variant == "Jordan":

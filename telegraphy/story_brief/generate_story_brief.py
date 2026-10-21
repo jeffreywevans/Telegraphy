@@ -38,6 +38,7 @@ __all__ = [
     "to_markdown",
 ]
 
+
 def pick_story_fields(
     rng: random.Random | secrets.SystemRandom,
     selected_date: date | None = None,

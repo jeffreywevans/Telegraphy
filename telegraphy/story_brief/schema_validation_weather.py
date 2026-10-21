@@ -23,7 +23,6 @@ def validate_weather(weather: dict[str, Any]) -> None:
     validate_no_duplicate_strings("weather", "weather", weather_values)
 
     if "weather_comment" in weather and (
-        not isinstance(weather["weather_comment"], str)
-        or not weather["weather_comment"].strip()
+        not isinstance(weather["weather_comment"], str) or not weather["weather_comment"].strip()
     ):
         raise ValueError("weather.weather_comment must be a non-empty string when provided")

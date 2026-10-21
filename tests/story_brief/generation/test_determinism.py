@@ -87,11 +87,7 @@ def test_weather_value_is_from_allowed_pool() -> None:
 @pytest.mark.slow
 def test_sexual_scene_tags_follow_count_and_group_rules() -> None:
     tag_groups = get_data()["sexual_scene_tag_groups"]
-    tag_to_group = {
-        tag: group_name
-        for group_name, tags in tag_groups.items()
-        for tag in tags
-    }
+    tag_to_group = {tag: group_name for group_name, tags in tag_groups.items() for tag in tags}
     configured_counts_by_presence = get_data()["sexual_scene_tag_count_weights_by_presence"]
     required_groups_by_presence = get_data()["sexual_scene_required_tag_groups_by_presence"]
     for seed in range(200):
@@ -112,9 +108,7 @@ def test_sexual_scene_tags_follow_count_and_group_rules() -> None:
         }
         minimum_count = len(required_groups_by_presence[sexual_content_level])
         valid_counts = {
-            count
-            for count in presence_counts
-            if minimum_count <= count <= len(tag_groups)
+            count for count in presence_counts if minimum_count <= count <= len(tag_groups)
         }
 
         assert len(selected_tags) in valid_counts
@@ -181,9 +175,7 @@ def test_seed_output_is_stable_when_option_pool_order_changes(
     shuffled_data["word_count_targets"] = list(reversed(shuffled_data["word_count_targets"]))
     shuffled_data["sexual_scene_tag_groups"] = {
         group_name: list(reversed(tags))
-        for group_name, tags in reversed(
-            list(shuffled_data["sexual_scene_tag_groups"].items())
-        )
+        for group_name, tags in reversed(list(shuffled_data["sexual_scene_tag_groups"].items()))
     }
 
     seed = 8675309

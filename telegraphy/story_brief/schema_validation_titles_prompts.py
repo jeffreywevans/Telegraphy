@@ -23,9 +23,7 @@ def validate_title_tokens(values: list[str]) -> None:
     for idx, value in enumerate(values):
         for token in ANY_TITLE_TOKEN_PATTERN.findall(value):
             if token not in ALLOWED_TITLE_TOKENS:
-                raise ValueError(
-                    f"titles.titles[{idx}] contains unsupported token '@{token}'"
-                )
+                raise ValueError(f"titles.titles[{idx}] contains unsupported token '@{token}'")
 
         bare_tokens = sorted(
             {match.group("key") for match in MISSING_TITLE_AT_PATTERN.finditer(value)}

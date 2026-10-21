@@ -82,9 +82,7 @@ def test_schema_validation_accepts_current_data(story_dataset_payloads) -> None:
             "titles.titles contains duplicate value",
         ),
         (
-            lambda t, e, p, w, c: w.update(
-                {"weather": w["weather"] + [w["weather"][0]]}
-            ),
+            lambda t, e, p, w, c: w.update({"weather": w["weather"] + [w["weather"][0]]}),
             "weather.weather contains duplicate value",
         ),
         (
@@ -117,9 +115,7 @@ def test_schema_validation_accepts_current_data(story_dataset_payloads) -> None:
             "without '@'",
         ),
         (
-            lambda t, e, p, w, c: c.update(
-                {"date_start": "1900-01-01", "date_end": "1900-12-31"}
-            ),
+            lambda t, e, p, w, c: c.update({"date_start": "1900-01-01", "date_end": "1900-12-31"}),
             "no overlap with entities.character_availability",
         ),
         (
@@ -143,6 +139,7 @@ def test_schema_validation_rejects_bad_data(
 
     with pytest.raises(ValueError, match=expected_msg):
         validate_story_data(titles, entities, prompts, weather, config, partner_distributions)
+
 
 def test_schema_validation_rejects_weather_with_unexpected_key(story_dataset_payloads) -> None:
     _assert_schema_rejects(
@@ -481,8 +478,7 @@ def test_dataset_lint_uses_partner_era_boundaries_for_gap_detection() -> None:
 
     assert not report.has_errors
     assert any(
-        "Partner data coverage gap: protagonist 'Alex' has no partner era data available on "
-        in msg
+        "Partner data coverage gap: protagonist 'Alex' has no partner era data available on " in msg
         and next_day.isoformat() in msg
         for msg in report.warnings
     )
@@ -512,8 +508,7 @@ def test_dataset_lint_treats_empty_partner_eras_as_intentional_celibacy() -> Non
 
     assert not report.has_errors
     assert not any(
-        "Partner data coverage gap: protagonist 'Jordan'" in msg
-        for msg in report.warnings
+        "Partner data coverage gap: protagonist 'Jordan'" in msg for msg in report.warnings
     )
 
 
@@ -706,7 +701,6 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
             ),
             r"sexual_scene_tag_count_weights_by_presence\.none keys must be non-negative integers",
         ),
-
         (
             lambda _titles, _entities, _prompts, _weather, config: config.update(
                 {

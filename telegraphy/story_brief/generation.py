@@ -140,8 +140,7 @@ def pick_story_characters(
     distinct_characters_for_date = list(dict.fromkeys(characters_for_date))
     if len(distinct_characters_for_date) < 2:
         raise ValueError(
-            "Need at least two distinct available characters for year "
-            f"{selected_date.year}."
+            f"Need at least two distinct available characters for year {selected_date.year}."
         )
 
     protagonist, secondary_character = rng.sample(distinct_characters_for_date, 2)
@@ -207,9 +206,7 @@ def pick_sexual_scene_tags(
 
     required_names_set = set(required_tag_groups)
     optional_groups = [
-        group_name
-        for group_name in candidate_tag_groups
-        if group_name not in required_names_set
+        group_name for group_name in candidate_tag_groups if group_name not in required_names_set
     ]
     return pick_tags_from_selected_groups(
         rng,
@@ -331,9 +328,7 @@ def _presence_specific_tag_count_pairs(
         try:
             parsed_count = int(raw_count)
         except (TypeError, ValueError) as exc:
-            raise ValueError(
-                f"invalid sexual scene tag count key: {raw_count!r}"
-            ) from exc
+            raise ValueError(f"invalid sexual scene tag count key: {raw_count!r}") from exc
 
         if isinstance(raw_weight, bool):
             raise TypeError(
@@ -357,10 +352,7 @@ def pick_tags_from_selected_groups(
     data: StoryData,
 ) -> list[str]:
     """Pick one random tag from each selected tag group."""
-    return [
-        _pick_tag_for_group(rng, group_name, data)
-        for group_name in selected_tag_groups
-    ]
+    return [_pick_tag_for_group(rng, group_name, data) for group_name in selected_tag_groups]
 
 
 def _pick_tag_for_group(rng: RandomSource, group_name: str, data: StoryData) -> str:

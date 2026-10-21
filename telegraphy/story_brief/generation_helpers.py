@@ -36,9 +36,7 @@ def available_entities(availability_rows: AvailabilityRows, *, selected_date: da
 
 def available_characters(selected_date: date, data: Mapping[str, Any]) -> list[str]:
     """Return characters available for the selected date."""
-    return available_entities(
-        data[CHARACTER_AVAILABILITY_KEY], selected_date=selected_date
-    )
+    return available_entities(data[CHARACTER_AVAILABILITY_KEY], selected_date=selected_date)
 
 
 def available_settings(selected_date: date, data: Mapping[str, Any]) -> list[str]:

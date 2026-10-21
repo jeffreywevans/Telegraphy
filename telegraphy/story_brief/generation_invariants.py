@@ -13,9 +13,7 @@ def validate_story_data_strict(data: Mapping[str, Any]) -> None:
     range_start = data["date_start"]
     range_end = data["date_end"]
     lint_data: Mapping[str, Any] = (
-        data
-        if PARTNER_DISTRIBUTIONS_KEY in data
-        else {**data, PARTNER_DISTRIBUTIONS_KEY: {}}
+        data if PARTNER_DISTRIBUTIONS_KEY in data else {**data, PARTNER_DISTRIBUTIONS_KEY: {}}
     )
 
     sorted_checkpoints = build_coverage_checkpoints(

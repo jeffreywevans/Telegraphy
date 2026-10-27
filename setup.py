@@ -3,8 +3,12 @@
 from setuptools import setup, find_packages
 import os
 
-with open('requirements.txt', 'rb') as fp:
-    requirements = [req for req in fp.read().split() if req]
+with open("requirements.txt", "r", encoding="utf-8") as fp:
+    requirements = [
+        req.strip()
+        for req in fp
+        if req.strip()
+    ]
 
 
 def fullsplit(path, result=None):
@@ -69,7 +73,6 @@ setup(
     version=version,
     description=('Telegraphy - Real Time Events For Django.'),
     long_description=open('README.rst').read(),
-    changelog='',
     license='Apache License 2.0',
     author='Nahuel Defossé',
     author_email='nahuel.defosse@gmail.com',

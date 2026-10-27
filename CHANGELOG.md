@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## 0.6.4 - 2026-10-27
+
+### Changed
+- Extract per-group position validation to reduce cognitive complexity while preserving validation behavior.
+- Configure SonarQube analysis explicitly for Python 3.14.
+- Update the pinned CodeQL and Claude workflow actions.
+
+### Fixed
+- Grant CodeQL read access to workflow-run metadata so analysis can upload results without `Resource not accessible by integration` errors.
+
 ## 0.6.3 - 2026-10-21
 
 ### Changed
@@ -220,7 +230,7 @@ This release marks the transition from a single-purpose generator script into a 
 - Refactored story brief generation into focused modules (CLI, data loading, validation, linting, etc.).
 - Hardened output-path handling and filename generation.
 
-[Unreleased]: https://github.com/jeffreywevans/Telegraphy/compare/0.6.3...HEAD
+[Unreleased]: https://github.com/jeffreywevans/Telegraphy/compare/0.6.4...HEAD
 [0.5.2]: https://github.com/jeffreywevans/Telegraphy/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/jeffreywevans/Telegraphy/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/jeffreywevans/Telegraphy/compare/v0.4.3...v0.5.0

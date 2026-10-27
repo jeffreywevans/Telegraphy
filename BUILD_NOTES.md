@@ -1,4 +1,35 @@
-# Build Notes — 0.6.3
+# Build Notes — 0.6.4
+
+Prepared on 2026-10-27 from the latest `main` branch, including the CodeQL and
+SonarQube configuration fixes.
+
+## Release contents
+
+- Lower-complexity position-group validation with unchanged diagnostics and behavior.
+- SonarQube analysis explicitly targets Python 3.14.
+- CodeQL can read workflow-run metadata and uses the latest pinned action update.
+- Package metadata, README, changelog, and generated SBOM synchronized to 0.6.4.
+
+## Validation
+
+- Python 3.14.4 on Linux; all 532 tests pass with 99% combined statement/branch coverage.
+- Ruff lint, full formatting check (72 files), and strict package mypy pass.
+- Dataset lint reports no warnings or blocking gaps; strict seeded generation passes.
+- Source and wheel builds pass: `commuted_telegraphy-0.6.4.tar.gz` and `commuted_telegraphy-0.6.4-py3-none-any.whl`.
+- The wheel installs in a clean virtual environment outside the checkout; CLI help, dataset lint, and strict seeded generation pass.
+- Wheel metadata, bundled README, and SBOM report 0.6.4; all 15 JSON datasets are packaged.
+- Interactive desktop GUI behavior remains untested in this headless environment.
+
+## Manual publication
+
+Create a new GitHub tag `0.6.4` targeting the release-preparation commit on
+`main`, then publish a GitHub release for that tag. The Upload Python Package
+workflow verifies the tag against package metadata before publishing to PyPI.
+No tag, release, or deployment is created by this preparation task.
+
+## Historical build notes
+
+### Build 0.6.3
 
 Prepared on 2026-10-21 from source baseline `c2b5679`, with release metadata and documentation updates.
 

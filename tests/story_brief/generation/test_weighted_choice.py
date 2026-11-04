@@ -72,17 +72,15 @@ def test_symmetric_peak_weights_rejects_non_positive_lengths() -> None:
             symmetric_peak_weights(length)
 
 
-def test_tag_count_distribution_falls_back_to_defaults_when_filtered_out() -> None:
+def test_tag_count_distribution_rejects_config_when_all_counts_are_filtered_out() -> None:
     data = {"sexual_scene_tag_count_weights_by_presence": {"on_page_full": {3: 0.5, 4: 0.5}}}
 
-    options, weights = build_sexual_scene_tag_count_distribution(
-        ("tone", "location"),
-        data,
-        sexual_content_presence="on_page_full",
-    )
-
-    assert options == [2]
-    assert weights == [0.7]
+    with pytest.raises(ValueError, match="No valid sexual scene tag count options"):
+        build_sexual_scene_tag_count_distribution(
+            ("tone", "location"),
+            data,
+            sexual_content_presence="on_page_full",
+        )
 
 
 def test_build_sexual_scene_tag_count_distribution_supports_mapping_weights() -> None:
@@ -96,54 +94,46 @@ def test_build_sexual_scene_tag_count_distribution_supports_mapping_weights() ->
     assert weights == [0.25, 0.75]
 
 
-def test_tag_count_distribution_missing_presence_falls_back_to_defaults() -> None:
+def test_tag_count_distribution_rejects_missing_presence_configuration() -> None:
     data = {"sexual_scene_tag_count_weights_by_presence": {"on_page_full": {1: 1.0}}}
 
-    options, weights = build_sexual_scene_tag_count_distribution(
-        ("tone", "location"),
-        data,
-        sexual_content_presence="off_page",
-    )
-
-    assert options == [2]
-    assert weights == [0.7]
+    with pytest.raises(ValueError, match="No valid sexual scene tag count options"):
+        build_sexual_scene_tag_count_distribution(
+            ("tone", "location"),
+            data,
+            sexual_content_presence="off_page",
+        )
 
 
-def test_build_sexual_scene_tag_count_distribution_none_presence_uses_defaults() -> None:
+def test_build_sexual_scene_tag_count_distribution_requires_presence() -> None:
     data = {"sexual_scene_tag_count_weights_by_presence": {"on_page_full": {1: 1.0, 2: 0.0}}}
 
-    options, weights = build_sexual_scene_tag_count_distribution(
-        ("tone", "location", "pacing"),
-        data,
-        sexual_content_presence=None,
-    )
-
-    assert options == [2, 3]
-    assert weights == [0.7, 0.1]
+    with pytest.raises(ValueError, match="No valid sexual scene tag count options"):
+        build_sexual_scene_tag_count_distribution(
+            ("tone", "location", "pacing"),
+            data,
+            sexual_content_presence=None,
+        )
 
 
-def test_tag_count_distribution_missing_config_key_falls_back_to_defaults() -> None:
+def test_tag_count_distribution_rejects_missing_config_key() -> None:
     data = {}
 
-    options, weights = build_sexual_scene_tag_count_distribution(
-        ("tone", "location", "dynamic"),
-        data,
-        sexual_content_presence="on_page_full",
-    )
-
-    assert options == [2, 3]
-    assert weights == [0.7, 0.1]
+    with pytest.raises(ValueError, match="No valid sexual scene tag count options"):
+        build_sexual_scene_tag_count_distribution(
+            ("tone", "location", "dynamic"),
+            data,
+            sexual_content_presence="on_page_full",
+        )
 
 
-def test_build_sexual_scene_tag_count_distribution_empty_mapping_falls_back_to_defaults() -> None:
+def test_build_sexual_scene_tag_count_distribution_rejects_empty_mapping() -> None:
     data = {"sexual_scene_tag_count_weights_by_presence": {"on_page_full": {}}}
 
-    options, weights = build_sexual_scene_tag_count_distribution(
-        ("tone", "location", "dynamic"), data, sexual_content_presence="on_page_full"
-    )
-
-    assert options == [2, 3]
-    assert weights == [0.7, 0.1]
+    with pytest.raises(ValueError, match="No valid sexual scene tag count options"):
+        build_sexual_scene_tag_count_distribution(
+            ("tone", "location", "dynamic"), data, sexual_content_presence="on_page_full"
+        )
 
 
 def test_build_sexual_scene_tag_count_distribution_filters_below_minimum_count() -> None:
@@ -191,18 +181,16 @@ def test_pick_sexual_scene_tags_enforces_required_groups_and_optional_pool() -> 
     assert set(selected_tags) == {"loc", "tone", "after", "pace", "phys"}
 
 
-def test_build_sexual_scene_tag_count_distribution_presence_fallback_honors_minimum_count() -> None:
+def test_build_sexual_scene_tag_count_distribution_missing_presence_honors_no_fallback() -> None:
     data = {"sexual_scene_tag_count_weights_by_presence": {"on_page_full": {1: 1.0}}}
 
-    options, weights = build_sexual_scene_tag_count_distribution(
-        ("a", "b", "c", "d", "e"),
-        data,
-        sexual_content_presence="off_page",
-        minimum_count=4,
-    )
-
-    assert options == [4, 5]
-    assert weights == [0.1, 0.1]
+    with pytest.raises(ValueError, match="No valid sexual scene tag count options"):
+        build_sexual_scene_tag_count_distribution(
+            ("a", "b", "c", "d", "e"),
+            data,
+            sexual_content_presence="off_page",
+            minimum_count=4,
+        )
 
 
 def test_pick_sexual_scene_tags_none_returns_empty_list() -> None:

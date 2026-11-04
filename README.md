@@ -418,6 +418,13 @@ Supported title tokens in `titles.json` are:
 
 An empty partner list in `sexual_partners.json` means intentional celibacy for that
 era. A missing era means absent data and should be treated as a dataset problem.
+The `dataset_version` in `sexual_partners.json` must match the value in
+`config.json` so files from different dataset snapshots cannot be combined.
+
+Every positive weight in `sexual_scene_tag_count_weights_by_presence` must name a
+count the corresponding presence level can produce. The count cannot be lower
+than that level's required-group count or higher than its combined required and
+optional group count. The `none` level supports only count `0`.
 
 The loader reads only the explicitly allowed filenames and rejects keys placed in
 the wrong file. It assembles the files in memory for the existing cross-field
@@ -442,7 +449,8 @@ directory as a backup.
 - Keep only `schema_version`, `dataset_version`, and `ordered_keys` in
   `config.json`, setting `schema_version` to `2`.
 - Copy `partner_distributions.json` to `sexual_partners.json` without changing
-  its contents or its internal schema version.
+  its contents or its internal schema version, then make its `dataset_version`
+  match `config.json`.
 - Copy `titles.json` and `weather.json` unchanged.
 
 The old aggregate filenames are no longer loaded. Run dataset lint and strict
@@ -478,8 +486,8 @@ After (canonical shape):
 {
   "sexual_scene_tag_count_weights_by_presence": {
     "none": {"0": 1.0},
-    "implied": {"1": 0.6, "2": 0.3, "3": 0.1},
-    "on_page_full": {"1": 0.2, "2": 0.5, "3": 0.3}
+    "implied": {"2": 0.7, "3": 0.3},
+    "on_page_full": {"6": 0.4, "7": 0.4, "8": 0.2}
   }
 }
 ```

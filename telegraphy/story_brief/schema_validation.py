@@ -89,6 +89,13 @@ def validate_story_data(
         config_end=end,
         character_rows=character_rows,
     )
+    config_dataset_version = normalized_config["dataset_version"].strip()
+    if partner_distribution_index.dataset_version != config_dataset_version:
+        raise ValueError(
+            "partner_distributions.dataset_version must match config.dataset_version "
+            f"({partner_distribution_index.dataset_version!r} != {config_dataset_version!r})"
+        )
+    normalized_config["dataset_version"] = config_dataset_version
 
     return ValidatedStoryData(
         character_availability=character_rows,

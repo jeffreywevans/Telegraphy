@@ -73,6 +73,22 @@ def _mutate_invalid_calendar_date(payload: dict[str, object]) -> None:
     entries[0]["date_start"] = "2000-02-30"
 
 
+def _mutate_boolean_schema_version(payload: dict[str, object]) -> None:
+    payload["schema_version"] = True
+
+
+def _mutate_extra_character_field(payload: dict[str, object]) -> None:
+    payload["partner_distributions"][0]["unexpected"] = "value"
+
+
+def _mutate_extra_era_field(payload: dict[str, object]) -> None:
+    payload["partner_distributions"][0]["eras"][0]["unexpected"] = "value"
+
+
+def _mutate_extra_partner_field(payload: dict[str, object]) -> None:
+    payload["partner_distributions"][0]["eras"][0]["partners"][0]["unexpected"] = "value"
+
+
 def test_parse_partner_distribution_payload_returns_typed_dataset(
     partner_payload_factory,
     partner_character_rows,
@@ -120,6 +136,15 @@ def test_parse_partners_rejects_case_insensitive_duplicates() -> None:
         )
 
 
+@pytest.mark.parametrize("partner_name", [123, True, ["Jordan"], {"name": "Jordan"}])
+def test_parse_partners_rejects_non_string_names(partner_name: object) -> None:
+    with pytest.raises(ValueError, match="partner must be a non-empty string"):
+        _parse_partners(
+            "partner_distributions.partner_distributions[0].eras[0]",
+            [{"partner": partner_name, "weight": 1.0}],
+        )
+
+
 def test_parse_eras_rejects_range_outside_parent_character() -> None:
     char_start = date(2000, 1, 1)
     char_end = date(2000, 12, 31)
@@ -157,6 +182,10 @@ def test_parse_character_distribution_uses_partner_distribution_key_in_path() ->
         (_mutate_non_object_entry, "must be an object"),
         (_mutate_overlapping_eras, "overlapping or unsorted ranges"),
         (_mutate_invalid_calendar_date, "must be an ISO date"),
+        (_mutate_boolean_schema_version, "schema_version must be an integer"),
+        (_mutate_extra_character_field, "unexpected keys: unexpected"),
+        (_mutate_extra_era_field, "unexpected keys: unexpected"),
+        (_mutate_extra_partner_field, "unexpected keys: unexpected"),
     ],
 )
 def test_parse_partner_distribution_payload_rejects_invalid_shapes(

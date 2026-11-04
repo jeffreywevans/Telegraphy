@@ -62,8 +62,8 @@ def _write_minimal_dataset(data_dir: Path) -> None:
                 "tone": ["tender"],
                 "partner": ["married"],
             },
-            "sexual_scene_tag_count_weights_by_presence": {"none": {"1": 1, "2": 1}},
-            "sexual_scene_required_tag_groups_by_presence": {"none": ["tone"]},
+            "sexual_scene_tag_count_weights_by_presence": {"none": {"0": 1}},
+            "sexual_scene_required_tag_groups_by_presence": {"none": []},
             "sexual_scene_optional_tag_groups": [],
         },
     )
@@ -130,14 +130,14 @@ def test_load_story_data_normalizes_sexual_scene_tag_count_weights_by_presence(
 ) -> None:
     tag_path = override_data_dir / "sexual_scene_tags.json"
     tags = json.loads(tag_path.read_text(encoding="utf-8"))
-    tags["sexual_scene_tag_count_weights_by_presence"] = {"none": {"2": 0.3, "1": 0.7}}
+    tags["sexual_scene_tag_count_weights_by_presence"] = {"none": {"0": 1.0}}
     _write_payload(tag_path, tags)
     monkeypatch.setenv("TELEGRAPHY_DATA_DIR", str(override_data_dir))
     data_io.clear_data_cache()
 
     loaded = story_brief.get_normalized_story_data()
 
-    assert loaded["sexual_scene_tag_count_weights_by_presence"] == {"none": {1: 0.7, 2: 0.3}}
+    assert loaded["sexual_scene_tag_count_weights_by_presence"] == {"none": {0: 1.0}}
 
 
 def test_env_override_rejects_unresolved_title_token(

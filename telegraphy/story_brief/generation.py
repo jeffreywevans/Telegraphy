@@ -27,12 +27,6 @@ type SortedStringPoolKey = Literal[
     "ending_types",
     "style_guidance",
 ]
-DEFAULT_SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION: dict[int, float] = {
-    2: 0.7,
-    3: 0.1,
-    4: 0.1,
-    5: 0.1,
-}
 
 
 def random_date_in_range(rng: RandomSource, start: date, end: date) -> date:
@@ -292,20 +286,16 @@ def build_sexual_scene_tag_count_distribution(
             tag_count_weights.append(weight)
 
     if not tag_count_options:
-        tag_count_options = [
-            count
-            for count in DEFAULT_SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION
-            if minimum_count <= count <= max_tag_count
-        ]
-        tag_count_weights = [
-            DEFAULT_SEXUAL_SCENE_TAG_COUNT_WEIGHT_BY_OPTION[count] for count in tag_count_options
-        ]
-    if not tag_count_options:
         max_supported_count = len(tag_group_names)
         raise ValueError(
             "No valid sexual scene tag count options remain after filtering "
             "configured counts against available sexual scene tag groups "
             f"(max supported count: {max_supported_count})"
+        )
+    if sum(tag_count_weights) <= 0:
+        raise ValueError(
+            "No positive sexual scene tag count weights remain after filtering "
+            "configured counts against available sexual scene tag groups"
         )
 
     return tag_count_options, tag_count_weights

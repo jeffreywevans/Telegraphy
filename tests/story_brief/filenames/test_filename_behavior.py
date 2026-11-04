@@ -217,6 +217,29 @@ def test_write_output_markdown_force_overwrites_existing_file(tmp_path) -> None:
     assert output_path.read_text(encoding="utf-8") == "new"
 
 
+def test_write_output_markdown_preserves_existing_file_when_atomic_replace_fails(
+    tmp_path, monkeypatch
+) -> None:
+    output_path = tmp_path / "brief.md"
+    output_path.write_text("old", encoding="utf-8")
+
+    def fail_replace(*_args, **_kwargs):
+        raise OSError("replace failed")
+
+    monkeypatch.setattr("telegraphy.story_brief.filenames.os.replace", fail_replace)
+
+    with pytest.raises(OutputWriteError, match="replace failed"):
+        write_output_markdown(
+            output_path=output_path,
+            content="new",
+            force=True,
+            trusted_base_dir=tmp_path,
+        )
+
+    assert output_path.read_text(encoding="utf-8") == "old"
+    assert list(tmp_path.glob(".brief.md.*.tmp")) == []
+
+
 def test_write_output_markdown_refuses_existing_file_without_force(tmp_path) -> None:
     output_path = tmp_path / "brief.md"
     output_path.write_text("existing", encoding="utf-8")

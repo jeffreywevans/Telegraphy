@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import re
+import tempfile
 from datetime import date, datetime
 from pathlib import Path, PurePath
 
@@ -213,6 +214,8 @@ def resolve_output_path(
         trusted_base_dir,
         "Resolved output path must be within the trusted base directory.",
     )
+    if candidate_output_path.is_symlink():
+        raise OutputPathError("Refusing to use a symbolic-link output path.")
     return candidate_output_path
 
 
@@ -223,12 +226,13 @@ def write_output_markdown(
     force: bool = False,
     trusted_base_dir: Path | None = None,
 ) -> None:
-    """Write markdown to output_path while guarding against symlink redirection.
+    """Atomically publish markdown while guarding against path redirection.
 
     The caller should pass a path returned by ``resolve_output_path`` and invoke
     this function immediately afterwards. This function intentionally re-resolves
-    the parent directory and re-checks trusted-base containment so the final open
-    operation is anchored to the latest filesystem state.
+    the parent directory and re-checks trusted-base containment before creating a
+    temporary file beside the destination. Completed content is published with an
+    atomic replace or hard link so readers never observe a partial brief.
     """
     trusted_base_dir = (trusted_base_dir or Path.cwd()).resolve(strict=True)
     raw_output_path = trusted_base_dir / output_path
@@ -239,22 +243,37 @@ def write_output_markdown(
         trusted_base_dir,
         "Resolved output path must be within the trusted base directory.",
     )
+    if candidate_output_path.is_symlink():
+        raise OutputWriteError("Refusing to replace a symbolic-link output path.")
 
-    flags = os.O_WRONLY | os.O_CREAT
-    flags |= os.O_TRUNC if force else os.O_EXCL
-    if hasattr(os, "O_NOFOLLOW"):
-        flags |= os.O_NOFOLLOW
-    # O_NOFOLLOW is not available on Windows. In that case we still enforce the
-    # trusted base-directory boundary above, but cannot request kernel-level
-    # no-symlink-follow behavior from os.open.
-
+    temporary_path: Path | None = None
     try:
-        fd = os.open(candidate_output_path, flags, 0o600)
+        fd, temporary_name = tempfile.mkstemp(
+            dir=resolved_parent,
+            prefix=f".{candidate_output_path.name}.",
+            suffix=".tmp",
+        )
+        temporary_path = Path(temporary_name)
         with os.fdopen(fd, "w", encoding="utf-8") as handle:
             handle.write(content)
+            handle.flush()
+            os.fsync(handle.fileno())
+
+        if force:
+            os.replace(temporary_path, candidate_output_path)
+        else:
+            os.link(temporary_path, candidate_output_path, follow_symlinks=False)
+        temporary_path.unlink(missing_ok=True)
+        temporary_path = None
     except FileExistsError:
         raise OutputWriteError(
             "Refusing to overwrite existing file. Use --force to overwrite."
         ) from None
     except OSError as exc:
         raise OutputWriteError(f"Unable to safely open or write output path: {exc}") from exc
+    finally:
+        if temporary_path is not None:
+            try:
+                temporary_path.unlink(missing_ok=True)
+            except OSError:
+                pass

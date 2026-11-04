@@ -133,7 +133,7 @@ def test_non_none_sexual_content_with_positive_partner_weight_requires_partner_s
         ("Jordan", selected_date, selected_date),
     ]
     data["setting_availability"] = [("Seattle", selected_date, selected_date)]
-    data["sexual_content_presence_options"] = ["none", "suggestive"]
+    data["sexual_content_presence_options"] = ["none", "on_page_brief"]
     data["sexual_content_presence_weights"] = [0.0, 1.0]
     data[story_brief.PARTNER_DISTRIBUTIONS_KEY][protagonist] = [
         {
@@ -223,7 +223,7 @@ def test_pick_story_fields_handles_partner_distribution_gap_year(
         ("Jordan", selected_date, selected_date),
     ]
     data["setting_availability"] = [("Seattle", selected_date, selected_date)]
-    data["sexual_content_presence_options"] = ["suggestive"]
+    data["sexual_content_presence_options"] = ["on_page_brief"]
     data["sexual_content_presence_weights"] = [1.0]
     gap_eras = [
         {
@@ -243,7 +243,7 @@ def test_pick_story_fields_handles_partner_distribution_gap_year(
     monkeypatch.setattr(story_brief, "get_normalized_story_data", lambda: data)
     fields = story_brief.pick_story_fields(random.Random(9), selected_date=selected_date)
 
-    assert fields["sexual_content_level"] == "suggestive"
+    assert fields["sexual_content_level"] == "on_page_brief"
     assert fields["sexual_partner"] is None
 
 
@@ -259,7 +259,7 @@ def test_pick_story_fields_handles_missing_partner_distribution_for_protagonist(
         ("Jordan", selected_date, selected_date),
     ]
     data["setting_availability"] = [("Seattle", selected_date, selected_date)]
-    data["sexual_content_presence_options"] = ["suggestive"]
+    data["sexual_content_presence_options"] = ["on_page_brief"]
     data["sexual_content_presence_weights"] = [1.0]
     data[story_brief.PARTNER_DISTRIBUTIONS_KEY].pop("Alex", None)
     data[story_brief.PARTNER_DISTRIBUTIONS_KEY].pop("Jordan", None)
@@ -267,5 +267,5 @@ def test_pick_story_fields_handles_missing_partner_distribution_for_protagonist(
     monkeypatch.setattr(story_brief, "get_normalized_story_data", lambda: data)
     fields = story_brief.pick_story_fields(random.Random(1), selected_date=selected_date)
 
-    assert fields["sexual_content_level"] == "suggestive"
+    assert fields["sexual_content_level"] == "on_page_brief"
     assert fields["sexual_partner"] is None

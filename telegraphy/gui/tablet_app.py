@@ -398,7 +398,13 @@ class TelegraphyTablet(tk.Tk):
         worker.start()
 
     def _run_cli_worker(self) -> None:
-        result = run_story_brief_cli(self.run_options)
+        try:
+            result = run_story_brief_cli(self.run_options)
+        except Exception as exc:
+            # This is the thread boundary: always wake the UI even if an unexpected
+            # dependency or subprocess failure escapes the normal runner handling.
+            self.result_queue.put(("error", f"Unexpected CLI worker failure: {exc}"))
+            return
         self.result_queue.put((result.status, result.message))
 
     def _decode_output(self, output: bytes) -> str:

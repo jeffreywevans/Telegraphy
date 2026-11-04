@@ -742,8 +742,7 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
             ),
             (
                 r"config\.sexual_scene_required_tag_groups_by_presence\.none requires 1 group, "
-                r"but config\.sexual_scene_tag_count_weights_by_presence\.none allows as few "
-                r"as 0 tags"
+                r"but only 0 tag groups are available"
             ),
         ),
         (
@@ -966,4 +965,45 @@ def test_schema_validation_defaults_missing_optional_tag_groups(
     config.pop("sexual_scene_optional_tag_groups")
 
     result = validate_story_data(titles, entities, prompts, weather, config, partner_distributions)
-    assert result.normalized_config["sexual_scene_optional_tag_groups"] == []
+    assert result.normalized_config["sexual_scene_optional_tag_groups"] == list(
+        config["sexual_scene_tag_groups"]
+    )
+
+
+def test_schema_validation_rejects_positive_weight_below_required_tag_count(
+    story_dataset_payloads: dict[str, dict[str, Any]],
+) -> None:
+    config = story_dataset_payloads["config"]
+    config["sexual_scene_tag_count_weights_by_presence"]["implied"] = {
+        "1": 1.0,
+        "2": 0.0,
+    }
+
+    with pytest.raises(ValueError, match="assigns positive weight to unsupported tag counts: 1"):
+        validate_story_data(
+            story_dataset_payloads["titles"],
+            story_dataset_payloads["entities"],
+            story_dataset_payloads["prompts"],
+            story_dataset_payloads["weather"],
+            config,
+            story_dataset_payloads["partner_distributions"],
+        )
+
+
+def test_schema_validation_rejects_partner_dataset_version_mismatch(
+    story_dataset_payloads: dict[str, dict[str, Any]],
+) -> None:
+    story_dataset_payloads["partner_distributions"]["dataset_version"] = "other-version"
+
+    with pytest.raises(
+        ValueError,
+        match=r"partner_distributions\.dataset_version must match config\.dataset_version",
+    ):
+        validate_story_data(
+            story_dataset_payloads["titles"],
+            story_dataset_payloads["entities"],
+            story_dataset_payloads["prompts"],
+            story_dataset_payloads["weather"],
+            story_dataset_payloads["config"],
+            story_dataset_payloads["partner_distributions"],
+        )

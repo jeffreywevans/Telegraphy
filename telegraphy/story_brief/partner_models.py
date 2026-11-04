@@ -23,6 +23,20 @@ def require_keys(section_name: str, payload: dict[str, object], required: Abstra
     )
 
 
+def require_exact_keys(
+    section_name: str,
+    payload: dict[str, object],
+    expected: AbstractSet[str],
+) -> None:
+    """Require a nested partner-data record to contain exactly its schema fields."""
+    require_keys(section_name, payload, expected)
+    unexpected = sorted(payload.keys() - expected)
+    _reject_when(
+        bool(unexpected),
+        f"{section_name}: unexpected keys: {', '.join(unexpected)}",
+    )
+
+
 @dataclass(frozen=True, slots=True)
 class PartnerWeight:
     partner: str
@@ -61,7 +75,8 @@ def _has_iso_date_shape(raw_text: str) -> bool:
 
 
 def _parse_iso_date(raw: object, *, field: str) -> date:
-    raw_text = str(raw)
+    _reject_when(not isinstance(raw, str), f"{field} {_ISO_DATE_ERROR}")
+    raw_text = cast(str, raw)
     _reject_when(not _has_iso_date_shape(raw_text), f"{field} {_ISO_DATE_ERROR}")
 
     try:
@@ -71,7 +86,8 @@ def _parse_iso_date(raw: object, *, field: str) -> date:
 
 
 def _parse_name(value: object, *, field: str) -> str:
-    parsed = str(value).strip()
+    _reject_when(not isinstance(value, str), f"{field} must be a non-empty string")
+    parsed = cast(str, value).strip()
     _reject_when(not parsed, f"{field} must be a non-empty string")
     return parsed
 
@@ -116,7 +132,7 @@ def _parse_partners(era_section: str, partners_raw: object) -> tuple[PartnerWeig
     for partner_idx, partner_item_raw in enumerate(cast(list[object], partners_raw)):
         partner_section = f"{era_section}.partners[{partner_idx}]"
         partner_item = _require_dict(partner_item_raw, field=partner_section)
-        require_keys(partner_section, partner_item, {"partner", "weight"})
+        require_exact_keys(partner_section, partner_item, {"partner", "weight"})
 
         partner_name = _parse_name(partner_item["partner"], field=f"{partner_section}.partner")
         partner_key = partner_name.casefold()
@@ -150,7 +166,7 @@ def _parse_eras(
     for era_idx, era_entry_raw in enumerate(eras_input):
         era_section = f"{section}.eras[{era_idx}]"
         era_entry = _require_dict(era_entry_raw, field=era_section)
-        require_keys(era_section, era_entry, {"date_start", "date_end", "partners"})
+        require_exact_keys(era_section, era_entry, {"date_start", "date_end", "partners"})
 
         era_start = _parse_iso_date(era_entry["date_start"], field=f"{era_section}.date_start")
         era_end = _parse_iso_date(era_entry["date_end"], field=f"{era_section}.date_end")
@@ -185,7 +201,11 @@ def _parse_character_distribution(
 ) -> CharacterPartnerDistribution:
     section = f"partner_distributions.{partner_distributions_key}[{idx}]"
     character_record = _require_dict(character_entry, field=section)
-    require_keys(section, character_record, {"character", "date_start", "date_end", "eras"})
+    require_exact_keys(
+        section,
+        character_record,
+        {"character", "date_start", "date_end", "eras"},
+    )
 
     character = _parse_name(character_record["character"], field=f"{section}.character")
     _reject_when(
@@ -236,7 +256,9 @@ def parse_partner_distribution_payload(
     )
     schema_version = partner_payload["schema_version"]
     _reject_when(
-        not isinstance(schema_version, int) or schema_version < 1,
+        isinstance(schema_version, bool)
+        or not isinstance(schema_version, int)
+        or schema_version < 1,
         "partner_distributions.schema_version must be an integer >= 1",
     )
 

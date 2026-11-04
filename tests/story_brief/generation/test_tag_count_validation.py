@@ -29,6 +29,21 @@ def test_tag_count_distribution_rejects_unsatisfiable_counts(
     )
 
 
+def test_tag_count_distribution_rejects_zero_total_after_filtering() -> None:
+    data = cast(
+        StoryData,
+        {"sexual_scene_tag_count_weights_by_presence": {"full": {1: 1.0, 2: 0.0}}},
+    )
+
+    with pytest.raises(ValueError, match="No positive sexual scene tag count weights remain"):
+        build_sexual_scene_tag_count_distribution(
+            ("tone", "location"),
+            data,
+            sexual_content_presence="full",
+            minimum_count=2,
+        )
+
+
 @pytest.mark.parametrize("raw_count", [True, False, 1.0, 1.5])
 def test_tag_count_distribution_rejects_boolean_and_float_keys(raw_count: object) -> None:
     data = cast(

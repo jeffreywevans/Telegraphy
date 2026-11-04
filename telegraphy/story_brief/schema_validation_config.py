@@ -267,6 +267,7 @@ def validate_sexual_scene_tag_group_presence_rules(config: dict[str, Any]) -> No
             presence=presence,
             groups=groups,
             group_names=group_names,
+            optional_groups=optional_groups,
             tag_count_weights_by_presence=config["sexual_scene_tag_count_weights_by_presence"],
         )
 
@@ -305,6 +306,7 @@ def _validate_required_groups_for_presence(
     presence: str,
     groups: Any,
     group_names: set[str],
+    optional_groups: list[str],
     tag_count_weights_by_presence: dict[str, dict[Any, float]],
 ) -> None:
     if not isinstance(groups, list):
@@ -318,31 +320,41 @@ def _validate_required_groups_for_presence(
         validate_no_duplicate_strings("config", field_name, groups)
 
     _raise_for_unknown_required_groups(presence, groups, group_names)
-    _raise_for_excess_required_groups(presence, groups, tag_count_weights_by_presence)
+    _validate_achievable_tag_counts(
+        presence,
+        groups,
+        optional_groups,
+        tag_count_weights_by_presence,
+    )
 
 
-def _get_min_allowed_tag_count(tag_count_weights: dict[Any, float]) -> int:
-    allowed_tag_counts = [int(count) for count, weight in tag_count_weights.items() if weight > 0]
-    return min(allowed_tag_counts, default=0)
-
-
-def _raise_for_excess_required_groups(
+def _validate_achievable_tag_counts(
     presence: str,
     groups: list[str],
+    optional_groups: list[str],
     tag_count_weights_by_presence: dict[str, dict[Any, float]],
 ) -> None:
-    if presence != "none":
-        return
-
     tag_count_weights = tag_count_weights_by_presence[presence]
-    min_allowed = _get_min_allowed_tag_count(tag_count_weights)
-    if len(groups) > min_allowed:
-        group_count = len(groups)
+    minimum_count = len(groups)
+    maximum_count = 0 if presence == "none" else len(set(groups) | set(optional_groups))
+    if minimum_count > maximum_count:
         raise ValueError(
             f"config.sexual_scene_required_tag_groups_by_presence.{presence} "
-            f"requires {group_count} group{'s' if group_count != 1 else ''}, but "
-            f"config.sexual_scene_tag_count_weights_by_presence.{presence} "
-            f"allows as few as {min_allowed} tag{'s' if min_allowed != 1 else ''}"
+            f"requires {minimum_count} group{'s' if minimum_count != 1 else ''}, but only "
+            f"{maximum_count} tag group{'s are' if maximum_count != 1 else ' is'} available"
+        )
+
+    unsupported_positive_counts = sorted(
+        _parse_non_negative_weight_count(raw_count, "tag count")
+        for raw_count, weight in tag_count_weights.items()
+        if weight > 0 and not minimum_count <= int(raw_count) <= maximum_count
+    )
+    if unsupported_positive_counts:
+        counts = ", ".join(str(count) for count in unsupported_positive_counts)
+        raise ValueError(
+            f"config.sexual_scene_tag_count_weights_by_presence.{presence} assigns positive "
+            f"weight to unsupported tag counts: {counts}; achievable range is "
+            f"{minimum_count}..{maximum_count}"
         )
 
 
@@ -434,5 +446,9 @@ def normalize_config(config: dict[str, Any]) -> dict[str, Any]:
         joined = ", ".join(sorted(present_unsupported_aliases))
         raise ValueError(f"{UNSUPPORTED_CONFIG_ALIAS_ERROR_PREFIX}{joined}")
 
-    normalized.setdefault("sexual_scene_optional_tag_groups", [])
+    if "sexual_scene_optional_tag_groups" not in normalized:
+        groups = normalized.get("sexual_scene_tag_groups")
+        normalized["sexual_scene_optional_tag_groups"] = (
+            list(groups) if isinstance(groups, dict) else []
+        )
     return normalized

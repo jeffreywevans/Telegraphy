@@ -305,6 +305,16 @@ def test_run_cli_worker_success_error_and_exception(monkeypatch):
     tablet._run_cli_worker()
     assert tablet.result_queue.get_nowait() == ("error", "err")
 
+    def raise_unexpected(_options):
+        raise RuntimeError("worker crashed")
+
+    monkeypatch.setattr(tablet_app, "run_story_brief_cli", raise_unexpected)
+    tablet._run_cli_worker()
+    assert tablet.result_queue.get_nowait() == (
+        "error",
+        "Unexpected CLI worker failure: worker crashed",
+    )
+
 
 def test_poll_queue_and_copy_and_output_and_draw(monkeypatch):
     tablet = _make_tablet()

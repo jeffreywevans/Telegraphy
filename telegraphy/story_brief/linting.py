@@ -38,8 +38,6 @@ class DatasetLintReport(NamedTuple):
 
 
 class IntervalLintResults(NamedTuple):
-    """Results of the interval-based linting process, detailing coverage gaps and fragile areas."""
-
     """Summarized interval-level lint findings for coverage and partner data gaps."""
 
     missing_character_ranges: list[DateRange]
@@ -47,9 +45,6 @@ class IntervalLintResults(NamedTuple):
     missing_setting_ranges: list[DateRange]
     thin_setting_ranges: list[DateRange]
     partner_data_gap_ranges_by_protagonist: PartnerGapRanges
-
-
-_IntervalLintResults = IntervalLintResults
 
 
 class _AvailabilityGapFlags(NamedTuple):
@@ -252,9 +247,6 @@ def collect_interval_lint_ranges(
         thin_setting_ranges=thin_setting_ranges,
         partner_data_gap_ranges_by_protagonist=partner_data_gap_ranges_by_protagonist,
     )
-
-
-_collect_interval_lint_ranges = collect_interval_lint_ranges
 
 
 def _coalesced_date_ranges(ranges: list[DateRange]) -> str:

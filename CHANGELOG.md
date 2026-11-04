@@ -10,6 +10,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Require every positive sexual-scene tag-count weight to describe an achievable count and remove runtime fallback weights.
 - Validate partner records as exact typed schemas and require partner dataset versions to match the main dataset version.
 - Publish generated Markdown atomically so failed forced writes preserve the previous file.
+- Avoid re-sorting normalized generation pools and remove obsolete compatibility aliases and GUI forwarding wrappers.
+- Generate dependency SBOM entries from general PEP 508 requirements without presenting minimum versions as installed versions.
+- Enforce Ruff formatting in CI alongside lint, type, and test checks.
 
 ### Fixed
 - Ensure unexpected GUI worker failures return an error result instead of leaving the interface disabled indefinitely.

@@ -6,6 +6,7 @@ import tomllib
 from pathlib import Path
 
 import pytest
+from packaging.requirements import Requirement
 
 from telegraphy.scripts import generate_sbom
 
@@ -30,16 +31,22 @@ def test_build_sbom_includes_component_bom_refs() -> None:
 def test_build_sbom_matches_pyproject_version_and_dependency() -> None:
     pyproject_data = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))
     project = pyproject_data["project"]
-    dependency_spec = project["dependencies"][0]
-    dep_name, dep_version = dependency_spec.split(">=", maxsplit=1)
+    dependency = Requirement(project["dependencies"][0])
 
     sbom = generate_sbom.build_sbom()
     root_component = sbom["metadata"]["component"]
     dependency_component = sbom["components"][0]
 
     assert root_component["version"] == project["version"]
-    assert dependency_component["name"] == dep_name
-    assert dependency_component["version"] == dep_version
+    assert dependency_component["name"] == dependency.name
+    assert "version" not in dependency_component
+    assert dependency_component["purl"] == "pkg:pypi/pyyaml"
+    assert dependency_component["properties"] == [
+        {
+            "name": "telegraphy:declared-requirement",
+            "value": str(dependency),
+        }
+    ]
 
 
 def test_main_writes_valid_json(tmp_path, monkeypatch) -> None:
@@ -52,7 +59,32 @@ def test_main_writes_valid_json(tmp_path, monkeypatch) -> None:
     assert written["bomFormat"] == "CycloneDX"
 
 
-def test_load_project_metadata_raises_without_exactly_one_dependency(tmp_path) -> None:
+def test_build_sbom_supports_multiple_runtime_dependencies(tmp_path, monkeypatch) -> None:
+    pyproject_path = tmp_path / "pyproject.toml"
+    pyproject_path.write_text(
+        """
+[project]
+name = "telegraphy"
+version = "0.1.0"
+dependencies = ["alpha>=1", "bravo==2.0"]
+""".strip(),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(generate_sbom, "PYPROJECT_PATH", pyproject_path)
+
+    sbom = generate_sbom.build_sbom()
+
+    assert [component["name"] for component in sbom["components"]] == ["alpha", "bravo"]
+    assert sbom["components"][0]["purl"] == "pkg:pypi/alpha"
+    assert sbom["components"][1]["purl"] == "pkg:pypi/bravo@2.0"
+    assert sbom["components"][1]["version"] == "2.0"
+    assert sbom["dependencies"][0]["dependsOn"] == [
+        "pkg:pypi/alpha",
+        "pkg:pypi/bravo@2.0",
+    ]
+
+
+def test_load_project_metadata_accepts_no_runtime_dependencies(tmp_path) -> None:
     pyproject_path = tmp_path / "pyproject.toml"
     pyproject_path.write_text(
         """
@@ -64,8 +96,10 @@ dependencies = []
         encoding="utf-8",
     )
 
-    with pytest.raises(ValueError, match="exactly one runtime dependency"):
-        generate_sbom._load_project_metadata(pyproject_path)
+    name, version, dependencies = generate_sbom._load_project_metadata(pyproject_path)
+
+    assert (name, version) == ("telegraphy", "0.1.0")
+    assert dependencies == ()
 
 
 def test_module_entrypoint_exits_cleanly_and_writes_output(monkeypatch) -> None:

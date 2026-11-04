@@ -12,7 +12,7 @@ from tkinter import font as tkfont
 from tkinter import ttk
 from typing import Final
 
-from telegraphy.gui.cli_runner import build_cli_command, decode_output, run_story_brief_cli
+from telegraphy.gui.cli_runner import run_story_brief_cli
 from telegraphy.gui.models import (
     DEFAULT_CLI_TIMEOUT_SECONDS,
     RunOptions,
@@ -46,10 +46,6 @@ TABLET_MIDDLE_SECTION_COLOR: Final = "#F2F2F2"
 TABLET_INNER_SECTION_COLOR: Final = "#0D0D0D"
 TABLET_OUTER_OUTLINE_COLOR: Final = "#A6A6A6"
 TABLET_MIDDLE_OUTLINE_COLOR: Final = "#1f2937"
-
-
-def _build_cli_command(options: RunOptions) -> list[str]:
-    return build_cli_command(options)
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -406,9 +402,6 @@ class TelegraphyTablet(tk.Tk):
             self.result_queue.put(("error", f"Unexpected CLI worker failure: {exc}"))
             return
         self.result_queue.put((result.status, result.message))
-
-    def _decode_output(self, output: bytes) -> str:
-        return decode_output(output)
 
     def _poll_worker_queue(self) -> None:
         if not self._worker_active:

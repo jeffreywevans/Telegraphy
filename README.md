@@ -554,6 +554,11 @@ sbom.cdx.json
 
 You can use this file for dependency transparency, supply-chain review, and security tooling that ingests CycloneDX JSON.
 
+The source SBOM records each declared PEP 508 runtime requirement. Range requirements
+remain ranges rather than being presented as installed versions; exact pins include
+their version in the component package URL. It is a source dependency manifest, not
+an inventory of one particular installed environment.
+
 To regenerate the SBOM after dependency or version changes:
 
 ```bash
@@ -617,7 +622,7 @@ It also performs filename checks and sanitization, including:
 - leading or trailing spaces;
 - Windows reserved device names;
 - UTF-8 byte-length limits;
-- optional `O_NOFOLLOW` protection on platforms that provide it.
+- atomic same-directory publication and explicit symbolic-link target rejection.
 
 ## Development
 
@@ -631,7 +636,7 @@ Run the local quality checks:
 
 ```bash
 ruff check .
-ruff format .
+ruff format --check .
 mypy telegraphy
 pytest
 ```

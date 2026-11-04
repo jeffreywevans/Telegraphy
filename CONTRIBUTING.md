@@ -18,8 +18,8 @@ Before opening a pull request, run:
 
 ```bash
 ruff check .
-ruff format .
-mypy .
+ruff format --check .
+mypy telegraphy
 pytest
 ```
 

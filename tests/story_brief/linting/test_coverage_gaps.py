@@ -14,11 +14,11 @@ from telegraphy.story_brief.linting import (
     DatasetLintReport,
     _append_prompt_depth_warnings,
     _coalesce_ranges,
-    _collect_interval_lint_ranges,
     _format_date_ranges,
     _merge_or_append_range,
     _record_partner_gaps,
     _resolve_interval_end,
+    collect_interval_lint_ranges,
 )
 
 
@@ -166,7 +166,7 @@ def test_collect_interval_lint_ranges_covers_missing_and_stable_counts(
         story_brief.PARTNER_DISTRIBUTIONS_KEY: {},
     }
 
-    ranges = _collect_interval_lint_ranges(
+    ranges = collect_interval_lint_ranges(
         data, sorted_checkpoints=[selected_day], range_end=selected_day
     )
 
@@ -191,7 +191,7 @@ def test_collect_interval_lint_ranges_tracks_thin_character_and_setting_ranges()
         },
     }
 
-    ranges = _collect_interval_lint_ranges(
+    ranges = collect_interval_lint_ranges(
         data, sorted_checkpoints=[selected_day], range_end=selected_day
     )
 

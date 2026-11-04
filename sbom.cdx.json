@@ -22,23 +22,28 @@
   },
   "components": [
     {
-      "bom-ref": "pkg:pypi/pyyaml@6.0.3",
+      "bom-ref": "pkg:pypi/pyyaml",
       "type": "library",
       "name": "PyYAML",
-      "version": "6.0.3",
-      "purl": "pkg:pypi/pyyaml@6.0.3",
-      "scope": "required"
+      "purl": "pkg:pypi/pyyaml",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "telegraphy:declared-requirement",
+          "value": "PyYAML>=6.0.3"
+        }
+      ]
     }
   ],
   "dependencies": [
     {
       "ref": "pkg:pypi/commuted-telegraphy@0.6.4",
       "dependsOn": [
-        "pkg:pypi/pyyaml@6.0.3"
+        "pkg:pypi/pyyaml"
       ]
     },
     {
-      "ref": "pkg:pypi/pyyaml@6.0.3",
+      "ref": "pkg:pypi/pyyaml",
       "dependsOn": []
     }
   ]

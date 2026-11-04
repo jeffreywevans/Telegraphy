@@ -5,17 +5,17 @@ import random
 import secrets
 from collections.abc import Iterable, Mapping, Sequence
 from datetime import date
-from typing import Any, TypeVar
+from typing import Any
 
 from ._constants import CHARACTER_AVAILABILITY_KEY, SETTING_AVAILABILITY_KEY
 
 type RandomSource = random.Random | secrets.SystemRandom
-PoolValue = TypeVar("PoolValue", bound=str | int | tuple[str, float])
-OptionT = TypeVar("OptionT")
 type AvailabilityRows = Sequence[tuple[str, date, date]]
 
 
-def stable_sorted_pool(values: Iterable[PoolValue]) -> list[PoolValue]:
+def stable_sorted_pool[PoolValue: str | int | tuple[str, float]](
+    values: Iterable[PoolValue],
+) -> list[PoolValue]:
     """Return a consistently sorted copy for seed-stable random selection."""
     return sorted(values)
 
@@ -44,7 +44,7 @@ def available_settings(selected_date: date, data: Mapping[str, Any]) -> list[str
     return available_entities(data[SETTING_AVAILABILITY_KEY], selected_date=selected_date)
 
 
-def weighted_choice(
+def weighted_choice[OptionT](
     rng: RandomSource,
     options: Sequence[OptionT],
     weights: Sequence[float],

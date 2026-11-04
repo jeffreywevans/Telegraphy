@@ -5,7 +5,7 @@ import secrets
 from collections.abc import Iterable, Mapping, Sequence
 from datetime import date, timedelta
 from functools import lru_cache
-from typing import Any, Literal, TypeAlias, cast, overload
+from typing import Any, Literal, cast, overload
 
 from .generation_helpers import (
     _date_in_range,
@@ -17,10 +17,10 @@ from .generation_helpers import (
 from .rendering import render_title
 from .story_data import StoryData
 
-RandomSource: TypeAlias = random.Random | secrets.SystemRandom
-GeneratedFieldValue: TypeAlias = str | int | list[str] | None
-GeneratedFields: TypeAlias = dict[str, GeneratedFieldValue]
-SortedStringPoolKey: TypeAlias = Literal[
+type RandomSource = random.Random | secrets.SystemRandom
+type GeneratedFieldValue = str | int | list[str] | None
+type GeneratedFields = dict[str, GeneratedFieldValue]
+type SortedStringPoolKey = Literal[
     "titles",
     "central_conflicts",
     "inciting_pressures",

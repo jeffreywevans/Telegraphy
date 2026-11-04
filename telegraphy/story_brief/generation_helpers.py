@@ -5,14 +5,14 @@ import random
 import secrets
 from collections.abc import Iterable, Mapping, Sequence
 from datetime import date
-from typing import Any, TypeAlias, TypeVar
+from typing import Any, TypeVar
 
 from ._constants import CHARACTER_AVAILABILITY_KEY, SETTING_AVAILABILITY_KEY
 
-RandomSource: TypeAlias = random.Random | secrets.SystemRandom
+type RandomSource = random.Random | secrets.SystemRandom
 PoolValue = TypeVar("PoolValue", bound=str | int | tuple[str, float])
 OptionT = TypeVar("OptionT")
-AvailabilityRows: TypeAlias = Sequence[tuple[str, date, date]]
+type AvailabilityRows = Sequence[tuple[str, date, date]]
 
 
 def stable_sorted_pool(values: Iterable[PoolValue]) -> list[PoolValue]:

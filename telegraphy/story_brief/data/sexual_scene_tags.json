@@ -14,16 +14,23 @@
       "waterfront"
     ],
     "pacing": [
+      "blistering_fast",
+      "brisk",
+      "foreplay_heavy",
+      "foreplay_skipped",
+      "impatient",
       "interrupted",
       "languid",
       "marathon",
       "morning_after",
+      "patient",
       "post_fight",
       "post_show",
-      "quick",
+      "quickie",
       "rushed",
       "slow_burn",
-      "spiraling"
+      "spiraling",
+      "time_constrained"
     ],
     "tone": [
       "aching",

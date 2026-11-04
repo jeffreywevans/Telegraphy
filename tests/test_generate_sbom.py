@@ -18,6 +18,13 @@ def test_package_url_normalizes_project_names_for_pypi_purls() -> None:
     )
 
 
+@pytest.mark.parametrize("requirement_text", ["alpha", "alpha>=1,<2"])
+def test_exact_requirement_version_rejects_non_single_specifiers(
+    requirement_text: str,
+) -> None:
+    assert generate_sbom._exact_requirement_version(Requirement(requirement_text)) is None
+
+
 def test_build_sbom_includes_component_bom_refs() -> None:
     sbom = generate_sbom.build_sbom()
 

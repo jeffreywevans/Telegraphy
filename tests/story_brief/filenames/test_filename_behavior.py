@@ -61,7 +61,10 @@ def test_build_auto_filename_accepts_iso_date_string_for_today() -> None:
     assert build_auto_filename("Hello World", today="2026-04-21") == "2026-04-21 hello-world.md"
 
 
-def test_resolve_output_path_does_not_create_directories(tmp_path, monkeypatch) -> None:
+def test_resolve_output_path_does_not_create_directories(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.chdir(tmp_path)
     output_dir = Path("nested") / "missing"
 
@@ -75,7 +78,7 @@ def test_resolve_output_path_does_not_create_directories(tmp_path, monkeypatch) 
     assert not (tmp_path / "nested" / "missing").exists()
 
 
-def test_write_output_markdown_accepts_absolute_path_within_base(tmp_path) -> None:
+def test_write_output_markdown_accepts_absolute_path_within_base(tmp_path: Path) -> None:
     output_path = tmp_path / "nested" / "brief.md"
     output_path.parent.mkdir(parents=True)
 
@@ -88,7 +91,7 @@ def test_write_output_markdown_accepts_absolute_path_within_base(tmp_path) -> No
     assert output_path.read_text(encoding="utf-8") == "hello"
 
 
-def test_write_output_markdown_rejects_absolute_path_outside_base(tmp_path) -> None:
+def test_write_output_markdown_rejects_absolute_path_outside_base(tmp_path: Path) -> None:
     outside_path = tmp_path.parent / "outside-brief.md"
 
     with pytest.raises(OutputPathError, match="trusted base directory"):
@@ -153,30 +156,31 @@ def test_validate_user_filename_input_rejects_unsafe_values(filename: str) -> No
         _validate_user_filename_input(filename)
 
 
-def test_build_safe_relative_path_rejects_home_and_traversal(tmp_path) -> None:
+def test_build_safe_relative_path_rejects_home_and_traversal(tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="must not begin with '~'"):
         _build_safe_relative_path("~/docs", trusted_base_dir=tmp_path)
     with pytest.raises(ValueError, match="must not include parent-directory traversal"):
         _build_safe_relative_path("../docs", trusted_base_dir=tmp_path)
 
 
-def test_build_safe_relative_path_accepts_absolute_inside_base(tmp_path) -> None:
+def test_build_safe_relative_path_accepts_absolute_inside_base(tmp_path: Path) -> None:
     nested = tmp_path / "safe" / "area"
     assert _build_safe_relative_path(str(nested), trusted_base_dir=tmp_path) == Path("safe/area")
 
 
-def test_build_safe_relative_path_maps_blank_to_current_directory(tmp_path) -> None:
+def test_build_safe_relative_path_maps_blank_to_current_directory(tmp_path: Path) -> None:
     assert _build_safe_relative_path("   ", trusted_base_dir=tmp_path) == Path(".")
 
 
-def test_build_safe_relative_path_rejects_absolute_path_outside_base(tmp_path) -> None:
+def test_build_safe_relative_path_rejects_absolute_path_outside_base(tmp_path: Path) -> None:
     outside = tmp_path.parent / "outside"
     with pytest.raises(ValueError, match="must remain inside the base directory"):
         _build_safe_relative_path(str(outside), trusted_base_dir=tmp_path)
 
 
 def test_resolve_output_path_uses_generated_filename_when_filename_not_supplied(
-    tmp_path, monkeypatch
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.chdir(tmp_path)
     resolved = resolve_output_path(
@@ -187,7 +191,10 @@ def test_resolve_output_path_uses_generated_filename_when_filename_not_supplied(
     assert resolved == tmp_path / "reports" / "auto.md"
 
 
-def test_resolve_output_path_reports_invalid_output_dir(tmp_path, monkeypatch) -> None:
+def test_resolve_output_path_reports_invalid_output_dir(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.chdir(tmp_path)
     with pytest.raises(OutputPathError, match="Invalid --output-dir"):
         resolve_output_path(
@@ -197,7 +204,10 @@ def test_resolve_output_path_reports_invalid_output_dir(tmp_path, monkeypatch) -
         )
 
 
-def test_resolve_output_path_reports_invalid_filename(tmp_path, monkeypatch) -> None:
+def test_resolve_output_path_reports_invalid_filename(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.chdir(tmp_path)
     with pytest.raises(OutputPathError, match="Invalid --filename"):
         resolve_output_path(
@@ -208,7 +218,8 @@ def test_resolve_output_path_reports_invalid_filename(tmp_path, monkeypatch) -> 
 
 
 def test_resolve_output_path_reports_invalid_output_filename_path_combination(
-    tmp_path, monkeypatch
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.chdir(tmp_path)
     with pytest.raises(OutputPathError, match="Invalid output filename/path combination"):
@@ -219,7 +230,7 @@ def test_resolve_output_path_reports_invalid_output_filename_path_combination(
         )
 
 
-def test_write_output_markdown_force_overwrites_existing_file(tmp_path) -> None:
+def test_write_output_markdown_force_overwrites_existing_file(tmp_path: Path) -> None:
     output_path = tmp_path / "brief.md"
     output_path.write_text("old", encoding="utf-8")
 
@@ -234,12 +245,13 @@ def test_write_output_markdown_force_overwrites_existing_file(tmp_path) -> None:
 
 
 def test_write_output_markdown_preserves_existing_file_when_atomic_replace_fails(
-    tmp_path, monkeypatch
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     output_path = tmp_path / "brief.md"
     output_path.write_text("old", encoding="utf-8")
 
-    def fail_replace(*_args, **_kwargs):
+    def fail_replace(_source: Path, _destination: Path) -> None:
         raise OSError("replace failed")
 
     monkeypatch.setattr("telegraphy.story_brief.filenames.os.replace", fail_replace)
@@ -284,7 +296,7 @@ def test_write_output_markdown_does_not_mask_error_when_cleanup_fails(
     assert len(cleanup_attempts) == 1
 
 
-def test_write_output_markdown_refuses_existing_file_without_force(tmp_path) -> None:
+def test_write_output_markdown_refuses_existing_file_without_force(tmp_path: Path) -> None:
     output_path = tmp_path / "brief.md"
     output_path.write_text("existing", encoding="utf-8")
 
@@ -296,10 +308,13 @@ def test_write_output_markdown_refuses_existing_file_without_force(tmp_path) -> 
         )
 
 
-def test_write_output_markdown_wraps_oserror(monkeypatch, tmp_path) -> None:
+def test_write_output_markdown_wraps_oserror(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
     target = tmp_path / "brief.md"
 
-    def fake_open(*_args, **_kwargs):
+    def fake_open(*_args: object, **_kwargs: object) -> int:
         raise OSError("disk error")
 
     monkeypatch.setattr("telegraphy.story_brief.filenames.os.open", fake_open)
@@ -312,7 +327,10 @@ def test_write_output_markdown_wraps_oserror(monkeypatch, tmp_path) -> None:
         )
 
 
-def test_write_output_markdown_without_onofollow_when_unavailable(monkeypatch, tmp_path) -> None:
+def test_write_output_markdown_without_onofollow_when_unavailable(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
     import os
 
     target = tmp_path / "brief.md"
@@ -321,7 +339,7 @@ def test_write_output_markdown_without_onofollow_when_unavailable(monkeypatch, t
 
     monkeypatch.delattr("telegraphy.story_brief.filenames.os.O_NOFOLLOW", raising=False)
 
-    def fake_open(path, flags, mode):
+    def fake_open(path: str, flags: int, mode: int) -> int:
         captured_flags.append(flags)
         return original_open(path, flags, mode)
 

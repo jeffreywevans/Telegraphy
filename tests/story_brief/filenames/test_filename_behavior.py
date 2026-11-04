@@ -99,6 +99,22 @@ def test_write_output_markdown_rejects_absolute_path_outside_base(tmp_path) -> N
         )
 
 
+def test_write_output_markdown_refuses_symbolic_link_output(tmp_path: Path) -> None:
+    symlink_target = tmp_path / "target.md"
+    symlink_target.write_text("existing", encoding="utf-8")
+    output_path = tmp_path / "brief.md"
+    output_path.symlink_to(symlink_target)
+
+    with pytest.raises(OutputWriteError, match="symbolic-link output path"):
+        write_output_markdown(
+            output_path=output_path,
+            content="replacement",
+            trusted_base_dir=tmp_path,
+        )
+
+    assert symlink_target.read_text(encoding="utf-8") == "existing"
+
+
 def test_truncate_utf8_filename_returns_empty_for_non_positive_max_bytes() -> None:
     assert _truncate_utf8_filename("name", ".md", max_bytes=0) == ""
 
@@ -238,6 +254,34 @@ def test_write_output_markdown_preserves_existing_file_when_atomic_replace_fails
 
     assert output_path.read_text(encoding="utf-8") == "old"
     assert list(tmp_path.glob(".brief.md.*.tmp")) == []
+
+
+def test_write_output_markdown_does_not_mask_error_when_cleanup_fails(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    output_path = tmp_path / "brief.md"
+    cleanup_attempts: list[Path] = []
+
+    def fail_replace(_source: Path, _destination: Path) -> None:
+        raise OSError("replace failed")
+
+    def fail_cleanup(path: Path, *, missing_ok: bool = False) -> None:
+        cleanup_attempts.append(path)
+        raise OSError("cleanup failed")
+
+    monkeypatch.setattr("telegraphy.story_brief.filenames.os.replace", fail_replace)
+    monkeypatch.setattr(Path, "unlink", fail_cleanup)
+
+    with pytest.raises(OutputWriteError, match="replace failed"):
+        write_output_markdown(
+            output_path=output_path,
+            content="new",
+            force=True,
+            trusted_base_dir=tmp_path,
+        )
+
+    assert len(cleanup_attempts) == 1
 
 
 def test_write_output_markdown_refuses_existing_file_without_force(tmp_path) -> None:

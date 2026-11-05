@@ -3,13 +3,15 @@ from __future__ import annotations
 from datetime import date
 from typing import Any
 
+from .date_parsing import parse_iso_calendar_date
+
 
 def parse_availability_boundary(value: Any) -> date:
     if isinstance(value, bool):
         raise ValueError("boundary values must not be booleans")
     if isinstance(value, str):
         try:
-            return date.fromisoformat(value)
+            return parse_iso_calendar_date(value)
         except ValueError as exc:
             raise ValueError("boundary string values must be ISO dates (YYYY-MM-DD)") from exc
     raise ValueError("boundary values must be ISO date strings (YYYY-MM-DD)")

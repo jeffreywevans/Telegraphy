@@ -7,6 +7,7 @@ from typing import Any
 
 from ._constants import PARTNER_DISTRIBUTIONS_KEY
 from .availability_validation import has_date_overlap
+from .date_parsing import parse_iso_calendar_date
 from .partner_models import (
     PartnerDistributionDataset,
     parse_partner_distribution_payload,
@@ -73,8 +74,8 @@ def validate_config_versions(config: dict[str, Any]) -> None:
 
 def parse_and_validate_config_dates(config: dict[str, Any]) -> tuple[date, date]:
     try:
-        start = date.fromisoformat(str(config["date_start"]))
-        end = date.fromisoformat(str(config["date_end"]))
+        start = parse_iso_calendar_date(config["date_start"])
+        end = parse_iso_calendar_date(config["date_end"])
     except ValueError as exc:
         raise ValueError("config date_start/date_end must be ISO dates (YYYY-MM-DD)") from exc
     if start > end:

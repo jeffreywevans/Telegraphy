@@ -1,4 +1,5 @@
 import random
+from typing import cast
 
 import pytest
 
@@ -7,8 +8,14 @@ from telegraphy.story_brief.generation import (
     pick_sexual_scene_tags,
     pick_tags_from_selected_groups,
     symmetric_peak_weights,
-    weighted_choice,
 )
+from telegraphy.story_brief.generation_helpers import weighted_choice
+from telegraphy.story_brief.story_data import StoryData
+
+
+def _partial_story_data(values: dict[str, object]) -> StoryData:
+    """Type a deliberately minimal StoryData mapping for focused unit tests."""
+    return cast(StoryData, values)
 
 
 def test_weighted_choice_returns_option_from_domain() -> None:
@@ -43,10 +50,14 @@ def test_weighted_choice_supports_non_string_options() -> None:
         (["a"], ["x"], TypeError),
     ],
 )
-def test_weighted_choice_invalid_inputs(options, weights, expected_exc) -> None:
+def test_weighted_choice_invalid_inputs(
+    options: list[object],
+    weights: list[object],
+    expected_exc: type[Exception],
+) -> None:
     rng = random.Random(1)
     with pytest.raises(expected_exc):
-        weighted_choice(rng, options, weights)
+        weighted_choice(rng, options, cast(list[float], weights))
 
 
 def test_weighted_choice_never_selects_zero_weight_option() -> None:
@@ -73,7 +84,9 @@ def test_symmetric_peak_weights_rejects_non_positive_lengths() -> None:
 
 
 def test_tag_count_distribution_rejects_config_when_all_counts_are_filtered_out() -> None:
-    data = {"sexual_scene_tag_count_weights_by_presence": {"on_page_full": {3: 0.5, 4: 0.5}}}
+    data = _partial_story_data(
+        {"sexual_scene_tag_count_weights_by_presence": {"on_page_full": {3: 0.5, 4: 0.5}}}
+    )
 
     with pytest.raises(ValueError, match="No valid sexual scene tag count options"):
         build_sexual_scene_tag_count_distribution(
@@ -84,7 +97,9 @@ def test_tag_count_distribution_rejects_config_when_all_counts_are_filtered_out(
 
 
 def test_build_sexual_scene_tag_count_distribution_supports_mapping_weights() -> None:
-    data = {"sexual_scene_tag_count_weights_by_presence": {"on_page_full": {"2": 0.25, "1": 0.75}}}
+    data = _partial_story_data(
+        {"sexual_scene_tag_count_weights_by_presence": {"on_page_full": {"2": 0.25, "1": 0.75}}}
+    )
 
     options, weights = build_sexual_scene_tag_count_distribution(
         ("tone", "location"), data, sexual_content_presence="on_page_full"
@@ -95,7 +110,9 @@ def test_build_sexual_scene_tag_count_distribution_supports_mapping_weights() ->
 
 
 def test_tag_count_distribution_rejects_missing_presence_configuration() -> None:
-    data = {"sexual_scene_tag_count_weights_by_presence": {"on_page_full": {1: 1.0}}}
+    data = _partial_story_data(
+        {"sexual_scene_tag_count_weights_by_presence": {"on_page_full": {1: 1.0}}}
+    )
 
     with pytest.raises(ValueError, match="No valid sexual scene tag count options"):
         build_sexual_scene_tag_count_distribution(
@@ -106,7 +123,9 @@ def test_tag_count_distribution_rejects_missing_presence_configuration() -> None
 
 
 def test_build_sexual_scene_tag_count_distribution_requires_presence() -> None:
-    data = {"sexual_scene_tag_count_weights_by_presence": {"on_page_full": {1: 1.0, 2: 0.0}}}
+    data = _partial_story_data(
+        {"sexual_scene_tag_count_weights_by_presence": {"on_page_full": {1: 1.0, 2: 0.0}}}
+    )
 
     with pytest.raises(ValueError, match="No valid sexual scene tag count options"):
         build_sexual_scene_tag_count_distribution(
@@ -117,7 +136,7 @@ def test_build_sexual_scene_tag_count_distribution_requires_presence() -> None:
 
 
 def test_tag_count_distribution_rejects_missing_config_key() -> None:
-    data = {}
+    data = _partial_story_data({})
 
     with pytest.raises(ValueError, match="No valid sexual scene tag count options"):
         build_sexual_scene_tag_count_distribution(
@@ -128,7 +147,7 @@ def test_tag_count_distribution_rejects_missing_config_key() -> None:
 
 
 def test_build_sexual_scene_tag_count_distribution_rejects_empty_mapping() -> None:
-    data = {"sexual_scene_tag_count_weights_by_presence": {"on_page_full": {}}}
+    data = _partial_story_data({"sexual_scene_tag_count_weights_by_presence": {"on_page_full": {}}})
 
     with pytest.raises(ValueError, match="No valid sexual scene tag count options"):
         build_sexual_scene_tag_count_distribution(
@@ -137,9 +156,9 @@ def test_build_sexual_scene_tag_count_distribution_rejects_empty_mapping() -> No
 
 
 def test_build_sexual_scene_tag_count_distribution_filters_below_minimum_count() -> None:
-    data = {
-        "sexual_scene_tag_count_weights_by_presence": {"on_page_full": {2: 0.5, 3: 0.3, 4: 0.2}}
-    }
+    data = _partial_story_data(
+        {"sexual_scene_tag_count_weights_by_presence": {"on_page_full": {2: 0.5, 3: 0.3, 4: 0.2}}}
+    )
 
     options, weights = build_sexual_scene_tag_count_distribution(
         ("tone", "location", "pacing", "aftermath"),
@@ -154,27 +173,29 @@ def test_build_sexual_scene_tag_count_distribution_filters_below_minimum_count()
 
 def test_pick_sexual_scene_tags_enforces_required_groups_and_optional_pool() -> None:
     rng = random.Random(7)
-    data = {
-        "sexual_scene_tag_group_names": (
-            "aftermath",
-            "location",
-            "physicality",
-            "pacing",
-            "tone",
-        ),
-        "sexual_scene_tag_groups": {
-            "aftermath": ("after",),
-            "location": ("loc",),
-            "physicality": ("phys",),
-            "pacing": ("pace",),
-            "tone": ("tone",),
-        },
-        "sexual_scene_tag_count_weights_by_presence": {"on_page_full": {5: 1.0}},
-        "sexual_scene_required_tag_groups_by_presence": {
-            "on_page_full": ("location", "tone", "aftermath"),
-        },
-        "sexual_scene_optional_tag_groups": ("pacing", "physicality"),
-    }
+    data = _partial_story_data(
+        {
+            "sexual_scene_tag_group_names": (
+                "aftermath",
+                "location",
+                "physicality",
+                "pacing",
+                "tone",
+            ),
+            "sexual_scene_tag_groups": {
+                "aftermath": ("after",),
+                "location": ("loc",),
+                "physicality": ("phys",),
+                "pacing": ("pace",),
+                "tone": ("tone",),
+            },
+            "sexual_scene_tag_count_weights_by_presence": {"on_page_full": {5: 1.0}},
+            "sexual_scene_required_tag_groups_by_presence": {
+                "on_page_full": ("location", "tone", "aftermath"),
+            },
+            "sexual_scene_optional_tag_groups": ("pacing", "physicality"),
+        }
+    )
 
     selected_tags = pick_sexual_scene_tags(rng, "on_page_full", data)
 
@@ -182,7 +203,9 @@ def test_pick_sexual_scene_tags_enforces_required_groups_and_optional_pool() -> 
 
 
 def test_build_sexual_scene_tag_count_distribution_missing_presence_honors_no_fallback() -> None:
-    data = {"sexual_scene_tag_count_weights_by_presence": {"on_page_full": {1: 1.0}}}
+    data = _partial_story_data(
+        {"sexual_scene_tag_count_weights_by_presence": {"on_page_full": {1: 1.0}}}
+    )
 
     with pytest.raises(ValueError, match="No valid sexual scene tag count options"):
         build_sexual_scene_tag_count_distribution(
@@ -194,14 +217,16 @@ def test_build_sexual_scene_tag_count_distribution_missing_presence_honors_no_fa
 
 
 def test_pick_sexual_scene_tags_none_returns_empty_list() -> None:
-    assert pick_sexual_scene_tags(random.Random(1), "none", {}) == []
+    assert pick_sexual_scene_tags(random.Random(1), "none", _partial_story_data({})) == []
 
 
 def test_pick_sexual_scene_tags_rejects_missing_required_group() -> None:
-    data = {
-        "sexual_scene_tag_group_names": ("known",),
-        "sexual_scene_required_tag_groups_by_presence": {"on_page_full": ("unknown",)},
-    }
+    data = _partial_story_data(
+        {
+            "sexual_scene_tag_group_names": ("known",),
+            "sexual_scene_required_tag_groups_by_presence": {"on_page_full": ("unknown",)},
+        }
+    )
 
     rng = random.Random(1)
     with pytest.raises(ValueError, match="missing"):
@@ -209,11 +234,13 @@ def test_pick_sexual_scene_tags_rejects_missing_required_group() -> None:
 
 
 def test_pick_sexual_scene_tags_rejects_unknown_optional_group() -> None:
-    data = {
-        "sexual_scene_tag_group_names": ("known",),
-        "sexual_scene_tag_groups": {"known": ("tag",)},
-        "sexual_scene_optional_tag_groups": ("unknown",),
-    }
+    data = _partial_story_data(
+        {
+            "sexual_scene_tag_group_names": ("known",),
+            "sexual_scene_tag_groups": {"known": ("tag",)},
+            "sexual_scene_optional_tag_groups": ("unknown",),
+        }
+    )
 
     rng = random.Random(1)
     with pytest.raises(ValueError, match="unknown"):
@@ -226,5 +253,5 @@ def test_pick_tags_from_selected_groups_rejects_unknown_group() -> None:
         pick_tags_from_selected_groups(
             rng,
             ["missing"],
-            {"sexual_scene_tag_groups": {"known": ("tag",)}},
+            _partial_story_data({"sexual_scene_tag_groups": {"known": ("tag",)}}),
         )

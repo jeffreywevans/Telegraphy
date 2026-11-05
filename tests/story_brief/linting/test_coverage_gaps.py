@@ -1,16 +1,17 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from datetime import date, timedelta
 from io import StringIO
 from pathlib import Path
-from typing import Callable
+from typing import Any
 
 import pytest
 
 from telegraphy.story_brief import data_io
 from telegraphy.story_brief import generate_story_brief as story_brief
+from telegraphy.story_brief._constants import PROMPT_LIST_KEYS
 from telegraphy.story_brief.linting import (
-    PROMPT_LIST_KEYS,
     DatasetLintReport,
     _append_prompt_depth_warnings,
     _coalesce_ranges,
@@ -20,6 +21,14 @@ from telegraphy.story_brief.linting import (
     _resolve_interval_end,
     collect_interval_lint_ranges,
 )
+from telegraphy.story_brief.partner_models import PartnerDistributionDataset
+
+type PartnerPayload = dict[str, Any]
+type PartnerPayloadFactory = Callable[..., PartnerPayload]
+type PartnerPayloadParser = Callable[
+    [dict[str, object], list[tuple[str, date, date]]],
+    PartnerDistributionDataset,
+]
 
 
 def test_emit_lint_report_prints_sections(capsys: pytest.CaptureFixture[str]) -> None:
@@ -68,7 +77,8 @@ def test_data_file_uses_env_override_with_expanduser(
     monkeypatch.setenv("TELEGRAPHY_DATA_DIR", "~/dataset")
 
     resolved = data_io._data_file("titles.json")
-    assert Path(resolved) == override / "titles.json"
+    assert isinstance(resolved, Path)
+    assert resolved == override / "titles.json"
 
 
 @pytest.mark.parametrize(
@@ -94,27 +104,29 @@ def test_data_file_repo_relative_fallback_for_resource_resolution_errors(
 
     monkeypatch.setattr(data_io, "files", raise_error)
 
-    assert Path(data_io._data_file("titles.json")) == expected
+    resolved = data_io._data_file("titles.json")
+    assert isinstance(resolved, Path)
+    assert resolved == expected
 
 
-def _mutate_blank_dataset_version(payload: dict[str, object]) -> None:
+def _mutate_blank_dataset_version(payload: PartnerPayload) -> None:
     payload["dataset_version"] = "   "
 
 
-def _mutate_non_overlapping_date_range(payload: dict[str, object]) -> None:
+def _mutate_non_overlapping_date_range(payload: PartnerPayload) -> None:
     payload["date_start"] = "1990-01-01"
     payload["date_end"] = "1990-12-31"
 
 
-def _mutate_unknown_character(payload: dict[str, object]) -> None:
+def _mutate_unknown_character(payload: PartnerPayload) -> None:
     payload["partner_distributions"][0]["character"] = "Pat"
 
 
-def _mutate_missing_character_coverage(payload: dict[str, object]) -> None:
+def _mutate_missing_character_coverage(payload: PartnerPayload) -> None:
     payload["partner_distributions"] = [payload["partner_distributions"][0]]
 
 
-def _mutate_partner_weight_bool(payload: dict[str, object]) -> None:
+def _mutate_partner_weight_bool(payload: PartnerPayload) -> None:
     payload["partner_distributions"][0]["eras"][0]["partners"] = [
         {"partner": "Jordan", "weight": True}
     ]
@@ -131,11 +143,11 @@ def _mutate_partner_weight_bool(payload: dict[str, object]) -> None:
     ],
 )
 def test_partner_payload_validation_error_cases_are_parameterized(
-    mutator: Callable[[dict[str, object]], None],
+    mutator: Callable[[PartnerPayload], None],
     message: str,
-    partner_payload_factory,
-    partner_character_rows,
-    parse_partner_payload: Callable[[dict[str, object], list[tuple[str, date, date]]], object],
+    partner_payload_factory: PartnerPayloadFactory,
+    partner_character_rows: list[tuple[str, date, date]],
+    parse_partner_payload: PartnerPayloadParser,
 ) -> None:
     payload = partner_payload_factory()
     mutator(payload)
@@ -207,7 +219,8 @@ def test_format_and_coalesce_helpers_handle_empty_inputs() -> None:
 
 
 def test_coalesce_ranges_handles_empty_generator() -> None:
-    assert _coalesce_ranges((date_range for date_range in ())) == []
+    empty_ranges: tuple[tuple[date, date], ...] = ()
+    assert _coalesce_ranges((date_range for date_range in empty_ranges)) == []
 
 
 def test_resolve_interval_end_returns_none_for_invalid_interval() -> None:

@@ -1,6 +1,7 @@
 import random
 from collections import defaultdict
 from datetime import date
+from typing import cast
 
 import pytest
 
@@ -10,6 +11,7 @@ from telegraphy.story_brief.generate_story_brief import (
 from telegraphy.story_brief.generate_story_brief import (
     pick_story_fields,
 )
+from telegraphy.story_brief.story_data import NormalizedPartnerEra, StoryData
 
 
 def test_same_seed_is_deterministic() -> None:
@@ -64,11 +66,11 @@ def test_duplicate_character_rows_require_two_distinct_names(
 ) -> None:
     from telegraphy.story_brief import generate_story_brief as story_brief
 
-    data = dict(story_brief.get_normalized_story_data())
-    data["character_availability"] = [
+    data = story_brief.get_normalized_story_data()
+    data["character_availability"] = (
         ("Only Name", date(2000, 1, 1), date(2000, 12, 31)),
         ("Only Name", date(2000, 1, 1), date(2000, 12, 31)),
-    ]
+    )
     monkeypatch.setattr(story_brief, "get_normalized_story_data", lambda: data)
 
     rng = random.Random(7)
@@ -101,6 +103,8 @@ def test_sexual_scene_tags_follow_count_and_group_rules() -> None:
             assert fields["sexual_partner"] is None
             continue
 
+        assert isinstance(sexual_content_level, str)
+
         presence_counts = {
             int(count)
             for count, weight in configured_counts_by_presence[sexual_content_level].items()
@@ -128,27 +132,27 @@ def test_non_none_sexual_content_with_positive_partner_weight_requires_partner_s
     selected_date = date(2000, 1, 1)
     protagonist = "Alex"
 
-    data["character_availability"] = [
+    data["character_availability"] = (
         (protagonist, selected_date, selected_date),
         ("Jordan", selected_date, selected_date),
-    ]
-    data["setting_availability"] = [("Seattle", selected_date, selected_date)]
-    data["sexual_content_presence_options"] = ["none", "on_page_brief"]
-    data["sexual_content_presence_weights"] = [0.0, 1.0]
-    data[story_brief.PARTNER_DISTRIBUTIONS_KEY][protagonist] = [
+    )
+    data["setting_availability"] = (("Seattle", selected_date, selected_date),)
+    data["sexual_content_presence_options"] = ("none", "on_page_brief")
+    data["sexual_content_presence_weights"] = (0.0, 1.0)
+    data["partner_distributions"][protagonist] = (
         {
             "date_start": selected_date,
             "date_end": selected_date,
-            "partners": [("Jordan", 1.0)],
-        }
-    ]
-    data[story_brief.PARTNER_DISTRIBUTIONS_KEY]["Jordan"] = [
+            "partners": (("Jordan", 1.0),),
+        },
+    )
+    data["partner_distributions"]["Jordan"] = (
         {
             "date_start": selected_date,
             "date_end": selected_date,
-            "partners": [(protagonist, 1.0)],
-        }
-    ]
+            "partners": ((protagonist, 1.0),),
+        },
+    )
     monkeypatch.setattr(story_brief, "get_normalized_story_data", lambda: data)
     fields = story_brief.pick_story_fields(random.Random(123), selected_date=selected_date)
 
@@ -164,19 +168,22 @@ def test_seed_output_is_stable_when_option_pool_order_changes(
     from telegraphy.story_brief import generate_story_brief as story_brief
 
     baseline_data = story_brief.get_normalized_story_data()
-    shuffled_data = story_brief.get_normalized_story_data()
-
-    shuffled_data["setting_availability"] = list(reversed(shuffled_data["setting_availability"]))
-    shuffled_data["titles"] = list(reversed(shuffled_data["titles"]))
-    shuffled_data["central_conflicts"] = list(reversed(shuffled_data["central_conflicts"]))
-    shuffled_data["inciting_pressures"] = list(reversed(shuffled_data["inciting_pressures"]))
-    shuffled_data["ending_types"] = list(reversed(shuffled_data["ending_types"]))
-    shuffled_data["style_guidance"] = list(reversed(shuffled_data["style_guidance"]))
-    shuffled_data["word_count_targets"] = list(reversed(shuffled_data["word_count_targets"]))
-    shuffled_data["sexual_scene_tag_groups"] = {
-        group_name: list(reversed(tags))
-        for group_name, tags in reversed(list(shuffled_data["sexual_scene_tag_groups"].items()))
+    source_data = story_brief.get_normalized_story_data()
+    shuffled_values: dict[str, object] = {
+        **source_data,
+        "setting_availability": list(reversed(source_data["setting_availability"])),
+        "titles": list(reversed(source_data["titles"])),
+        "central_conflicts": list(reversed(source_data["central_conflicts"])),
+        "inciting_pressures": list(reversed(source_data["inciting_pressures"])),
+        "ending_types": list(reversed(source_data["ending_types"])),
+        "style_guidance": list(reversed(source_data["style_guidance"])),
+        "word_count_targets": list(reversed(source_data["word_count_targets"])),
+        "sexual_scene_tag_groups": {
+            group_name: list(reversed(tags))
+            for group_name, tags in reversed(list(source_data["sexual_scene_tag_groups"].items()))
+        },
     }
+    shuffled_data = cast(StoryData, shuffled_values)
 
     seed = 8675309
     selected_date = date(2026, 1, 1)
@@ -201,7 +208,7 @@ def test_pick_story_fields_reads_data_once_per_invocation(
     calls = {"count": 0}
     data = story_brief.get_normalized_story_data()
 
-    def counting_get_data() -> dict[str, object]:
+    def counting_get_data() -> StoryData:
         calls["count"] += 1
         return data
 
@@ -218,27 +225,27 @@ def test_pick_story_fields_handles_partner_distribution_gap_year(
 
     selected_date = date(2000, 1, 1)
     data = story_brief.get_normalized_story_data()
-    data["character_availability"] = [
+    data["character_availability"] = (
         ("Alex", selected_date, selected_date),
         ("Jordan", selected_date, selected_date),
-    ]
-    data["setting_availability"] = [("Seattle", selected_date, selected_date)]
-    data["sexual_content_presence_options"] = ["on_page_brief"]
-    data["sexual_content_presence_weights"] = [1.0]
-    gap_eras = [
+    )
+    data["setting_availability"] = (("Seattle", selected_date, selected_date),)
+    data["sexual_content_presence_options"] = ("on_page_brief",)
+    data["sexual_content_presence_weights"] = (1.0,)
+    gap_eras: tuple[NormalizedPartnerEra, ...] = (
         {
             "date_start": date(1999, 1, 1),
             "date_end": date(1999, 12, 31),
-            "partners": [("Jordan", 1.0)],
+            "partners": (("Jordan", 1.0),),
         },
         {
             "date_start": date(2001, 1, 1),
             "date_end": date(2001, 12, 31),
-            "partners": [("Jordan", 1.0)],
+            "partners": (("Jordan", 1.0),),
         },
-    ]
-    data[story_brief.PARTNER_DISTRIBUTIONS_KEY]["Alex"] = gap_eras
-    data[story_brief.PARTNER_DISTRIBUTIONS_KEY]["Jordan"] = gap_eras
+    )
+    data["partner_distributions"]["Alex"] = gap_eras
+    data["partner_distributions"]["Jordan"] = gap_eras
 
     monkeypatch.setattr(story_brief, "get_normalized_story_data", lambda: data)
     fields = story_brief.pick_story_fields(random.Random(9), selected_date=selected_date)
@@ -254,15 +261,15 @@ def test_pick_story_fields_handles_missing_partner_distribution_for_protagonist(
 
     selected_date = date(2000, 1, 1)
     data = story_brief.get_normalized_story_data()
-    data["character_availability"] = [
+    data["character_availability"] = (
         ("Alex", selected_date, selected_date),
         ("Jordan", selected_date, selected_date),
-    ]
-    data["setting_availability"] = [("Seattle", selected_date, selected_date)]
-    data["sexual_content_presence_options"] = ["on_page_brief"]
-    data["sexual_content_presence_weights"] = [1.0]
-    data[story_brief.PARTNER_DISTRIBUTIONS_KEY].pop("Alex", None)
-    data[story_brief.PARTNER_DISTRIBUTIONS_KEY].pop("Jordan", None)
+    )
+    data["setting_availability"] = (("Seattle", selected_date, selected_date),)
+    data["sexual_content_presence_options"] = ("on_page_brief",)
+    data["sexual_content_presence_weights"] = (1.0,)
+    data["partner_distributions"].pop("Alex", None)
+    data["partner_distributions"].pop("Jordan", None)
 
     monkeypatch.setattr(story_brief, "get_normalized_story_data", lambda: data)
     fields = story_brief.pick_story_fields(random.Random(1), selected_date=selected_date)

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import os
+from datetime import date
 from pathlib import Path, PureWindowsPath
 
 import pytest
@@ -278,7 +280,7 @@ def test_resolve_override_data_dir_windows_rooted_path_becomes_absolute(
         def is_dir(self) -> bool:
             return True
 
-    monkeypatch.setattr(data_io.os, "name", "nt", raising=False)
+    monkeypatch.setattr(os, "name", "nt", raising=False)
     monkeypatch.setattr(data_io, "Path", _PathStub)
 
     resolved = data_io._resolve_override_data_dir("/windows/rooted/path")
@@ -291,7 +293,7 @@ def test_resolve_override_data_dir_windows_rejects_relative_paths(
     raw_value: str, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     with monkeypatch.context() as patch:
-        patch.setattr(data_io.os, "name", "nt")
+        patch.setattr(os, "name", "nt")
         patch.setattr(data_io, "Path", PureWindowsPath)
 
         with pytest.raises(data_io.DataDirError, match="must be an absolute path"):
@@ -335,12 +337,12 @@ def test_get_data_returns_defensive_copies() -> None:
     original["titles"] = ("poisoned",)
     # Nested mutation should also be isolated by deepcopy.
     protagonist = next(iter(original["partner_distributions"]))
-    original["partner_distributions"][protagonist][0]["poison"] = True
+    original["partner_distributions"][protagonist][0]["date_start"] = date(1900, 1, 1)
 
     reloaded = story_brief.get_normalized_story_data()
 
     assert reloaded["titles"] != ("poisoned",)
-    assert "poison" not in reloaded["partner_distributions"][protagonist][0]
+    assert reloaded["partner_distributions"][protagonist][0]["date_start"] != date(1900, 1, 1)
 
 
 def test_data_io_get_data_returns_defensive_copies() -> None:

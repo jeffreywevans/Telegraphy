@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import random
+from collections.abc import Callable
 from pathlib import Path
 from typing import cast
 
@@ -100,7 +101,7 @@ def test_position_order_does_not_change_seeded_selection() -> None:
 
 
 def test_invalid_position_groups_are_rejected_when_loading_dataset(
-    cli_dataset_factory,
+    cli_dataset_factory: Callable[[str], Path],
 ) -> None:
     dataset: Path = cli_dataset_factory("invalid-position-weights")
     path = dataset / "sexual_scene_tags.json"

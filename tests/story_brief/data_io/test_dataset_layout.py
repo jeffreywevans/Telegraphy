@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
 from pathlib import Path
 
 import pytest
@@ -27,12 +28,16 @@ EXPECTED_FIELD_FILES = {
 }
 
 
-def test_packaged_dataset_has_exactly_the_independent_field_files(source_story_data_dir) -> None:
+def test_packaged_dataset_has_exactly_the_independent_field_files(
+    source_story_data_dir: Path,
+) -> None:
     assert {path.name for path in source_story_data_dir.glob("*.json")} == EXPECTED_FIELD_FILES
     assert set(data_io.DATA_FILENAMES.values()) == EXPECTED_FIELD_FILES
 
 
-def test_config_contains_only_shared_metadata_and_output_order(source_story_data_dir) -> None:
+def test_config_contains_only_shared_metadata_and_output_order(
+    source_story_data_dir: Path,
+) -> None:
     config = json.loads((source_story_data_dir / "config.json").read_text(encoding="utf-8"))
     assert set(config) == {"schema_version", "dataset_version", "ordered_keys"}
     characters = json.loads((source_story_data_dir / "characters.json").read_text(encoding="utf-8"))
@@ -41,7 +46,8 @@ def test_config_contains_only_shared_metadata_and_output_order(source_story_data
 
 @pytest.mark.parametrize("filename", sorted(EXPECTED_FIELD_FILES))
 def test_each_required_file_reports_its_own_missing_filename(
-    filename: str, cli_dataset_factory
+    filename: str,
+    cli_dataset_factory: Callable[[str], Path],
 ) -> None:
     dataset = cli_dataset_factory("missing-field")
     (dataset / filename).unlink()
@@ -51,7 +57,10 @@ def test_each_required_file_reports_its_own_missing_filename(
 
 @pytest.mark.parametrize("filename", sorted(EXPECTED_FIELD_FILES))
 def test_each_file_rejects_non_object_json_without_a_cli_traceback(
-    filename: str, cli_dataset_factory, monkeypatch: pytest.MonkeyPatch, capsys
+    filename: str,
+    cli_dataset_factory: Callable[[str], Path],
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
     dataset = cli_dataset_factory("invalid-root")
     (dataset / filename).write_text("[]", encoding="utf-8")
@@ -67,7 +76,9 @@ def test_each_file_rejects_non_object_json_without_a_cli_traceback(
         data_io.clear_data_cache()
 
 
-def test_fields_cannot_be_hidden_in_another_fields_file(cli_dataset_factory) -> None:
+def test_fields_cannot_be_hidden_in_another_fields_file(
+    cli_dataset_factory: Callable[[str], Path],
+) -> None:
     dataset = cli_dataset_factory("wrong-field")
     config_path = dataset / "config.json"
     config = json.loads(config_path.read_text(encoding="utf-8"))
@@ -78,7 +89,10 @@ def test_fields_cannot_be_hidden_in_another_fields_file(cli_dataset_factory) -> 
 
 
 @pytest.mark.parametrize("version", [1, 999, True, 2.0, "2", None])
-def test_file_layout_rejects_unsupported_schema_versions(version, cli_dataset_factory) -> None:
+def test_file_layout_rejects_unsupported_schema_versions(
+    version: object,
+    cli_dataset_factory: Callable[[str], Path],
+) -> None:
     dataset = cli_dataset_factory("bad-version")
     path = dataset / "config.json"
     config = json.loads(path.read_text(encoding="utf-8"))
@@ -113,7 +127,9 @@ def test_assembly_rejects_non_string_keys() -> None:
     ],
 )
 def test_missing_required_keys_report_filename_and_sorted_keys(
-    filename: str, missing_keys: tuple[str, ...], cli_dataset_factory
+    filename: str,
+    missing_keys: tuple[str, ...],
+    cli_dataset_factory: Callable[[str], Path],
 ) -> None:
     dataset = cli_dataset_factory("missing-required-keys")
     path = dataset / filename
@@ -131,7 +147,9 @@ def test_missing_required_keys_report_filename_and_sorted_keys(
 
 
 def test_independent_word_count_file_is_used_by_the_real_cli(
-    cli_dataset_factory, monkeypatch: pytest.MonkeyPatch, capsys
+    cli_dataset_factory: Callable[[str], Path],
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
     dataset = cli_dataset_factory("word-count")
     (dataset / "word_count_targets.json").write_text(

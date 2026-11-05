@@ -1,6 +1,9 @@
+import pytest
+
 from telegraphy.story_brief import generate_story_brief as story_cli
 from telegraphy.story_brief.generate_story_brief import get_normalized_story_data as get_data
 from telegraphy.story_brief.rendering import render_title, to_markdown
+from telegraphy.story_brief.story_data import StoryData
 
 
 def _render_markdown(fields: dict[str, object]) -> str:
@@ -13,7 +16,7 @@ def _render_markdown(fields: dict[str, object]) -> str:
 
 
 def test_markdown_front_matter_delimiters_present() -> None:
-    fields = {
+    fields: dict[str, object] = {
         "title": "You Park Like You F*ck and Deserve the Ticket",
         "protagonist": "A",
         "secondary_character": "B",
@@ -38,7 +41,7 @@ def test_markdown_front_matter_delimiters_present() -> None:
 
 
 def test_markdown_heading_escapes_special_chars() -> None:
-    fields = {
+    fields: dict[str, object] = {
         "title": "You Park Like You F*ck and Deserve the Ticket",
         "protagonist": "A",
         "secondary_character": "B",
@@ -60,7 +63,7 @@ def test_markdown_heading_escapes_special_chars() -> None:
 
 
 def test_markdown_heading_escapes_single_backslash() -> None:
-    fields = {
+    fields: dict[str, object] = {
         "title": r"Backslash \\ Test",
         "protagonist": "A",
         "secondary_character": "B",
@@ -82,7 +85,7 @@ def test_markdown_heading_escapes_single_backslash() -> None:
 
 
 def test_yaml_keys_appear_in_configured_order() -> None:
-    fields = {
+    fields: dict[str, object] = {
         "title": "Title",
         "protagonist": "A",
         "secondary_character": "B",
@@ -117,8 +120,8 @@ def test_render_title_substitutes_all_supported_tokens() -> None:
     assert title == "From Portland with Kathy (2001-03-01)"
 
 
-def test_to_markdown_calls_get_data_once(monkeypatch) -> None:
-    fields = {
+def test_to_markdown_calls_get_data_once(monkeypatch: pytest.MonkeyPatch) -> None:
+    fields: dict[str, str | int | list[str] | None] = {
         "title": "Title",
         "protagonist": "A",
         "secondary_character": "B",
@@ -137,7 +140,7 @@ def test_to_markdown_calls_get_data_once(monkeypatch) -> None:
     data = get_data()
     calls = 0
 
-    def fake_get_data():
+    def fake_get_data() -> StoryData:
         nonlocal calls
         calls += 1
         return data

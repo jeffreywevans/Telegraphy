@@ -1,7 +1,8 @@
 import hashlib
+from collections.abc import Callable
 from copy import deepcopy
 from datetime import date, timedelta
-from typing import Callable
+from typing import Any
 
 import pytest
 
@@ -15,8 +16,15 @@ from telegraphy.story_brief.partner_models import (
     parse_partner_distribution_payload,
 )
 
+type PartnerPayload = dict[str, Any]
+type PartnerPayloadFactory = Callable[..., PartnerPayload]
+type PartnerPayloadParser = Callable[
+    [dict[str, object], list[tuple[str, date, date]]],
+    PartnerDistributionDataset,
+]
 
-def _build_partner_payload(partner_payload_factory) -> dict[str, object]:
+
+def _build_partner_payload(partner_payload_factory: PartnerPayloadFactory) -> PartnerPayload:
     return partner_payload_factory(
         alex_eras=[
             {
@@ -40,7 +48,7 @@ def _build_partner_payload(partner_payload_factory) -> dict[str, object]:
     )
 
 
-def _mutate_duplicate_partners(payload: dict[str, object]) -> None:
+def _mutate_duplicate_partners(payload: PartnerPayload) -> None:
     entries = payload["partner_distributions"]
     entries[0]["eras"][0]["partners"] = [
         {"partner": "Jordan", "weight": 0.7},
@@ -48,11 +56,11 @@ def _mutate_duplicate_partners(payload: dict[str, object]) -> None:
     ]
 
 
-def _mutate_non_object_entry(payload: dict[str, object]) -> None:
+def _mutate_non_object_entry(payload: PartnerPayload) -> None:
     payload["partner_distributions"] = ["bad-entry"]
 
 
-def _mutate_overlapping_eras(payload: dict[str, object]) -> None:
+def _mutate_overlapping_eras(payload: PartnerPayload) -> None:
     entries = payload["partner_distributions"]
     entries[0]["eras"] = [
         {
@@ -68,31 +76,31 @@ def _mutate_overlapping_eras(payload: dict[str, object]) -> None:
     ]
 
 
-def _mutate_invalid_calendar_date(payload: dict[str, object]) -> None:
+def _mutate_invalid_calendar_date(payload: PartnerPayload) -> None:
     entries = payload["partner_distributions"]
     entries[0]["date_start"] = "2000-02-30"
 
 
-def _mutate_boolean_schema_version(payload: dict[str, object]) -> None:
+def _mutate_boolean_schema_version(payload: PartnerPayload) -> None:
     payload["schema_version"] = True
 
 
-def _mutate_extra_character_field(payload: dict[str, object]) -> None:
+def _mutate_extra_character_field(payload: PartnerPayload) -> None:
     payload["partner_distributions"][0]["unexpected"] = "value"
 
 
-def _mutate_extra_era_field(payload: dict[str, object]) -> None:
+def _mutate_extra_era_field(payload: PartnerPayload) -> None:
     payload["partner_distributions"][0]["eras"][0]["unexpected"] = "value"
 
 
-def _mutate_extra_partner_field(payload: dict[str, object]) -> None:
+def _mutate_extra_partner_field(payload: PartnerPayload) -> None:
     payload["partner_distributions"][0]["eras"][0]["partners"][0]["unexpected"] = "value"
 
 
 def test_parse_partner_distribution_payload_returns_typed_dataset(
-    partner_payload_factory,
-    partner_character_rows,
-    parse_partner_payload: Callable[[dict[str, object], list[tuple[str, date, date]]], object],
+    partner_payload_factory: PartnerPayloadFactory,
+    partner_character_rows: list[tuple[str, date, date]],
+    parse_partner_payload: PartnerPayloadParser,
 ) -> None:
     dataset = parse_partner_payload(
         _build_partner_payload(partner_payload_factory), partner_character_rows
@@ -110,9 +118,9 @@ def test_parse_partner_distribution_payload_returns_typed_dataset(
 
 
 def test_parse_partner_distribution_payload_parses_partner_eras(
-    partner_payload_factory,
-    partner_character_rows,
-    parse_partner_payload: Callable[[dict[str, object], list[tuple[str, date, date]]], object],
+    partner_payload_factory: PartnerPayloadFactory,
+    partner_character_rows: list[tuple[str, date, date]],
+    parse_partner_payload: PartnerPayloadParser,
 ) -> None:
     dataset = parse_partner_payload(
         _build_partner_payload(partner_payload_factory), partner_character_rows
@@ -189,11 +197,11 @@ def test_parse_character_distribution_uses_partner_distribution_key_in_path() ->
     ],
 )
 def test_parse_partner_distribution_payload_rejects_invalid_shapes(
-    mutator: Callable[[dict[str, object]], None],
+    mutator: Callable[[PartnerPayload], None],
     message: str,
-    partner_payload_factory,
-    partner_character_rows,
-    parse_partner_payload: Callable[[dict[str, object], list[tuple[str, date, date]]], object],
+    partner_payload_factory: PartnerPayloadFactory,
+    partner_character_rows: list[tuple[str, date, date]],
+    parse_partner_payload: PartnerPayloadParser,
 ) -> None:
     payload = deepcopy(_build_partner_payload(partner_payload_factory))
     mutator(payload)

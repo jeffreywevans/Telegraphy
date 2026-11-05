@@ -9,7 +9,7 @@ from typing import TypedDict, cast
 import pytest
 from packaging.requirements import Requirement
 
-from telegraphy.scripts import generate_sbom
+from scripts import generate_sbom
 
 _Component = TypedDict(
     "_Component",

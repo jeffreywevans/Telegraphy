@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run pytest and produce combined coverage outputs."""
+"""Run pytest and produce combined coverage outputs from a repository checkout."""
 
 from __future__ import annotations
 

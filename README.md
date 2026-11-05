@@ -559,10 +559,11 @@ remain ranges rather than being presented as installed versions; exact pins incl
 their version in the component package URL. It is a source dependency manifest, not
 an inventory of one particular installed environment.
 
-To regenerate the SBOM after dependency or version changes:
+To regenerate the SBOM after dependency or version changes, use a repository
+checkout with the development dependencies installed:
 
 ```bash
-python -m telegraphy.scripts.generate_sbom
+python -m scripts.generate_sbom
 ```
 
 The repository includes `sbom.cdx.json` in source distributions via `MANIFEST.in`.
@@ -637,7 +638,7 @@ Run the local quality checks:
 ```bash
 ruff check .
 ruff format --check .
-mypy telegraphy
+mypy telegraphy scripts tests
 pytest
 ```
 

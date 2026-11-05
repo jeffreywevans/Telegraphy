@@ -28,7 +28,7 @@ jobs:
       - name: Check formatting
         run: ruff format --check .
       - name: Run mypy (strict)
-        run: mypy telegraphy
+        run: mypy telegraphy scripts tests
       - name: Run tests
         env:
           PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
@@ -86,7 +86,7 @@ jobs:
       - name: Run tests with coverage
         env:
           PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
-        run: python -m telegraphy.scripts.run_coverage_workflow
+        run: python -m scripts.run_coverage_workflow
 
       - name: Confirm coverage report exists
         run: |

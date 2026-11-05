@@ -1,23 +1,26 @@
 from __future__ import annotations
 
+import os
 import sys
+from datetime import date
 from pathlib import Path
+from typing import NoReturn
 
 import pytest
 
 from telegraphy.story_brief import cli as story_cli
-from telegraphy.story_brief import filenames as filename_utils
+from telegraphy.story_brief import generate_story_brief as story_brief_module
 
 
 def _mock_story_generation(monkeypatch: pytest.MonkeyPatch, *, markdown: str = "body") -> None:
     """Stub story generation for CLI tests that only exercise IO/argument behavior."""
     monkeypatch.setattr(
-        story_cli.story_brief_cli,
+        story_brief_module,
         "pick_story_fields",
         lambda *_args, **_kwargs: {"title": "A"},
     )
     monkeypatch.setattr(
-        story_cli.story_brief_cli,
+        story_brief_module,
         "to_markdown",
         lambda _fields, data=None: markdown,
     )
@@ -26,12 +29,12 @@ def _mock_story_generation(monkeypatch: pytest.MonkeyPatch, *, markdown: str = "
 def test_main_print_only_calls_pick_story_fields_with_selected_date(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    captured_date = None
+    captured_date: date | None = None
 
     def fake_pick_story_fields(
         _rng: object,
         *,
-        selected_date: object = None,
+        selected_date: date | None = None,
         data: object = None,
     ) -> dict[str, object]:
         nonlocal captured_date
@@ -39,9 +42,9 @@ def test_main_print_only_calls_pick_story_fields_with_selected_date(
         return {"title": "Sample", "word_count_target": 900}
 
     monkeypatch.setattr(sys, "argv", ["story-brief", "--date", "2001-02-03", "--print-only"])
-    monkeypatch.setattr(story_cli.story_brief_cli, "pick_story_fields", fake_pick_story_fields)
+    monkeypatch.setattr(story_brief_module, "pick_story_fields", fake_pick_story_fields)
     monkeypatch.setattr(
-        story_cli.story_brief_cli,
+        story_brief_module,
         "to_markdown",
         lambda _fields, data=None: "---\nmock\n---",
     )
@@ -50,7 +53,7 @@ def test_main_print_only_calls_pick_story_fields_with_selected_date(
 
     output = capsys.readouterr().out
     assert output == "---\nmock\n---\n"
-    assert captured_date
+    assert captured_date is not None
     assert captured_date.isoformat() == "2001-02-03"
 
 
@@ -67,7 +70,7 @@ def test_main_lint_dataset_exits_early_without_generating_output(
         return _Report()
 
     monkeypatch.setattr(sys, "argv", ["story-brief", "--lint-dataset"])
-    monkeypatch.setattr(story_cli.story_brief_cli, "get_data", lambda: {"source": "test"})
+    monkeypatch.setattr(story_brief_module, "get_data", lambda: {"source": "test"})
     monkeypatch.setattr(story_cli, "lint_story_data", fake_lint)
     monkeypatch.setattr(
         story_cli,
@@ -75,7 +78,7 @@ def test_main_lint_dataset_exits_early_without_generating_output(
         lambda _: called.__setitem__("emit", called["emit"] + 1),
     )
     monkeypatch.setattr(
-        story_cli.story_brief_cli,
+        story_brief_module,
         "pick_story_fields",
         lambda *_args, **_kwargs: called.__setitem__("pick", called["pick"] + 1),
     )
@@ -105,12 +108,12 @@ def test_main_force_flag_allows_overwrite_for_existing_file(
         ],
     )
     monkeypatch.setattr(
-        story_cli.story_brief_cli,
+        story_brief_module,
         "pick_story_fields",
         lambda *_args, **_kwargs: {"title": "Forced"},
     )
     monkeypatch.setattr(
-        story_cli.story_brief_cli,
+        story_brief_module,
         "to_markdown",
         lambda _fields, data=None: "new-content",
     )
@@ -125,7 +128,7 @@ def test_main_lint_dataset_with_errors_exits_one(monkeypatch: pytest.MonkeyPatch
         has_errors = True
 
     monkeypatch.setattr(sys, "argv", ["story-brief", "--lint-dataset"])
-    monkeypatch.setattr(story_cli.story_brief_cli, "get_data", lambda: {})
+    monkeypatch.setattr(story_brief_module, "get_data", lambda: {})
     monkeypatch.setattr(story_cli, "lint_story_data", lambda _data: _Report())
     monkeypatch.setattr(story_cli, "emit_lint_report", lambda _report: None)
 
@@ -139,7 +142,7 @@ def test_main_validate_strict_failure_exits_without_traceback(
         raise ValueError("Strict validation failed: boom")
 
     monkeypatch.setattr(sys, "argv", ["story-brief", "--validate-strict", "--print-only"])
-    monkeypatch.setattr(story_cli.story_brief_cli, "get_data", lambda: {})
+    monkeypatch.setattr(story_brief_module, "get_data", lambda: {})
     monkeypatch.setattr(story_cli, "validate_story_data_strict", mock_fail)
 
     assert story_cli.main() == 1
@@ -152,7 +155,7 @@ def test_main_pick_story_fields_failure_exits_with_message(
         raise ValueError("Need at least two")
 
     monkeypatch.setattr(sys, "argv", ["story-brief", "--print-only"])
-    monkeypatch.setattr(story_cli.story_brief_cli, "pick_story_fields", mock_fail)
+    monkeypatch.setattr(story_brief_module, "pick_story_fields", mock_fail)
 
     assert story_cli.main() == 1
 
@@ -191,7 +194,7 @@ def test_main_allows_absolute_output_dir_when_within_cwd(
 def test_main_force_rejects_symlink_output_target(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    if not hasattr(filename_utils.os, "O_NOFOLLOW"):
+    if not hasattr(os, "O_NOFOLLOW"):
         pytest.skip("Platform does not expose O_NOFOLLOW")
 
     output_dir = tmp_path / "output" / "story-seeds"
@@ -221,17 +224,21 @@ def test_main_write_failure_exits_cleanly(tmp_path: Path, monkeypatch: pytest.Mo
     )
     _mock_story_generation(monkeypatch)
 
-    real_open = filename_utils.os.open
+    real_open = os.open
 
-    def fake_open(path: object, flags: int, mode: int) -> int:
+    def fake_open(
+        path: str | bytes | os.PathLike[str] | os.PathLike[bytes],
+        flags: int,
+        mode: int,
+    ) -> int:
         return real_open(path, flags, mode)
 
-    def fake_fdopen(fd: int, *_args: object, **_kwargs: object) -> object:
-        filename_utils.os.close(fd)
+    def fake_fdopen(fd: int, *_args: object, **_kwargs: object) -> NoReturn:
+        os.close(fd)
         raise OSError("No space left on device")
 
-    monkeypatch.setattr(filename_utils.os, "open", fake_open)
-    monkeypatch.setattr(filename_utils.os, "fdopen", fake_fdopen)
+    monkeypatch.setattr(os, "open", fake_open)
+    monkeypatch.setattr(os, "fdopen", fake_fdopen)
 
     assert story_cli.main() == 1
 

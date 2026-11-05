@@ -4,11 +4,43 @@ import json
 import runpy
 import tomllib
 from pathlib import Path
+from typing import TypedDict, cast
 
 import pytest
 from packaging.requirements import Requirement
 
 from telegraphy.scripts import generate_sbom
+
+_Component = TypedDict(
+    "_Component",
+    {
+        "bom-ref": str,
+        "name": str,
+        "version": str,
+        "purl": str,
+        "properties": list[dict[str, str]],
+    },
+    total=False,
+)
+
+
+class _Metadata(TypedDict):
+    component: _Component
+
+
+class _Dependency(TypedDict):
+    dependsOn: list[str]
+
+
+class _Sbom(TypedDict):
+    bomFormat: str
+    metadata: _Metadata
+    components: list[_Component]
+    dependencies: list[_Dependency]
+
+
+def _build_typed_sbom() -> _Sbom:
+    return cast(_Sbom, generate_sbom.build_sbom())
 
 
 def test_package_url_normalizes_project_names_for_pypi_purls() -> None:
@@ -26,7 +58,7 @@ def test_exact_requirement_version_rejects_non_single_specifiers(
 
 
 def test_build_sbom_includes_component_bom_refs() -> None:
-    sbom = generate_sbom.build_sbom()
+    sbom = _build_typed_sbom()
 
     root_component = sbom["metadata"]["component"]
     dependency_component = sbom["components"][0]
@@ -40,7 +72,7 @@ def test_build_sbom_matches_pyproject_version_and_dependency() -> None:
     project = pyproject_data["project"]
     dependency = Requirement(project["dependencies"][0])
 
-    sbom = generate_sbom.build_sbom()
+    sbom = _build_typed_sbom()
     root_component = sbom["metadata"]["component"]
     dependency_component = sbom["components"][0]
 
@@ -56,7 +88,7 @@ def test_build_sbom_matches_pyproject_version_and_dependency() -> None:
     ]
 
 
-def test_main_writes_valid_json(tmp_path, monkeypatch) -> None:
+def test_main_writes_valid_json(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     output_path = tmp_path / "sbom.cdx.json"
     monkeypatch.setattr(generate_sbom, "SBOM_PATH", output_path)
 
@@ -66,7 +98,10 @@ def test_main_writes_valid_json(tmp_path, monkeypatch) -> None:
     assert written["bomFormat"] == "CycloneDX"
 
 
-def test_build_sbom_supports_multiple_runtime_dependencies(tmp_path, monkeypatch) -> None:
+def test_build_sbom_supports_multiple_runtime_dependencies(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     pyproject_path = tmp_path / "pyproject.toml"
     pyproject_path.write_text(
         """
@@ -79,7 +114,7 @@ dependencies = ["alpha>=1", "bravo==2.0"]
     )
     monkeypatch.setattr(generate_sbom, "PYPROJECT_PATH", pyproject_path)
 
-    sbom = generate_sbom.build_sbom()
+    sbom = _build_typed_sbom()
 
     assert [component["name"] for component in sbom["components"]] == ["alpha", "bravo"]
     assert sbom["components"][0]["purl"] == "pkg:pypi/alpha"
@@ -91,7 +126,7 @@ dependencies = ["alpha>=1", "bravo==2.0"]
     ]
 
 
-def test_load_project_metadata_accepts_no_runtime_dependencies(tmp_path) -> None:
+def test_load_project_metadata_accepts_no_runtime_dependencies(tmp_path: Path) -> None:
     pyproject_path = tmp_path / "pyproject.toml"
     pyproject_path.write_text(
         """
@@ -109,7 +144,9 @@ dependencies = []
     assert dependencies == ()
 
 
-def test_module_entrypoint_exits_cleanly_and_writes_output(monkeypatch) -> None:
+def test_module_entrypoint_exits_cleanly_and_writes_output(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     captured: dict[str, object] = {}
 
     def _fake_write_text(self: Path, data: str, encoding: str = "utf-8") -> int:

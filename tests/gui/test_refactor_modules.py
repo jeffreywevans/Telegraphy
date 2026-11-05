@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import subprocess
 from types import SimpleNamespace
 
 import pytest
@@ -59,7 +60,7 @@ def test_decode_output_uses_utf8_when_preferred_encoding_is_blank(
 
 def test_run_story_brief_cli_success(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
-        cli_runner.subprocess,
+        subprocess,
         "run",
         lambda *args, **kwargs: SimpleNamespace(returncode=0, stdout=b" done ", stderr=b""),
     )
@@ -73,21 +74,21 @@ def test_run_story_brief_cli_uses_stderr_then_stdout_then_unknown(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(
-        cli_runner.subprocess,
+        subprocess,
         "run",
         lambda *args, **kwargs: SimpleNamespace(returncode=9, stdout=b" out ", stderr=b" err "),
     )
     assert cli_runner.run_story_brief_cli(RunOptions()).message == "err"
 
     monkeypatch.setattr(
-        cli_runner.subprocess,
+        subprocess,
         "run",
         lambda *args, **kwargs: SimpleNamespace(returncode=9, stdout=b" out ", stderr=b" "),
     )
     assert cli_runner.run_story_brief_cli(RunOptions()).message == "out"
 
     monkeypatch.setattr(
-        cli_runner.subprocess,
+        subprocess,
         "run",
         lambda *args, **kwargs: SimpleNamespace(returncode=9, stdout=b" ", stderr=b" "),
     )
@@ -99,18 +100,18 @@ def test_run_story_brief_cli_uses_stderr_then_stdout_then_unknown(
 def test_run_story_brief_cli_handles_timeout_and_oserror(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    def raise_timeout(*_args, **_kwargs):
-        raise cli_runner.subprocess.TimeoutExpired(cmd=["telegraphy"], timeout=5.0)
+    def raise_timeout(*_args: object, **_kwargs: object) -> subprocess.CompletedProcess[bytes]:
+        raise subprocess.TimeoutExpired(cmd=["telegraphy"], timeout=5.0)
 
-    monkeypatch.setattr(cli_runner.subprocess, "run", raise_timeout)
+    monkeypatch.setattr(subprocess, "run", raise_timeout)
     timeout_result = cli_runner.run_story_brief_cli(RunOptions(timeout_seconds=5.0))
     assert timeout_result.status == "error"
     assert timeout_result.message == "CLI worker timed out after 5s."
 
-    def raise_oserror(*_args, **_kwargs):
+    def raise_oserror(*_args: object, **_kwargs: object) -> subprocess.CompletedProcess[bytes]:
         raise OSError("noexec")
 
-    monkeypatch.setattr(cli_runner.subprocess, "run", raise_oserror)
+    monkeypatch.setattr(subprocess, "run", raise_oserror)
     os_error_result = cli_runner.run_story_brief_cli(RunOptions())
     assert os_error_result.status == "error"
     assert "Could not run Telegraphy CLI" in os_error_result.message

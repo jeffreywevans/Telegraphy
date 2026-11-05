@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import math
 import re
 from collections.abc import Callable
 from datetime import timedelta
-from typing import Any
+from typing import Any, cast
 
 import pytest
 
@@ -17,24 +19,30 @@ from telegraphy.story_brief.validation import (
     validate_story_data_strict,
 )
 
-DEFAULT_TAG_COUNT_WEIGHTS_BY_PRESENCE = {
+DEFAULT_TAG_COUNT_WEIGHTS_BY_PRESENCE: dict[str, dict[object, Any]] = {
     "suggestive": {"1": 1.0},
     "explicit": {"1": 1.0},
     "implied": {"1": 1.0},
     "fade_to_black": {"1": 1.0},
 }
 
+type DatasetPayloads = dict[str, dict[str, Any]]
+type PayloadMutator = Callable[
+    [dict[str, Any], dict[str, Any], dict[str, Any], dict[str, Any], dict[str, Any]],
+    None,
+]
+
 
 def _tag_count_weights_with_none_entry(
-    none_weights: dict[str, Any],
-) -> dict[str, dict[str, Any]]:
+    none_weights: dict[object, Any],
+) -> dict[str, dict[object, Any]]:
     return {
         "none": none_weights,
         **DEFAULT_TAG_COUNT_WEIGHTS_BY_PRESENCE,
     }
 
 
-def test_schema_validation_accepts_current_data(story_dataset_payloads) -> None:
+def test_schema_validation_accepts_current_data(story_dataset_payloads: DatasetPayloads) -> None:
     titles = story_dataset_payloads["titles"]
     entities = story_dataset_payloads["entities"]
     prompts = story_dataset_payloads["prompts"]
@@ -127,7 +135,9 @@ def test_schema_validation_accepts_current_data(story_dataset_payloads) -> None:
     ],
 )
 def test_schema_validation_rejects_bad_data(
-    mutator, expected_msg: str, story_dataset_payloads
+    mutator: PayloadMutator,
+    expected_msg: str,
+    story_dataset_payloads: DatasetPayloads,
 ) -> None:
     titles = story_dataset_payloads["titles"]
     entities = story_dataset_payloads["entities"]
@@ -141,7 +151,9 @@ def test_schema_validation_rejects_bad_data(
         validate_story_data(titles, entities, prompts, weather, config, partner_distributions)
 
 
-def test_schema_validation_rejects_weather_with_unexpected_key(story_dataset_payloads) -> None:
+def test_schema_validation_rejects_weather_with_unexpected_key(
+    story_dataset_payloads: DatasetPayloads,
+) -> None:
     _assert_schema_rejects(
         story_dataset_payloads,
         lambda _t, _e, _p, weather, _c: weather.update({"unexpected": "value"}),
@@ -151,11 +163,11 @@ def test_schema_validation_rejects_weather_with_unexpected_key(story_dataset_pay
 
 def test_validate_weather_rejects_non_mapping_input() -> None:
     with pytest.raises(ValueError, match="weather: expected mapping, got list"):
-        validate_weather([])
+        validate_weather(cast(dict[str, Any], []))
 
 
 def test_schema_validation_allows_disjoint_availability_windows_for_same_name(
-    story_dataset_payloads,
+    story_dataset_payloads: DatasetPayloads,
 ) -> None:
     titles = story_dataset_payloads["titles"]
     entities = story_dataset_payloads["entities"]
@@ -198,7 +210,9 @@ def test_schema_validation_allows_disjoint_availability_windows_for_same_name(
     validate_story_data(titles, entities, prompts, weather, config, partner_distributions)
 
 
-def test_schema_validation_rejects_single_sexual_scene_tag_group(story_dataset_payloads) -> None:
+def test_schema_validation_rejects_single_sexual_scene_tag_group(
+    story_dataset_payloads: DatasetPayloads,
+) -> None:
     titles = story_dataset_payloads["titles"]
     entities = story_dataset_payloads["entities"]
     prompts = story_dataset_payloads["prompts"]
@@ -211,7 +225,9 @@ def test_schema_validation_rejects_single_sexual_scene_tag_group(story_dataset_p
         validate_story_data(titles, entities, prompts, weather, config, partner_distributions)
 
 
-def test_schema_validation_rejects_too_many_sexual_scene_tag_groups(story_dataset_payloads) -> None:
+def test_schema_validation_rejects_too_many_sexual_scene_tag_groups(
+    story_dataset_payloads: DatasetPayloads,
+) -> None:
     titles = story_dataset_payloads["titles"]
     entities = story_dataset_payloads["entities"]
     prompts = story_dataset_payloads["prompts"]
@@ -236,7 +252,7 @@ def test_schema_validation_rejects_too_many_sexual_scene_tag_groups(story_datase
 )
 def test_schema_validation_rejects_removed_config_alias_keys(
     unsupported_alias_key: str,
-    story_dataset_payloads: dict[str, dict[str, Any]],
+    story_dataset_payloads: DatasetPayloads,
 ) -> None:
     _assert_schema_rejects(
         story_dataset_payloads,
@@ -246,7 +262,7 @@ def test_schema_validation_rejects_removed_config_alias_keys(
 
 
 def test_schema_validation_rejects_invalid_sexual_scene_tag_count_weight_key(
-    story_dataset_payloads,
+    story_dataset_payloads: DatasetPayloads,
 ) -> None:
     titles = story_dataset_payloads["titles"]
     entities = story_dataset_payloads["entities"]
@@ -263,7 +279,7 @@ def test_schema_validation_rejects_invalid_sexual_scene_tag_count_weight_key(
 
 
 def test_schema_validation_rejects_sexual_scene_tag_count_weight_above_group_count(
-    story_dataset_payloads,
+    story_dataset_payloads: DatasetPayloads,
 ) -> None:
     titles = story_dataset_payloads["titles"]
     entities = story_dataset_payloads["entities"]
@@ -281,7 +297,9 @@ def test_schema_validation_rejects_sexual_scene_tag_count_weight_above_group_cou
         validate_story_data(titles, entities, prompts, weather, config, partner_distributions)
 
 
-def test_schema_validation_rejects_duplicate_partners_in_single_era(story_dataset_payloads) -> None:
+def test_schema_validation_rejects_duplicate_partners_in_single_era(
+    story_dataset_payloads: DatasetPayloads,
+) -> None:
     titles = story_dataset_payloads["titles"]
     entities = story_dataset_payloads["entities"]
     prompts = story_dataset_payloads["prompts"]
@@ -301,14 +319,12 @@ def test_strict_validation_accepts_well_formed_small_range() -> None:
     data = get_normalized_story_data()
     start = data["date_start"]
     data["date_end"] = start
-    data["character_availability"] = [
+    data["character_availability"] = (
         ("Alex", start, start),
         ("Jordan", start, start),
-    ]
-    data["setting_availability"] = [
-        ("Seattle", start, start),
-    ]
-    data["titles"] = ["A Night in @setting with @protagonist"]
+    )
+    data["setting_availability"] = (("Seattle", start, start),)
+    data["titles"] = ("A Night in @setting with @protagonist",)
 
     validate_story_data_strict(data)
 
@@ -320,9 +336,7 @@ def test_real_dataset_passes_strict_validation() -> None:
 def test_strict_validation_rejects_dates_with_fewer_than_two_distinct_characters() -> None:
     data = get_normalized_story_data()
     data["date_end"] = data["date_start"]
-    data["character_availability"] = [
-        ("Only One", data["date_start"], data["date_end"]),
-    ]
+    data["character_availability"] = (("Only One", data["date_start"], data["date_end"]),)
 
     with pytest.raises(ValueError, match="fewer than two distinct available characters"):
         validate_story_data_strict(data)
@@ -331,11 +345,11 @@ def test_strict_validation_rejects_dates_with_fewer_than_two_distinct_characters
 def test_strict_validation_rejects_dates_with_no_settings() -> None:
     data = get_normalized_story_data()
     data["date_end"] = data["date_start"]
-    data["setting_availability"] = []
-    data["character_availability"] = [
+    data["setting_availability"] = ()
+    data["character_availability"] = (
         ("Alex", data["date_start"], data["date_end"]),
         ("Jordan", data["date_start"], data["date_end"]),
-    ]
+    )
 
     with pytest.raises(ValueError, match="no available settings"):
         validate_story_data_strict(data)
@@ -362,10 +376,8 @@ def test_strict_validation_handles_max_date_boundary_without_overflow() -> None:
 def test_dataset_lint_reports_coverage_gap_errors() -> None:
     data = get_normalized_story_data()
     data["date_end"] = data["date_start"]
-    data["character_availability"] = [
-        ("Only One", data["date_start"], data["date_end"]),
-    ]
-    data["setting_availability"] = []
+    data["character_availability"] = (("Only One", data["date_start"], data["date_end"]),)
+    data["setting_availability"] = ()
 
     report = lint_story_data(data)
 
@@ -404,16 +416,14 @@ def test_dataset_lint_reports_non_blocking_warnings() -> None:
     data = get_normalized_story_data()
     day = data["date_start"]
     data["date_end"] = day
-    data["character_availability"] = [
+    data["character_availability"] = (
         ("Alex", day, day),
         ("Jordan", day, day),
-    ]
-    data["setting_availability"] = [
-        ("Seattle", day, day),
-    ]
-    data["titles"] = ["A Night in @setting"]
-    data["weather"] = ["Rain"]
-    data["word_count_targets"] = [700]
+    )
+    data["setting_availability"] = (("Seattle", day, day),)
+    data["titles"] = ("A Night in @setting",)
+    data["weather"] = ("Rain",)
+    data["word_count_targets"] = (700,)
 
     report = lint_story_data(data)
 
@@ -428,18 +438,14 @@ def test_dataset_lint_reports_partner_data_coverage_gaps_by_protagonist() -> Non
     data = get_normalized_story_data()
     day = data["date_start"]
     data["date_end"] = day
-    data["character_availability"] = [
+    data["character_availability"] = (
         ("Alex", day, day),
         ("Jordan", day, day),
-    ]
-    data["setting_availability"] = [
-        ("Seattle", day, day),
-    ]
+    )
+    data["setting_availability"] = (("Seattle", day, day),)
     data["partner_distributions"] = {
-        "Alex": [
-            {"date_start": day, "date_end": day, "partners": [("Jordan", 1.0)]},
-        ],
-        "Jordan": [],
+        "Alex": ({"date_start": day, "date_end": day, "partners": (("Jordan", 1.0),)},),
+        "Jordan": (),
     }
 
     report = lint_story_data(data)
@@ -458,20 +464,14 @@ def test_dataset_lint_uses_partner_era_boundaries_for_gap_detection() -> None:
     day = data["date_start"]
     next_day = day + timedelta(days=1)
     data["date_end"] = next_day
-    data["character_availability"] = [
+    data["character_availability"] = (
         ("Alex", day, next_day),
         ("Jordan", day, next_day),
-    ]
-    data["setting_availability"] = [
-        ("Seattle", day, next_day),
-    ]
+    )
+    data["setting_availability"] = (("Seattle", day, next_day),)
     data["partner_distributions"] = {
-        "Alex": [
-            {"date_start": day, "date_end": day, "partners": [("Jordan", 1.0)]},
-        ],
-        "Jordan": [
-            {"date_start": day, "date_end": next_day, "partners": [("Alex", 1.0)]},
-        ],
+        "Alex": ({"date_start": day, "date_end": day, "partners": (("Jordan", 1.0),)},),
+        "Jordan": ({"date_start": day, "date_end": next_day, "partners": (("Alex", 1.0),)},),
     }
 
     report = lint_story_data(data)
@@ -488,20 +488,14 @@ def test_dataset_lint_treats_empty_partner_eras_as_intentional_celibacy() -> Non
     data = get_normalized_story_data()
     day = data["date_start"]
     data["date_end"] = day
-    data["character_availability"] = [
+    data["character_availability"] = (
         ("Alex", day, day),
         ("Jordan", day, day),
-    ]
-    data["setting_availability"] = [
-        ("Seattle", day, day),
-    ]
+    )
+    data["setting_availability"] = (("Seattle", day, day),)
     data["partner_distributions"] = {
-        "Alex": [
-            {"date_start": day, "date_end": day, "partners": [("Jordan", 1.0)]},
-        ],
-        "Jordan": [
-            {"date_start": day, "date_end": day, "partners": []},
-        ],
+        "Alex": ({"date_start": day, "date_end": day, "partners": (("Jordan", 1.0),)},),
+        "Jordan": ({"date_start": day, "date_end": day, "partners": ()},),
     }
 
     report = lint_story_data(data)
@@ -512,14 +506,8 @@ def test_dataset_lint_treats_empty_partner_eras_as_intentional_celibacy() -> Non
     )
 
 
-PayloadMutator = Callable[
-    [dict[str, Any], dict[str, Any], dict[str, Any], dict[str, Any], dict[str, Any]],
-    None,
-]
-
-
 def _assert_schema_rejects(
-    story_dataset_payloads: dict[str, dict[str, Any]],
+    story_dataset_payloads: DatasetPayloads,
     mutator: PayloadMutator,
     expected_message: str,
 ) -> None:

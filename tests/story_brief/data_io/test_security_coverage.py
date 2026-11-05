@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import os
 import unicodedata
+from collections.abc import Callable
+from importlib.resources.abc import Traversable
 from pathlib import Path
+from typing import NoReturn, cast
 
 import pytest
 
@@ -67,9 +70,9 @@ def test_validated_override_path_rejects_backslash_parent_traversal() -> None:
 def test_data_file_uses_traversable_joinpath() -> None:
     traversable = _FakeTraversable()
 
-    result = data_io._data_file_from_dir(traversable, "titles.json")
+    result = data_io._data_file_from_dir(cast(Traversable, traversable), "titles.json")
 
-    assert result == "resource://titles.json"
+    assert str(result) == "resource://titles.json"
     assert traversable.requested == "titles.json"
 
 
@@ -134,7 +137,8 @@ def test_data_file_rejects_unicode_normalization_variant_that_collides() -> None
 
 
 def test_load_json_uses_o_nofollow_for_paths_from_fallback_data_dir(
-    monkeypatch: pytest.MonkeyPatch, cli_dataset_factory
+    monkeypatch: pytest.MonkeyPatch,
+    cli_dataset_factory: Callable[[str], Path],
 ) -> None:
     data_dir = cli_dataset_factory("nofollow-data")
 
@@ -151,7 +155,7 @@ def test_load_json_uses_o_nofollow_for_paths_from_fallback_data_dir(
         "files",
         lambda _resource: (_ for _ in ()).throw(TypeError("boom")),
     )
-    monkeypatch.setattr(data_io.os, "open", recording_open)
+    monkeypatch.setattr(os, "open", recording_open)
 
     data_io.load_data(data_io.resolve_data_dir())
     assert opened_flags
@@ -178,12 +182,12 @@ def test_load_json_closes_fd_when_fdopen_fails(
         recorded["closed_fd"] = fd
         real_close(fd)
 
-    def exploding_fdopen(*_args: object, **_kwargs: object) -> object:
+    def exploding_fdopen(*_args: object, **_kwargs: object) -> NoReturn:
         raise OSError("fdopen failed")
 
-    monkeypatch.setattr(data_io.os, "open", recording_open)
-    monkeypatch.setattr(data_io.os, "close", recording_close)
-    monkeypatch.setattr(data_io.os, "fdopen", exploding_fdopen)
+    monkeypatch.setattr(os, "open", recording_open)
+    monkeypatch.setattr(os, "close", recording_close)
+    monkeypatch.setattr(os, "fdopen", exploding_fdopen)
 
     with pytest.raises(OSError, match="fdopen failed"):
         data_io._load_json(payload_path)
@@ -205,8 +209,8 @@ def test_load_json_without_o_nofollow_uses_readonly_only(
         observed_flags["flags"] = flags
         return real_open(path, flags, mode)
 
-    monkeypatch.delattr(data_io.os, "O_NOFOLLOW", raising=False)
-    monkeypatch.setattr(data_io.os, "open", recording_open)
+    monkeypatch.delattr(os, "O_NOFOLLOW", raising=False)
+    monkeypatch.setattr(os, "open", recording_open)
 
     assert data_io._load_json(payload_path) == {}
     assert observed_flags["flags"] == os.O_RDONLY
@@ -215,21 +219,21 @@ def test_load_json_without_o_nofollow_uses_readonly_only(
 def test_load_json_reads_from_traversable_text_payload() -> None:
     traversable = _JsonTextTraversable('{"answer": 42}')
 
-    assert data_io._load_json(traversable) == {"answer": 42}
+    assert data_io._load_json(cast(Traversable, traversable)) == {"answer": 42}
 
 
 def test_validated_load_path_rejects_nul_bytes_for_traversable_name() -> None:
     traversable = _NameAsObjectTraversable("titles\x00.json")
 
     with pytest.raises(ValueError, match="NUL bytes"):
-        data_io._validated_load_path(traversable)
+        data_io._validated_load_path(cast(Traversable, traversable))
 
 
 def test_validated_load_path_rejects_parent_traversal_for_traversable_name() -> None:
     traversable = _NameAsObjectTraversable("../titles.json")
 
     with pytest.raises(ValueError, match="parent-directory traversal"):
-        data_io._validated_load_path(traversable)
+        data_io._validated_load_path(cast(Traversable, traversable))
 
 
 def test_validated_load_path_rejects_non_absolute_path_instance() -> None:
@@ -240,5 +244,6 @@ def test_validated_load_path_rejects_non_absolute_path_instance() -> None:
 
 def test_validated_load_path_coerces_non_string_name_attribute() -> None:
     traversable = _NameAsObjectTraversable(12345)
+    typed_traversable = cast(Traversable, traversable)
 
-    assert data_io._validated_load_path(traversable) is traversable
+    assert data_io._validated_load_path(typed_traversable) is typed_traversable

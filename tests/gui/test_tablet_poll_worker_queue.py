@@ -2,10 +2,14 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
+import pytest
+
 from telegraphy.gui import tablet_app
 
 
-def test_poll_worker_queue_returns_without_side_effects_when_worker_is_inactive(monkeypatch):
+def test_poll_worker_queue_returns_without_side_effects_when_worker_is_inactive(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     tablet = tablet_app.TelegraphyTablet.__new__(tablet_app.TelegraphyTablet)
     tablet._worker_active = False
     tablet.result_queue = MagicMock()

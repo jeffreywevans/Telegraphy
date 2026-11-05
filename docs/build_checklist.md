@@ -91,8 +91,11 @@ Regenerate the SBOM for every declared build.
 Run:
 
 ```bash
-python -m telegraphy.scripts.generate_sbom
+python -m scripts.generate_sbom
 ```
+
+This is repository tooling: run it from a source checkout with the development
+dependencies installed. It is intentionally not included in the wheel.
 
 Then verify that `sbom.cdx.json` contains the current version.
 
@@ -211,7 +214,7 @@ python -m ruff format --check .
 Run mypy:
 
 ```bash
-python -m mypy telegraphy
+python -m mypy telegraphy scripts tests
 ```
 
 If CI uses stricter settings than local commands, follow CI.

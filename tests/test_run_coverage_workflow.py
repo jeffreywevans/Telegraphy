@@ -5,7 +5,7 @@ import subprocess
 
 import pytest
 
-from telegraphy.scripts import run_coverage_workflow
+from scripts import run_coverage_workflow
 
 
 def _completed(rc: int) -> subprocess.CompletedProcess[str]:

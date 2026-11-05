@@ -159,12 +159,12 @@ version rather than independently inventorying a resolved release environment.
 ```bash
 python -m pip install -e ".[dev]"
 ruff check .
-mypy telegraphy
+mypy telegraphy scripts tests
 pytest -q
-python -m telegraphy.scripts.run_coverage_workflow
+python -m scripts.run_coverage_workflow
 python -m telegraphy.story_brief --lint-dataset
 python -m telegraphy.story_brief --validate-strict --seed 42 --date 2000-01-01 --print-only
-python -m telegraphy.scripts.generate_sbom
+python -m scripts.generate_sbom
 python -m build
 ```
 

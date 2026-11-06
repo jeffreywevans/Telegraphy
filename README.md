@@ -724,7 +724,7 @@ Current package facts:
 | Field | Value |
 | --- | --- |
 | Package | `telegraphy` |
-| Current version | `0.6.5` |
+| Current version | `0.7.0` |
 | Python | `>=3.14` |
 | Runtime dependency | `PyYAML>=6.0.3` |
 | Console script | `story-brief = telegraphy.story_brief.cli:main` |
@@ -748,19 +748,20 @@ For generation changes, preserve deterministic seeded behavior unless the PR exp
 
 ## Release notes and status
 
-Current version: `0.6.5`.
+Current version: `0.7.0`.
 
-The 0.6 series introduces independent data files for every generated field, with a
-shared character dataset for protagonist and secondary-character selection.
-Version 0.6.5 tightens date and output-path validation, removes development tooling
-from the runtime wheel, hardens GUI subprocess handling, and streamlines CI coverage.
+The 0.7 series centers on the desktop experience. Version 0.7.0 replaces the
+old tablet-style shell with a Nord-themed reading workspace, improves native
+cross-platform sizing and keyboard navigation, and adds Tcl/Tk runtime diagnostics
+for more reliable GUI startup and CI verification.
 
 Highlights:
 
-- replaced aggregate entities, prompts, and content configuration with focused field files;
-- kept the existing CLI, GUI, front-matter schema, and seeded output behavior;
-- added filename-specific layout errors and documented custom-dataset migration;
-- expanded story-choice datasets and made the complete test suite strict-mypy clean.
+- replaced the decorative tablet shell with a spacious Nord reading workspace;
+- separated GUI theme, preview formatting, and Tcl/Tk runtime diagnostics into focused modules;
+- improved DPI-aware sizing, platform font selection, focus traversal, clipboard behavior, and headless failure reporting;
+- hardened CLI stdout handling on Windows without suppressing unrelated errors;
+- expanded GUI regression and native-window coverage while retaining deterministic story generation and the existing data schema.
 
 See [CHANGELOG.md](https://github.com/jeffreywevans/Telegraphy/blob/HEAD/CHANGELOG.md) for release notes.
 

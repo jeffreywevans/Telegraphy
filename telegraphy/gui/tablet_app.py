@@ -1,4 +1,4 @@
-"""Tiny tkinter GUI for Telegraphy's story-brief CLI."""
+"""A Nord reading workspace for Telegraphy’s story-brief CLI."""
 
 from __future__ import annotations
 
@@ -13,6 +13,7 @@ from tkinter import font as tkfont
 from tkinter import ttk
 from typing import Final
 
+from telegraphy.gui import theme
 from telegraphy.gui.cli_runner import run_story_brief_cli
 from telegraphy.gui.models import (
     DEFAULT_CLI_TIMEOUT_SECONDS,
@@ -20,6 +21,7 @@ from telegraphy.gui.models import (
     RunOptionsValidationError,
     resolve_run_options,
 )
+from telegraphy.gui.preview import brief_preview
 
 
 def _read_app_version() -> str:
@@ -31,22 +33,14 @@ def _read_app_version() -> str:
 
 
 APP_VERSION: Final[str] = _read_app_version()
-APP_TITLE: Final = f"Telegraphy Tablet v{APP_VERSION}"
-TABLET_BUTTON_STYLE: Final = "Tablet.TButton"
+APP_TITLE: Final = f"Telegraphy · v{APP_VERSION}"
 DEFAULT_FONT_FAMILY: Final = "Segoe UI"
-TABLET_EXTRA_WIDTH_INCHES_PER_SIDE: Final = 2
-TABLET_BASE_WIDTH_PIXELS: Final = 860
-TABLET_BASE_HEIGHT_PIXELS: Final = 620
-TABLET_BASE_MIN_WIDTH_PIXELS: Final = 720
-TABLET_BASE_MIN_HEIGHT_PIXELS: Final = 520
-CLI_TEXT_WIDTH_CHARACTERS: Final = 100
 DEFAULT_DPI: Final = 96
-
-TABLET_OUTER_SECTION_COLOR: Final = "#D91E1E"
-TABLET_MIDDLE_SECTION_COLOR: Final = "#F2F2F2"
-TABLET_INNER_SECTION_COLOR: Final = "#0D0D0D"
-TABLET_OUTER_OUTLINE_COLOR: Final = "#A6A6A6"
-TABLET_MIDDLE_OUTLINE_COLOR: Final = "#1f2937"
+WINDOW_WIDTH: Final = 1120
+WINDOW_HEIGHT: Final = 800
+MIN_WINDOW_WIDTH: Final = 760
+MIN_WINDOW_HEIGHT: Final = 520
+EMPTY_MESSAGE: Final = "Your next story starts here.\n\nGenerate a brief, then make it yours."
 
 
 def _parse_timeout_seconds(raw_timeout: str) -> float:
@@ -82,7 +76,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
 
 class TelegraphyTablet(tk.Tk):
-    """A deliberately small tablet-shaped GUI wrapper around the CLI."""
+    """A spacious desktop reading workspace; the class name preserves launcher compatibility."""
 
     def __init__(self, run_options: RunOptions | None = None) -> None:
         super().__init__()
@@ -91,7 +85,7 @@ class TelegraphyTablet(tk.Tk):
         width = self._default_window_width()
         self.geometry(f"{width}x{self._default_window_height()}")
         self.minsize(self._minimum_window_width(), self._minimum_window_height())
-        self.configure(bg="#202124")
+        self.configure(bg=theme.BACKGROUND)
 
         self.latest_output = ""
         self.run_options = run_options or RunOptions()
@@ -115,33 +109,30 @@ class TelegraphyTablet(tk.Tk):
     def _scaled_pixels(self, base_pixels: int) -> int:
         return max(int(round(base_pixels * (self._pixels_per_inch() / DEFAULT_DPI))), 1)
 
-    def _extra_window_width_pixels(self) -> int:
-        return 2 * TABLET_EXTRA_WIDTH_INCHES_PER_SIDE * self._pixels_per_inch()
-
     def _default_window_width(self) -> int:
-        return self._scaled_pixels(TABLET_BASE_WIDTH_PIXELS) + self._extra_window_width_pixels()
+        return self._scaled_pixels(WINDOW_WIDTH)
 
     def _minimum_window_width(self) -> int:
-        return self._scaled_pixels(TABLET_BASE_MIN_WIDTH_PIXELS) + self._extra_window_width_pixels()
+        return self._scaled_pixels(MIN_WINDOW_WIDTH)
 
     def _default_window_height(self) -> int:
-        return self._scaled_pixels(TABLET_BASE_HEIGHT_PIXELS)
+        return self._scaled_pixels(WINDOW_HEIGHT)
 
     def _minimum_window_height(self) -> int:
-        return self._scaled_pixels(TABLET_BASE_MIN_HEIGHT_PIXELS)
+        return self._scaled_pixels(MIN_WINDOW_HEIGHT)
 
     def _select_display_font(self) -> str:
         available_fonts = {name.lower() for name in tkfont.families(self)}
 
         if sys.platform.startswith("win"):
             return self._pick_first_available_font(
-                ("Aptos Serif", "Segoe UI", "Times New Roman"),
+                ("Segoe UI", "Aptos", "Arial"),
                 available_fonts,
             )
 
         if sys.platform == "linux":
             return self._pick_first_available_font(
-                ("Noto Serif", "Ubuntu", "DejaVu Sans"),
+                ("Noto Sans", "Ubuntu", "DejaVu Sans", "Helvetica"),
                 available_fonts,
             )
 
@@ -162,222 +153,161 @@ class TelegraphyTablet(tk.Tk):
         return candidates[0] if candidates else DEFAULT_FONT_FAMILY
 
     def _configure_styles(self) -> None:
-        style = ttk.Style(self)
-        style.theme_use("clam")
-        style.configure(
-            TABLET_BUTTON_STYLE,
-            font=(self.font_family, 14, "bold"),
-            padding=(18, 12),
-        )
-        style.configure(
-            "Status.TLabel",
-            background=TABLET_INNER_SECTION_COLOR,
-            foreground="#d1d5db",
-            font=(self.font_family, 10),
-        )
+        theme.configure_styles(self, self.font_family)
 
     def _build_shell(self) -> None:
-        self.canvas = tk.Canvas(self, bg="#202124", highlightthickness=0)
-        self.canvas.pack(fill="both", expand=True, padx=22, pady=22)
-        self.canvas.bind("<Configure>", self._redraw_tablet)
-
-        self.screen = tk.Frame(self.canvas, bg=TABLET_INNER_SECTION_COLOR)
-        self.screen_window = self.canvas.create_window(0, 0, window=self.screen, anchor="nw")
-
-        screen_bg = self.screen.cget("bg")
-
-        title = tk.Label(
+        self.screen = tk.Frame(self, bg=theme.BACKGROUND)
+        self.screen.pack(fill="both", expand=True, padx=24, pady=16)
+        self._build_header()
+        self._build_controls()
+        self.error_label = tk.Label(
             self.screen,
-            text=f"TELEGRAPHY  v{APP_VERSION}",
-            bg=screen_bg,
-            fg="#f9fafb",
-            font=(self.font_family, 22, "bold"),
-            pady=10,
+            text="",
+            bg=theme.BACKGROUND,
+            fg=theme.ERROR,
+            font=(self.font_family, 10),
+            anchor="w",
+            justify="left",
+            wraplength=680,
         )
-        title.pack(fill="x", padx=24, pady=(22, 0))
+        self.error_label.pack(fill="x", pady=(0, 8))
+        self.screen.bind("<Configure>", self._resize_message)
+        self._build_document()
+        self.bind("<Control-Return>", lambda _event: self.generate_story_brief())
+        self.bind("<Command-Return>", lambda _event: self.generate_story_brief())
 
-        subtitle = tk.Label(
-            self.screen,
-            text="Information Age Tablet • Story Brief Generator",
-            bg=screen_bg,
-            fg="#9ca3af",
+    def _build_header(self) -> None:
+        header = tk.Frame(self.screen, bg=theme.BACKGROUND)
+        header.pack(fill="x", pady=(0, 18))
+        tk.Label(
+            header,
+            text="Telegraphy",
+            bg=theme.BACKGROUND,
+            fg=theme.TEXT,
+            font=(self.font_family, 22, "bold"),
+        ).pack(side="left")
+        tk.Label(
+            header,
+            text=f"v{APP_VERSION}",
+            bg=theme.BACKGROUND,
+            fg=theme.MUTED,
+            font=(self.font_family, 10),
+        ).pack(side="left", padx=12)
+        self.status = tk.Label(
+            header,
+            text="Ready",
+            bg=theme.BACKGROUND,
+            fg=theme.FROST,
             font=(self.font_family, 10),
         )
-        subtitle.pack(fill="x", padx=24, pady=(0, 14))
+        self.status.pack(side="right")
 
-        toolbar = tk.Frame(self.screen, bg=screen_bg)
-        toolbar.pack(fill="x", padx=24, pady=(0, 14))
-
-        self.generate_button = ttk.Button(
-            toolbar,
-            text="GENERATE!",
-            style=TABLET_BUTTON_STYLE,
-            command=self.generate_story_brief,
-        )
-        self.generate_button.pack(side="left")
-
-        controls = tk.Frame(toolbar, bg=toolbar.cget("bg"))
-        controls.pack(side="left", padx=(12, 0))
-
-        tk.Label(
-            controls,
-            text="Seed",
-            bg=controls.cget("bg"),
-            fg="#9ca3af",
-            font=(self.font_family, 9),
-        ).grid(row=0, column=0, sticky="w")
+    def _build_controls(self) -> None:
+        toolbar = tk.Frame(self.screen, bg=theme.SURFACE, padx=14, pady=12)
+        toolbar.pack(fill="x")
+        toolbar.columnconfigure(4, weight=1)
         self.seed_var = tk.StringVar(
             value=str(self.run_options.seed) if self.run_options.seed is not None else "",
         )
-        seed_entry = ttk.Entry(controls, width=10, textvariable=self.seed_var)
-        seed_entry.grid(row=1, column=0, padx=(0, 8))
-
-        tk.Label(
-            controls,
-            text="Date",
-            bg=controls.cget("bg"),
-            fg="#9ca3af",
-            font=(self.font_family, 9),
-        ).grid(row=0, column=1, sticky="w")
         self.date_var = tk.StringVar(value=self.run_options.date or "")
-        date_entry = ttk.Entry(controls, width=12, textvariable=self.date_var)
-        date_entry.grid(row=1, column=1)
-
+        for column, label, variable, width in (
+            (0, "Seed (optional)", self.seed_var, 10),
+            (2, "Date (YYYY-MM-DD)", self.date_var, 14),
+        ):
+            tk.Label(
+                toolbar,
+                text=label,
+                bg=theme.SURFACE,
+                fg=theme.MUTED,
+                font=(self.font_family, 9),
+                anchor="w",
+            ).grid(row=0, column=column, sticky="w", padx=(0, 14), pady=(0, 5))
+            ttk.Entry(
+                toolbar,
+                width=width,
+                textvariable=variable,
+                font=(self.font_family, 11),
+            ).grid(row=1, column=column, sticky="ew", padx=(0, 14))
+        self.generate_button = ttk.Button(
+            toolbar,
+            text="Generate brief",
+            style=theme.PRIMARY_BUTTON,
+            command=self.generate_story_brief,
+        )
+        self.generate_button.grid(row=1, column=5, padx=(12, 8))
         self.copy_button = ttk.Button(
             toolbar,
-            text="COPY!",
-            style=TABLET_BUTTON_STYLE,
+            text="Copy",
             command=self.copy_latest_output,
+            state="disabled",
         )
-        self.copy_button.pack(side="left", padx=(12, 0))
+        self.copy_button.grid(row=1, column=6)
 
-        self.status = ttk.Label(toolbar, text="Ready.", style="Status.TLabel")
-        self.status.pack(side="left", padx=(18, 0))
-
-        output_frame = tk.Frame(self.screen, bg=screen_bg, bd=0)
-        output_frame.pack(fill="both", expand=True, padx=24, pady=(0, 24))
-
+    def _build_document(self) -> None:
+        document = tk.Frame(
+            self.screen,
+            bg=theme.BACKGROUND,
+            highlightthickness=1,
+            highlightbackground=theme.BORDER,
+        )
+        document.pack(fill="both", expand=True)
         self.output = tk.Text(
-            output_frame,
-            width=CLI_TEXT_WIDTH_CHARACTERS,
+            document,
+            width=72,
             wrap="word",
-            bg=output_frame.cget("bg"),
-            fg="#e5e7eb",
-            insertbackground="#e5e7eb",
+            bg=theme.BACKGROUND,
+            fg=theme.TEXT,
+            insertbackground=theme.TEXT,
+            selectbackground=theme.BORDER,
+            selectforeground=theme.TEXT,
             relief="flat",
-            padx=16,
-            pady=16,
-            font=(self.font_family, 11),
+            borderwidth=0,
+            highlightthickness=1,
+            highlightbackground=theme.BACKGROUND,
+            highlightcolor=theme.FROST,
+            padx=28,
+            pady=24,
+            font=(self.font_family, 12),
+            spacing1=3,
+            spacing3=5,
             undo=False,
         )
         self.output.pack(side="left", fill="both", expand=True)
-
-        scrollbar = ttk.Scrollbar(output_frame, command=self.output.yview)
+        self.output.bind("<Tab>", self._focus_next_control)
+        self.output.bind("<Shift-Tab>", self._focus_previous_control)
+        self.output.bind("<ISO_Left_Tab>", self._focus_previous_control)
+        scrollbar = ttk.Scrollbar(document, command=self.output.yview)
         scrollbar.pack(side="right", fill="y")
         self.output.configure(yscrollcommand=scrollbar.set)
-
-        self._set_output(
-            "Press GENERATE! to run:\n"
-            "python -m telegraphy.story_brief --print-only\n\n"
-            "The generated brief will appear here. COPY! puts it on the clipboard."
+        self.output.tag_configure(
+            "heading", foreground=theme.FROST, font=(self.font_family, 18, "bold"), spacing1=18
         )
-
-    def _redraw_tablet(self, event: tk.Event) -> None:
-        width = int(event.width)
-        height = int(event.height)
-        margin = 10
-        bezel = 28
-
-        self.canvas.delete("tablet")
-        self._rounded_rectangle(
-            margin,
-            margin,
-            width - margin,
-            height - margin,
-            radius=42,
-            fill=TABLET_OUTER_SECTION_COLOR,
-            outline=TABLET_OUTER_OUTLINE_COLOR,
-            width=3,
-            tags="tablet",
+        self.output.tag_configure(
+            "title", foreground=theme.TEXT, font=(self.font_family, 25, "bold"), spacing3=12
         )
-        self._rounded_rectangle(
-            margin + bezel,
-            margin + bezel,
-            width - margin - bezel,
-            height - margin - bezel,
-            radius=22,
-            fill=TABLET_MIDDLE_SECTION_COLOR,
-            outline=TABLET_MIDDLE_OUTLINE_COLOR,
-            width=2,
-            tags="tablet",
+        self.output.tag_configure(
+            "metadata", foreground=theme.MUTED, font="TkFixedFont", spacing1=0, spacing3=0
         )
+        self.output.tag_configure(
+            "empty", foreground=theme.MUTED, justify="center", spacing1=30, spacing3=12
+        )
+        self._set_output(EMPTY_MESSAGE)
+        self.output.tag_add("empty", "1.0", "end")
 
-        self.canvas.create_oval(
-            width / 2 - 4,
-            margin + 11,
-            width / 2 + 4,
-            margin + 19,
-            fill="#27272a",
-            outline="",
-            tags="tablet",
-        )
+    def _focus_next_control(self, _event: tk.Event) -> str:
+        next_control = self.output.tk_focusNext()
+        if next_control is not None:
+            next_control.focus_set()
+        return "break"
 
-        self.canvas.coords(self.screen_window, margin + bezel + 2, margin + bezel + 2)
-        self.canvas.itemconfigure(
-            self.screen_window,
-            width=width - 2 * (margin + bezel + 2),
-            height=height - 2 * (margin + bezel + 2),
-        )
-        self.canvas.tag_lower("tablet")
+    def _focus_previous_control(self, _event: tk.Event) -> str:
+        previous_control = self.output.tk_focusPrev()
+        if previous_control is not None:
+            previous_control.focus_set()
+        return "break"
 
-    def _rounded_rectangle(
-        self,
-        x1: float,
-        y1: float,
-        x2: float,
-        y2: float,
-        *,
-        radius: float,
-        fill: str,
-        outline: str,
-        width: int,
-        tags: str,
-    ) -> None:
-        points = [
-            x1 + radius,
-            y1,
-            x2 - radius,
-            y1,
-            x2,
-            y1,
-            x2,
-            y1 + radius,
-            x2,
-            y2 - radius,
-            x2,
-            y2,
-            x2 - radius,
-            y2,
-            x1 + radius,
-            y2,
-            x1,
-            y2,
-            x1,
-            y2 - radius,
-            x1,
-            y1 + radius,
-            x1,
-            y1,
-        ]
-        self.canvas.create_polygon(
-            points,
-            smooth=True,
-            splinesteps=20,
-            fill=fill,
-            outline=outline,
-            width=width,
-            tags=tags,
-        )
+    def _resize_message(self, event: tk.Event) -> None:
+        self.error_label.configure(wraplength=max(event.width - 16, 1))
 
     def _resolve_run_options(self) -> RunOptions | None:
         result = resolve_run_options(
@@ -391,16 +321,15 @@ class TelegraphyTablet(tk.Tk):
         return result
 
     def generate_story_brief(self) -> None:
-        self.generate_button.configure(state="disabled")
-        self.copy_button.configure(state="disabled")
-        self._worker_active = True
-
+        if self._worker_active:
+            return
         resolved_options = self._resolve_run_options()
+        self._worker_active = True
         if resolved_options is not None:
             self.run_options = resolved_options
-            self.status.configure(text="Generating...")
-            self._set_output("Generating story brief...")
-
+            self.generate_button.configure(state="disabled")
+            self.error_label.configure(text="")
+            self.status.configure(text="Generating…")
             worker = threading.Thread(target=self._run_cli_worker, daemon=True)
             worker.start()
         self._poll_worker_queue()
@@ -431,13 +360,14 @@ class TelegraphyTablet(tk.Tk):
 
         if status == "success" and message:
             self.copy_button.configure(state="normal")
+            self.error_label.configure(text="")
             self.latest_output = message
-            self._set_output(message)
+            self._set_output(brief_preview(message))
             self.status.configure(text="Generated. Ready to copy.")
         else:
-            self.copy_button.configure(state="disabled")
-            self.latest_output = ""
-            self._set_output(message)
+            self.error_label.configure(
+                text=message or "The generator returned no output. Try again."
+            )
             status_text = "Generation failed." if status != "success" else "No output generated."
             self.status.configure(text=status_text)
 
@@ -454,7 +384,18 @@ class TelegraphyTablet(tk.Tk):
     def _set_output(self, text: str) -> None:
         self.output.configure(state="normal")
         self.output.delete("1.0", "end")
-        self.output.insert("1.0", text)
+        display_lines = [line.removeprefix("## ").removeprefix("# ") for line in text.splitlines()]
+        self.output.insert("1.0", "\n".join(display_lines))
+        in_metadata = False
+        for number, line in enumerate(text.splitlines(), start=1):
+            if line == "---":
+                in_metadata = not in_metadata
+            if in_metadata or line == "---":
+                self.output.tag_add("metadata", f"{number}.0", f"{number}.end")
+            elif line.startswith("# "):
+                self.output.tag_add("title", f"{number}.0", f"{number}.end")
+            elif line.startswith("## "):
+                self.output.tag_add("heading", f"{number}.0", f"{number}.end")
         self.output.configure(state="disabled")
         self.output.see("1.0")
 

@@ -194,49 +194,48 @@ Start the GUI:
 telegraphy-gui
 ```
 
-Press **GENERATE!** to run the same generator used by the CLI (`python -m telegraphy.story_brief --print-only`).
+Press **Generate brief** to run the same generator used by the CLI (`python -m telegraphy.story_brief --print-only`).
 
 Use the **Seed** and **Date** fields to forward `--seed` and `--date` to the CLI for reproducible GUI runs.
 
-Press **COPY!** to copy the most recent successful brief to your clipboard.
+Press **Copy** to copy the most recent successful brief to your clipboard.
 
 ## Using the GUI
 
-The GUI is intentionally focused: it is a tablet-shaped desktop wrapper around the existing `story-brief` engine.
+The GUI is a spacious Nord-themed reading workspace around the existing `story-brief` engine. Frost-blue controls sit above a read-only brief preview; the decorative tablet frame has been removed.
 
-### What happens when you click GENERATE!
+### What happens when you click Generate brief
 
-1. The GUI disables both buttons to avoid overlapping runs.
+1. The GUI disables **Generate brief** to avoid overlapping runs. The last successful brief remains visible and copyable.
 2. It starts a background worker thread so the window stays responsive.
 3. The worker executes: `python -m telegraphy.story_brief --print-only`.
-4. On success, the generated Markdown is displayed in the output pane and cached as the latest output.
-5. On failure, stderr/stdout diagnostics are shown in the output pane and copy is disabled for empty output.
+4. On success, a readable preview presents the brief’s title, metadata, characters, setting, and instructions. **Copy** puts the complete original Markdown, including YAML front matter, on the clipboard.
+5. On failure, diagnostics appear near the controls. The previous brief and its clipboard content are preserved.
 
 ### GUI layout
 
-- **Header**: app title and subtitle.
+- **Header**: app title, version, and generation status.
 - **Toolbar**:
-  - **GENERATE!**: run generation.
-  - **COPY!**: copy last successful output.
+  - **Generate brief**: run generation.
+  - **Copy**: copy last successful output.
   - **Status**: live state (Ready, Generating, Generated, Failed, Copied).
-- **Output pane**: read-only text area with scrollbar showing Markdown output or errors.
+- **Reading pane**: spacious, read-only preview with highlighted headings and a scrollbar.
+- **Keyboard**: Ctrl+Enter (Command+Enter on macOS) generates a brief. Tab moves between controls.
 
 ### GUI behavior details
 
 - Uses your local Python interpreter (`sys.executable`) and inherited environment (`os.environ`) by design; this is convenient for virtualenv workflows, but also means local environment changes can alter behavior.
-- GUI CLI worker has a default 30-second timeout (override with
-  `telegraphy-gui --timeout <positive-seconds>`).
+- GUI CLI worker has a default 30-second timeout (override with `telegraphy-gui --timeout <seconds>`).
 - `telegraphy-gui --help` is supported without launching a window.
 - In headless environments, startup fails cleanly with a user-facing error instead of a tkinter traceback.
-- Forces UTF-8 for the child CLI streams and decodes them as UTF-8 with replacement for
-  robust display.
+- Decodes CLI output using your preferred locale encoding, then falls back to UTF-8 with replacement for robust display.
 - Never writes files directly; it always requests `--print-only` output from the CLI.
 - Clipboard copy only works after a successful generation.
 
 ### GUI troubleshooting
 
 - If `telegraphy-gui` fails to launch, ensure `tkinter` is available in your Python build.
-- If generation fails, read the output pane: the GUI surfaces the underlying CLI error message.
+- If generation fails, read the diagnostic near the controls; the previous successful brief remains available.
 - For reproducible debugging, run the CLI directly with explicit flags (for example `story-brief --seed 42 --date 2000-01-01 --print-only`).
 
 ## CLI examples

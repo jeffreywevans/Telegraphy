@@ -6,7 +6,6 @@ import json
 import os
 import sys
 import tkinter as tk
-from collections.abc import Callable
 from pathlib import Path
 
 
@@ -59,7 +58,7 @@ def runtime_details(root: tk.Misc) -> dict[str, object]:
 def main() -> int:
     """Run a standalone CI preflight without sharing an interpreter with pytest."""
     root: tk.Tk | None = None
-    cleanup: Callable[[], None] = _noop
+    cleanup = _noop
     details: dict[str, object] = {
         "python": sys.version,
         "executable": sys.executable,

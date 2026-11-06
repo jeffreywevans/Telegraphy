@@ -6,6 +6,7 @@ import json
 import os
 import sys
 import tkinter as tk
+from collections.abc import Callable
 from pathlib import Path
 
 
@@ -52,7 +53,7 @@ def runtime_details(root: tk.Misc) -> dict[str, object]:
 def main() -> int:
     """Run a standalone CI preflight without sharing an interpreter with pytest."""
     root: tk.Tk | None = None
-    loaded_root: tk.Tk | None = None
+    cleanup: Callable[[], None] = lambda: None
     details: dict[str, object] = {
         "python": sys.version,
         "executable": sys.executable,
@@ -62,7 +63,7 @@ def main() -> int:
         root = tk.Tcl()
         details.update(runtime_details(root))
         root.loadtk()
-        loaded_root = root
+        cleanup = root.destroy
         root.withdraw()
         ensure_focus_commands(root)
         details.update(runtime_details(root))
@@ -74,8 +75,7 @@ def main() -> int:
         print(json.dumps(details, indent=2))
         return 1
     finally:
-        if loaded_root is not None:
-            loaded_root.destroy()
+        cleanup()
     print(json.dumps(details, indent=2))
     return 0
 

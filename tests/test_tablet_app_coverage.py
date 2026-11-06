@@ -409,7 +409,11 @@ def test_set_output_updates_text_widget_state() -> None:
 def test_set_output_tags_metadata_title_and_heading() -> None:
     tablet = _make_tablet()
     tablet.output = MagicMock()
-    text = "---\\ntitle: Example\\n---\\n# Story Title\\n## Story Draft"
+    text = """---
+title: Example
+---
+# Story Title
+## Story Draft"""
 
     tablet_app.TelegraphyTablet._set_output(tablet, text)
 

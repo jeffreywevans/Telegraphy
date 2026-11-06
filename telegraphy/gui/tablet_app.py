@@ -399,7 +399,7 @@ class TelegraphyTablet(tk.Tk):
         if resolved_options is not None:
             self.run_options = resolved_options
             self.status.configure(text="Generating...")
-            self._set_output("Kendall is warming her sweet ass up...")
+            self._set_output("Generating story brief...")
 
             worker = threading.Thread(target=self._run_cli_worker, daemon=True)
             worker.start()

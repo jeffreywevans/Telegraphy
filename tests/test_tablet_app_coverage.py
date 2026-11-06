@@ -85,6 +85,8 @@ def test_init_and_configure_style_and_build(monkeypatch: pytest.MonkeyPatch) -> 
     tablet = _make_tablet()
 
     monkeypatch.setattr(tk.Tk, "__init__", lambda self: None)
+    monkeypatch.setattr(tablet_app, "ensure_focus_commands", lambda _root: None)
+    monkeypatch.setattr(tablet, "_apply_minimum_size", lambda: None)
     monkeypatch.setattr(tablet, "title", lambda _title: None)
     monkeypatch.setattr(tablet, "geometry", lambda _geometry: None)
     monkeypatch.setattr(tablet, "minsize", lambda _w, _h: None)

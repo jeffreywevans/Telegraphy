@@ -167,16 +167,14 @@ def _data_file(filename: str) -> Path | Traversable:
 
 def _validated_load_path(path: Path | Traversable) -> Path | Traversable:
     """Validate caller-provided load paths before any filesystem access."""
-    path_text = str(path) if isinstance(path, Path) else getattr(path, "name", "")
-    if not isinstance(path_text, str):
-        path_text = str(path_text)
+    path_text = str(path) if isinstance(path, Path) else path.name
     normalized_name = unicodedata.normalize("NFC", path_text)
     if "\x00" in normalized_name:
         raise ValueError("Refusing to open path containing NUL bytes")
-    if _has_parent_traversal(normalized_name):
-        raise ValueError("Refusing to open path containing parent-directory traversal")
 
     if isinstance(path, Path):
+        if _has_parent_traversal(normalized_name):
+            raise ValueError("Refusing to open path containing parent-directory traversal")
         if not path.is_absolute():
             raise ValueError("Refusing to open non-absolute filesystem path")
         return path

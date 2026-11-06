@@ -10,6 +10,12 @@ from collections.abc import Callable
 from pathlib import Path
 
 
+
+def _noop() -> None:
+    """Default cleanup used before Tk has loaded successfully."""
+    return None
+
+
 def ensure_focus_commands(root: tk.Misc) -> None:
     """Load Tk's lazy focus procedures before UI events or test mocks can intervene."""
     for command in ("tk_focusNext", "tk_focusPrev"):
@@ -53,7 +59,7 @@ def runtime_details(root: tk.Misc) -> dict[str, object]:
 def main() -> int:
     """Run a standalone CI preflight without sharing an interpreter with pytest."""
     root: tk.Tk | None = None
-    cleanup: Callable[[], None] = lambda: None
+    cleanup: Callable[[], None] = _noop
     details: dict[str, object] = {
         "python": sys.version,
         "executable": sys.executable,

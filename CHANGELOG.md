@@ -6,6 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-11-06
+
+### Added
+- Add a Nord-themed desktop reading workspace with dedicated theme, preview-formatting, and Tcl/Tk runtime-diagnostic modules.
+- Add native-window GUI regression coverage for sizing, focus traversal, clipboard behavior, preview rendering, headless startup, and Tcl/Tk focus-script loading.
+
+### Changed
+- Replace the decorative tablet shell with a spacious reading-oriented GUI while preserving the existing CLI-backed generation workflow.
+- Make window sizing DPI-aware, select platform-appropriate display fonts, and make keyboard focus traversal portable across Windows, macOS, and Linux.
+- Improve GUI startup diagnostics and CI coverage for Tcl/Tk runtime availability.
+- Simplify story-data normalization and validation internals without changing the public story-brief schema or deterministic seeded behavior.
+- Update CI and GitHub Actions configuration for stronger cross-platform GUI validation and coverage reporting.
+
+### Fixed
+- Handle Windows closed stdout pipes without suppressing unrelated output errors.
+- Correct GUI loading/status behavior and native geometry handling.
+- Harden focus-command initialization and cleanup around Tcl/Tk startup.
+- Close the remaining GUI, runtime, normalization, and CLI branch-coverage gaps.
+
+### Security
+- Preserve argument-array subprocess execution and existing output-path protections; no new runtime dependencies are introduced.
+
 ## [0.6.5] - 2026-11-05
 
 ### Added
@@ -261,7 +283,8 @@ This release marks the transition from a single-purpose generator script into a 
 - Refactored story brief generation into focused modules (CLI, data loading, validation, linting, etc.).
 - Hardened output-path handling and filename generation.
 
-[Unreleased]: https://github.com/jeffreywevans/Telegraphy/compare/0.6.5...HEAD
+[Unreleased]: https://github.com/jeffreywevans/Telegraphy/compare/0.7.0...HEAD
+[0.7.0]: https://github.com/jeffreywevans/Telegraphy/compare/0.6.5...0.7.0
 [0.6.5]: https://github.com/jeffreywevans/Telegraphy/compare/0.6.4...0.6.5
 [0.5.2]: https://github.com/jeffreywevans/Telegraphy/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/jeffreywevans/Telegraphy/compare/v0.5.0...v0.5.1

@@ -162,8 +162,9 @@ def test_schema_validation_rejects_weather_with_unexpected_key(
 
 
 def test_validate_weather_rejects_non_mapping_input() -> None:
+    invalid_weather = cast(dict[str, Any], [])
     with pytest.raises(ValueError, match="weather: expected mapping, got list"):
-        validate_weather(cast(dict[str, Any], []))
+        validate_weather(invalid_weather)
 
 
 def test_schema_validation_allows_disjoint_availability_windows_for_same_name(

@@ -125,6 +125,17 @@ def test_main_force_flag_allows_overwrite_for_existing_file(
     assert output_file.read_text(encoding="utf-8") == "new-content"
 
 
+def test_main_lint_dataset_stdout_failure_exits_one(monkeypatch: pytest.MonkeyPatch) -> None:
+    class _Report:
+        has_errors = False
+
+    monkeypatch.setattr(story_cli, "get_normalized_story_data", lambda: {})
+    monkeypatch.setattr(story_cli, "lint_story_data", lambda _data: _Report())
+    monkeypatch.setattr(story_cli, "_write_stdout", lambda _write: False)
+
+    assert story_cli.main(["--lint-dataset"]) == 1
+
+
 def test_main_lint_dataset_with_errors_exits_one(monkeypatch: pytest.MonkeyPatch) -> None:
     class _Report:
         has_errors = True

@@ -224,10 +224,12 @@ The GUI is intentionally focused: it is a tablet-shaped desktop wrapper around t
 ### GUI behavior details
 
 - Uses your local Python interpreter (`sys.executable`) and inherited environment (`os.environ`) by design; this is convenient for virtualenv workflows, but also means local environment changes can alter behavior.
-- GUI CLI worker has a default 30-second timeout (override with `telegraphy-gui --timeout <seconds>`).
+- GUI CLI worker has a default 30-second timeout (override with
+  `telegraphy-gui --timeout <positive-seconds>`).
 - `telegraphy-gui --help` is supported without launching a window.
 - In headless environments, startup fails cleanly with a user-facing error instead of a tkinter traceback.
-- Decodes CLI output using your preferred locale encoding, then falls back to UTF-8 with replacement for robust display.
+- Forces UTF-8 for the child CLI streams and decodes them as UTF-8 with replacement for
+  robust display.
 - Never writes files directly; it always requests `--print-only` output from the CLI.
 - Clipboard copy only works after a successful generation.
 

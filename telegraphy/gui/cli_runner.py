@@ -4,7 +4,6 @@ import os
 import subprocess
 import sys
 from dataclasses import dataclass
-from locale import getpreferredencoding
 from typing import Final
 
 from .models import RunOptions
@@ -23,28 +22,23 @@ def build_cli_command(options: RunOptions) -> list[str]:
     if options.seed is not None:
         command.extend(["--seed", str(options.seed)])
     if options.date:
-        command.extend(["--date", options.date])
+        command.append(f"--date={options.date}")
     return command
 
 
-def decode_output(output: bytes) -> str:
-    preferred_encoding = getpreferredencoding(False) or "utf-8"
-
-    try:
-        return output.decode(preferred_encoding)
-    except UnicodeDecodeError, LookupError:
-        return output.decode("utf-8", errors="replace")
-
-
 def run_story_brief_cli(options: RunOptions) -> CliRunResult:
+    child_environment = os.environ.copy()
+    child_environment["PYTHONIOENCODING"] = "utf-8"
     try:
         completed = subprocess.run(
             build_cli_command(options),
             check=False,
             capture_output=True,
-            text=False,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
             timeout=options.timeout_seconds,
-            env=os.environ.copy(),
+            env=child_environment,
         )
     except subprocess.TimeoutExpired:
         return CliRunResult(
@@ -54,8 +48,8 @@ def run_story_brief_cli(options: RunOptions) -> CliRunResult:
     except OSError as exc:
         return CliRunResult(status="error", message=f"Could not run Telegraphy CLI:\n{exc}")
 
-    stdout = decode_output(completed.stdout)
-    stderr = decode_output(completed.stderr)
+    stdout = completed.stdout
+    stderr = completed.stderr
 
     if completed.returncode == 0:
         return CliRunResult(status="success", message=stdout.strip())

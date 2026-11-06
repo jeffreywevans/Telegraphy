@@ -13,6 +13,7 @@ from typing import Any
 
 from . import generate_story_brief as story_brief_cli
 from .data_io import DataDirError, get_normalized_story_data
+from .date_parsing import parse_iso_calendar_date
 from .filenames import (
     DEFAULT_OUTPUT_DIR,
     OutputPathError,
@@ -32,7 +33,7 @@ StoryRng = random.Random | secrets.SystemRandom
 def _parse_story_date(raw_date: str) -> date:
     """Parse a YYYY-MM-DD command-line date for argparse."""
     try:
-        return date.fromisoformat(raw_date)
+        return parse_iso_calendar_date(raw_date)
     except ValueError as exc:
         raise argparse.ArgumentTypeError("--date must be in YYYY-MM-DD format") from exc
 

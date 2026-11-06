@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.6.5] - 2026-11-05
+
+### Added
+- Expand ending types, inciting pressures, and sexual-scene pacing and aftermath choices.
+- Add regression coverage for strict date parsing, output-file safeguards, SBOM requirements, GUI worker behavior, and release metadata consistency.
+
 ### Changed
 - Require every positive sexual-scene tag-count weight to describe an achievable count and remove runtime fallback weights.
 - Validate partner records as exact typed schemas and require partner dataset versions to match the main dataset version.
@@ -13,9 +19,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Avoid re-sorting normalized generation pools and remove obsolete compatibility aliases and GUI forwarding wrappers.
 - Generate dependency SBOM entries from general PEP 508 requirements without presenting minimum versions as installed versions.
 - Enforce Ruff formatting in CI alongside lint, type, and test checks.
+- Move repository-only SBOM and coverage tooling out of the installable runtime package.
+- Require documented calendar-date syntax consistently across CLI, configuration, and partner availability data.
+- Run the test suite once in CI and pass its coverage artifact to SonarQube analysis.
+- Make the complete test suite pass strict mypy checks and adopt Python 3.14 type syntax.
+- Pin every action in the package-publication workflow to an immutable revision.
 
 ### Fixed
 - Ensure unexpected GUI worker failures return an error result instead of leaving the interface disabled indefinitely.
+- Validate GUI timeouts, pass dates safely to the CLI, force UTF-8 child output, avoid duplicate polling loops, and honor the selected application font.
+- Honor the process umask for generated files, require Markdown filenames, and reject symbolic-link replacement.
+- Correct partner display names and synchronize maintainer documentation with packaged behavior.
+
+### Security
+- Keep development-only tooling and dependencies out of runtime wheels and harden atomic output replacement against unsafe targets.
+
+### Known Issues
+- Interactive desktop GUI behavior still requires verification on a graphical desktop; local release checks run headlessly.
 
 ## 0.6.4 - 2026-10-27
 
@@ -241,7 +261,8 @@ This release marks the transition from a single-purpose generator script into a 
 - Refactored story brief generation into focused modules (CLI, data loading, validation, linting, etc.).
 - Hardened output-path handling and filename generation.
 
-[Unreleased]: https://github.com/jeffreywevans/Telegraphy/compare/0.6.4...HEAD
+[Unreleased]: https://github.com/jeffreywevans/Telegraphy/compare/0.6.5...HEAD
+[0.6.5]: https://github.com/jeffreywevans/Telegraphy/compare/0.6.4...0.6.5
 [0.5.2]: https://github.com/jeffreywevans/Telegraphy/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/jeffreywevans/Telegraphy/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/jeffreywevans/Telegraphy/compare/v0.4.3...v0.5.0

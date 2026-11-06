@@ -711,7 +711,7 @@ Current package facts:
 | Field | Value |
 | --- | --- |
 | Package | `telegraphy` |
-| Current version | `0.6.4` |
+| Current version | `0.6.5` |
 | Python | `>=3.14` |
 | Runtime dependency | `PyYAML>=6.0.3` |
 | Console script | `story-brief = telegraphy.story_brief.cli:main` |
@@ -735,18 +735,19 @@ For generation changes, preserve deterministic seeded behavior unless the PR exp
 
 ## Release notes and status
 
-Current version: `0.6.4`.
+Current version: `0.6.5`.
 
 The 0.6 series introduces independent data files for every generated field, with a
 shared character dataset for protagonist and secondary-character selection.
-Version 0.6.4 reduces position-group validation complexity, configures SonarQube
-for Python 3.14, and fixes CodeQL workflow-run permissions.
+Version 0.6.5 tightens date and output-path validation, removes development tooling
+from the runtime wheel, hardens GUI subprocess handling, and streamlines CI coverage.
 
 Highlights:
 
 - replaced aggregate entities, prompts, and content configuration with focused field files;
 - kept the existing CLI, GUI, front-matter schema, and seeded output behavior;
-- added filename-specific layout errors and documented custom-dataset migration.
+- added filename-specific layout errors and documented custom-dataset migration;
+- expanded story-choice datasets and made the complete test suite strict-mypy clean.
 
 See [CHANGELOG.md](https://github.com/jeffreywevans/Telegraphy/blob/HEAD/CHANGELOG.md) for release notes.
 

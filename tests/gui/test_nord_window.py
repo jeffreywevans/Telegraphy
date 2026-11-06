@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
+import os
+import queue
+import sys
 import threading
+import time
 import tkinter as tk
 from collections.abc import Iterator
 from unittest.mock import MagicMock
@@ -10,27 +14,72 @@ from unittest.mock import MagicMock
 import pytest
 
 from telegraphy.gui import theme
-from telegraphy.gui.tablet_app import TelegraphyTablet
+from telegraphy.gui.models import RunOptions
+from telegraphy.gui.tablet_app import EMPTY_MESSAGE, TelegraphyTablet
 
 
-@pytest.fixture
-def app() -> Iterator[TelegraphyTablet]:
-    try:
-        probe = tk.Tk()
-    except tk.TclError:
+@pytest.fixture(scope="module")
+def gui_window() -> Iterator[TelegraphyTablet]:
+    """Keep one Tcl/Tk interpreter alive instead of repeatedly probing and recreating it."""
+    if sys.platform not in {"win32", "darwin"} and not os.environ.get("DISPLAY"):
         pytest.skip("A display is required for real Tk integration checks")
-    probe.destroy()
     window = TelegraphyTablet()
-    window.update_idletasks()
     try:
+        window.update()
         yield window
     finally:
+        _cancel_callbacks(window)
         window.destroy()
 
 
+@pytest.fixture
+def app(gui_window: TelegraphyTablet) -> Iterator[TelegraphyTablet]:
+    """Give each test fresh application state while retaining the native window."""
+    _cancel_callbacks(gui_window)
+    gui_window._worker_active = False
+    gui_window.result_queue = queue.Queue()
+    gui_window.run_options = RunOptions()
+    gui_window.latest_output = ""
+    gui_window.seed_var.set("")
+    gui_window.date_var.set("")
+    gui_window.generate_button.configure(state="normal")
+    gui_window.copy_button.configure(state="disabled")
+    gui_window.status.configure(text="Ready")
+    gui_window.error_label.configure(text="")
+    gui_window._set_output(EMPTY_MESSAGE)
+    try:
+        yield gui_window
+    finally:
+        gui_window._worker_active = False
+        _cancel_callbacks(gui_window)
+
+
+def _cancel_callbacks(window: TelegraphyTablet) -> None:
+    """Prevent queued polling callbacks from leaking between tests or past root destruction."""
+    for callback in window.tk.splitlist(window.tk.call("after", "info")):
+        window.after_cancel(callback)
+
+
+def _wait_for_geometry(window: TelegraphyTablet, width: int, height: int) -> None:
+    """Process native window events before measuring the reading pane, including on Windows."""
+    window.geometry(f"{width}x{height}")
+    deadline = time.monotonic() + 5
+    while time.monotonic() < deadline:
+        window.update()
+        actual_size = (window.winfo_width(), window.winfo_height())
+        if actual_size == (width, height) and window.output.winfo_viewable():
+            if window.output.winfo_width() > 1 and window.output.winfo_height() > 1:
+                return
+        time.sleep(0.01)
+    pytest.fail(
+        f"Tk did not settle at {width}x{height}: window is "
+        f"{window.winfo_width()}x{window.winfo_height()}, reading pane is "
+        f"{window.output.winfo_width()}x{window.output.winfo_height()}"
+    )
+
+
 def test_nord_window_is_readable_at_minimum_size(app: TelegraphyTablet) -> None:
-    app.geometry(f"{app._minimum_window_width()}x{app._minimum_window_height()}")
-    app.update_idletasks()
+    _wait_for_geometry(app, app._minimum_window_width(), app._minimum_window_height())
     assert app.output.cget("background") == theme.BACKGROUND
     assert app.output.cget("state") == "disabled"
     assert app.output.winfo_width() > 400

@@ -1,52 +1,51 @@
-# Build Notes — 0.6.5
+# Build Notes — 0.7.0
 
-Prepared on 2026-11-05 from source baseline `8ebb469` on branch `work`. This is a
-locally validated release candidate; the release-preparation commit is the commit
-containing these notes, and remote PR checks remain pending.
+Prepared on 2026-11-06 from source baseline `e73a10cd1e63a86bfdb92d1a533313d74f65b540`
+on `main`. This release is a feature-level GUI/runtime update over 0.6.5. The release
+preparation updates package metadata, README status, changelog, SBOM identity, and
+this build record. No tag or GitHub release is created by this preparation.
 
 ## Release contents
 
-- Strict calendar-date parsing across CLI, configuration, and partner availability data.
-- Safer generated-file handling, including atomic writes, symlink rejection, required
-  Markdown extensions, and process-umask permissions.
-- Development-only SBOM and coverage tooling removed from the runtime wheel.
-- Hardened GUI subprocess, timeout, polling, encoding, and font behavior.
-- Expanded story-choice datasets, strict-mypy-clean tests, and streamlined CI coverage.
-- Package metadata, README, changelog, generated SBOM, and publication workflow
-  synchronized for 0.6.5.
+- Replace the decorative tablet shell with a spacious Nord-themed reading workspace.
+- Add focused GUI modules for theme configuration, brief-preview formatting, and
+  Tcl/Tk runtime diagnostics.
+- Make GUI sizing DPI-aware, improve platform font selection, keyboard focus traversal,
+  clipboard behavior, native geometry handling, and headless startup diagnostics.
+- Harden Windows stdout pipe handling without suppressing unrelated output failures.
+- Simplify selected dataset normalization and validation internals without changing
+  the public story-brief schema, dataset layout, or deterministic seeded behavior.
+- Expand cross-platform GUI/runtime regression coverage and CI diagnostics.
+- Synchronize package metadata, README, changelog, and generated CycloneDX SBOM to 0.7.0.
 
 ## Validation
 
-- Python 3.14.4 on Linux; all 589 tests pass with 100% combined statement/branch coverage.
-- Ruff lint, full formatting check (74 files), strict mypy (62 sources), and byte-compilation pass.
-- Dataset lint reports no warnings or blocking gaps; strict seeded generation passes.
-- Source and wheel builds pass: `commuted_telegraphy-0.6.5.tar.gz` and
-  `commuted_telegraphy-0.6.5-py3-none-any.whl`.
-- Artifact metadata reports 0.6.5, the source archive contains the regenerated SBOM,
-  and the wheel contains all 15 JSON datasets without repository-only scripts.
-- The wheel installs in a clean Python 3.14 virtual environment outside the checkout
-  with only PyYAML 6.0.3; package compatibility checks pass.
-- Installed-wheel CLI help, print-only variants, dataset lint, strict generation,
-  copied-data overrides, overwrite refusal, and forced replacement pass.
-- A `0022` umask produces mode `0644`; the environment's default `0077` umask produces
-  mode `0600`, confirming that generated files honor the caller's policy.
-- Both GUI entry points accept `--help`; interactive window, generation, clipboard,
-  and display behavior remain untested in this headless environment.
-- Dangerous-pattern review found no shell execution, dynamic evaluation, unsafe YAML,
-  pickle, or OS command calls in package source. Subprocess calls use argument arrays.
-- Dependency review found no incompatible packages. Only the development environment's
-  Coverage 7.17.1 and Ruff 0.17.3 have newer patch releases; runtime PyYAML is current.
-- Read the required briefs for seeds/dates 1/1990-01-01, 42/2000-01-01, and
-  8675309/2014-01-09; YAML, Markdown, availability, and content-level invariants are coherent.
-- Version 0.6.5 is absent from both repository tags and PyPI before publication.
+- The pre-release code baseline is green in GitHub Actions and SonarQube, with no
+  reported errors and 100% line and condition coverage; the current suite contains
+  663 tests.
+- The 0.7.0 release delta contains no story-data file changes, so this release does
+  not alter canon datasets or the configured generation ranges.
+- Runtime dependencies are unchanged; `PyYAML>=6.0.3` remains the only declared
+  runtime dependency and 0.7.0 adds no new runtime packages.
+- Security-pattern review found no `shell=True`, dynamic `eval`/`exec`, pickle,
+  unsafe `yaml.load`, or `os.system` usage in package source; matches are confined
+  to documentation/checklist text.
+- The maintainer has manually exercised the revamped desktop GUI and reports that it
+  renders correctly and behaves as expected across repeated use.
+- The connected release-preparation environment cannot perform an independent source
+  checkout because its execution container has no outbound DNS. Final repository CI
+  therefore remains the authoritative Ruff, formatting, mypy, Tcl/Tk runtime, test,
+  coverage, and SonarQube gate for the release-preparation head.
+- The publication workflow independently checks tag/package-version agreement and
+  builds the source distribution and wheel before PyPI trusted publishing.
 
 ## Manual publication
 
-After the PR is merged, create a GitHub tag `0.6.5` targeting the merged release
-commit, then publish a GitHub release for that tag. Publishing the release triggers
-the Upload Python Package workflow, which verifies tag/version agreement, builds the
-distributions, and uses PyPI trusted publishing. No tag, release, or deployment is
-created by this preparation task.
+After the final 0.7.0 preparation head is green, create a GitHub tag `0.7.0`
+(or `v0.7.0`; the publication workflow accepts either form) targeting that exact
+commit, then publish a GitHub release for the tag. Publishing the release triggers
+the Upload Python Package workflow, which verifies tag/version agreement, builds
+the distributions, and publishes through PyPI trusted publishing.
 
 ## Historical build notes
 

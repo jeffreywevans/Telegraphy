@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import os
+import queue
+import sys
 import threading
 import time
 import tkinter as tk
@@ -11,22 +14,50 @@ from unittest.mock import MagicMock
 import pytest
 
 from telegraphy.gui import theme
-from telegraphy.gui.tablet_app import TelegraphyTablet
+from telegraphy.gui.models import RunOptions
+from telegraphy.gui.tablet_app import EMPTY_MESSAGE, TelegraphyTablet
 
 
-@pytest.fixture
-def app() -> Iterator[TelegraphyTablet]:
-    try:
-        probe = tk.Tk()
-    except tk.TclError:
+@pytest.fixture(scope="module")
+def gui_window() -> Iterator[TelegraphyTablet]:
+    """Keep one Tcl/Tk interpreter alive instead of repeatedly probing and recreating it."""
+    if sys.platform not in {"win32", "darwin"} and not os.environ.get("DISPLAY"):
         pytest.skip("A display is required for real Tk integration checks")
-    probe.destroy()
     window = TelegraphyTablet()
     try:
         window.update()
         yield window
     finally:
+        _cancel_callbacks(window)
         window.destroy()
+
+
+@pytest.fixture
+def app(gui_window: TelegraphyTablet) -> Iterator[TelegraphyTablet]:
+    """Give each test fresh application state while retaining the native window."""
+    _cancel_callbacks(gui_window)
+    gui_window._worker_active = False
+    gui_window.result_queue = queue.Queue()
+    gui_window.run_options = RunOptions()
+    gui_window.latest_output = ""
+    gui_window.seed_var.set("")
+    gui_window.date_var.set("")
+    gui_window.generate_button.configure(state="normal")
+    gui_window.copy_button.configure(state="disabled")
+    gui_window.status.configure(text="Ready")
+    gui_window.error_label.configure(text="")
+    gui_window._set_output(EMPTY_MESSAGE)
+    try:
+        yield gui_window
+    finally:
+        gui_window._worker_active = False
+        _cancel_callbacks(gui_window)
+
+
+def _cancel_callbacks(window: TelegraphyTablet) -> None:
+    """Prevent queued polling callbacks from leaking between tests or past root destruction."""
+    for callback in window.tk.splitlist(window.tk.call("after", "info")):
+        window.after_cancel(callback)
 
 
 def _wait_for_geometry(window: TelegraphyTablet, width: int, height: int) -> None:

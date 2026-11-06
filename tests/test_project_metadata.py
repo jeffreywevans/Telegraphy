@@ -16,6 +16,8 @@ from packaging.requirements import Requirement
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 PYPROJECT_PATH = PROJECT_ROOT / "pyproject.toml"
 README_PATH = PROJECT_ROOT / "README.md"
+CHANGELOG_PATH = PROJECT_ROOT / "CHANGELOG.md"
+SBOM_PATH = PROJECT_ROOT / "sbom.cdx.json"
 WORD_COUNT_TARGETS_PATH = (
     PROJECT_ROOT / "telegraphy" / "story_brief" / "data" / "word_count_targets.json"
 )
@@ -48,6 +50,18 @@ def test_project_metadata_declares_release_metadata() -> None:
     assert project["requires-python"] == ">=3.14"
     assert any(dep.casefold().startswith("pyyaml") for dep in project["dependencies"])
     assert project["urls"]["Repository"] == "https://github.com/jeffreywevans/Telegraphy.git"
+
+
+def test_release_version_references_match_project_metadata() -> None:
+    project_version = str(_load_pyproject()["project"]["version"])
+    readme = README_PATH.read_text(encoding="utf-8")
+    changelog = CHANGELOG_PATH.read_text(encoding="utf-8")
+    sbom = json.loads(SBOM_PATH.read_text(encoding="utf-8"))
+
+    assert f"| Current version | `{project_version}` |" in readme
+    assert f"Current version: `{project_version}`." in readme
+    assert f"## [{project_version}]" in changelog
+    assert sbom["metadata"]["component"]["version"] == project_version
 
 
 def test_setuptools_package_discovery_keeps_import_package_name() -> None:

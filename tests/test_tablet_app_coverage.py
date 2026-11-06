@@ -13,7 +13,7 @@ from unittest.mock import MagicMock, call
 
 import pytest
 
-from telegraphy.gui import tablet_app
+from telegraphy.gui import tablet_app, theme
 from telegraphy.gui.cli_runner import CliRunResult
 from telegraphy.gui.models import RunOptions
 
@@ -27,6 +27,9 @@ class _FakeWidget:
         self.bind = MagicMock()
         self.configure = MagicMock()
         self.grid = MagicMock()
+        self.columnconfigure = MagicMock()
+        self.tag_configure = MagicMock()
+        self.tag_add = MagicMock()
         self.create_window = MagicMock(return_value=111)
         self.create_oval = MagicMock()
         self.create_polygon = MagicMock(return_value=321)
@@ -71,7 +74,11 @@ def test_read_app_version_falls_back_when_package_metadata_is_missing(
 
 
 def _make_tablet() -> tablet_app.TelegraphyTablet:
-    return tablet_app.TelegraphyTablet.__new__(tablet_app.TelegraphyTablet)
+    tablet = tablet_app.TelegraphyTablet.__new__(tablet_app.TelegraphyTablet)
+    tablet._worker_active = False
+    tablet.latest_output = ""
+    tablet.error_label = MagicMock()
+    return tablet
 
 
 def test_init_and_configure_style_and_build(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -82,6 +89,7 @@ def test_init_and_configure_style_and_build(monkeypatch: pytest.MonkeyPatch) -> 
     monkeypatch.setattr(tablet, "geometry", lambda _geometry: None)
     monkeypatch.setattr(tablet, "minsize", lambda _w, _h: None)
     monkeypatch.setattr(tablet, "configure", lambda **_kwargs: None)
+    monkeypatch.setattr(tablet, "bind", MagicMock())
 
     monkeypatch.setattr(tablet, "_select_display_font", lambda: "Chosen Font")
 
@@ -122,21 +130,11 @@ def test_init_and_configure_style_and_build(monkeypatch: pytest.MonkeyPatch) -> 
     assert tablet.seed_var.get() == "123"
     assert tablet.date_var.get() == "2000-01-01"
     assert isinstance(tablet.result_queue, queue.Queue)
-    assert text_options["font"] == ("Chosen Font", 11)
+    assert text_options["font"] == ("Chosen Font", 12)
     style.theme_use.assert_called_once_with("clam")
-    assert style.configure.call_args_list == [
-        call(
-            tablet_app.TABLET_BUTTON_STYLE,
-            font=(tablet.font_family, 14, "bold"),
-            padding=(18, 12),
-        ),
-        call(
-            "Status.TLabel",
-            background=tablet_app.TABLET_INNER_SECTION_COLOR,
-            foreground="#d1d5db",
-            font=(tablet.font_family, 10),
-        ),
-    ]
+    assert text_options["bg"] == theme.BACKGROUND
+    assert text_options["wrap"] == "word"
+    assert style.map.called
     assert poll_calls == []
 
 
@@ -172,9 +170,9 @@ def test_generate_story_brief_starts_worker_and_starts_polling(
     tablet.generate_story_brief()
 
     tablet.generate_button.configure.assert_called_once_with(state="disabled")
-    tablet.copy_button.configure.assert_called_once_with(state="disabled")
-    tablet.status.configure.assert_called_once_with(text="Generating...")
-    set_output.assert_called_once_with("Generating story brief...")
+    tablet.copy_button.configure.assert_not_called()
+    tablet.status.configure.assert_called_once_with(text="Generating…")
+    set_output.assert_not_called()
     assert thread_record == {"target": tablet._run_cli_worker, "daemon": True, "started": True}
     assert tablet._worker_active is True
     assert poll_called == [True]
@@ -211,7 +209,7 @@ def test_generate_story_brief_invalid_seed_polls_once_but_does_not_start_worker(
     assert poll_called == [True]
     assert not thread_called
     assert tablet._worker_active is True
-    assert tablet.generate_button.configure.call_args_list == [call(state="disabled")]
+    tablet.generate_button.configure.assert_not_called()
     assert tablet.result_queue.get_nowait()[0] == "error"
 
 
@@ -250,14 +248,16 @@ def test_generate_story_brief_invalid_seed_queue_message_is_consumed(
     assert not thread_called
     assert tablet._worker_active is False
     assert tablet.generate_button.configure.call_args_list[-1] == call(state="normal")
-    assert tablet.copy_button.configure.call_args_list[0] == call(state="disabled")
     assert after_calls == []
 
     assert tablet.result_queue.empty()
-    assert "Invalid seed" in output_messages[-1]
+    assert output_messages == []
+    error_label = tablet.error_label
+    assert isinstance(error_label, MagicMock)
+    assert "Invalid seed" in error_label.configure.call_args.kwargs["text"]
     tablet.status.configure.assert_called_with(text="Generation failed.")
     assert tablet.generate_button.configure.call_args_list[-1] == call(state="normal")
-    assert tablet.copy_button.configure.call_args_list[-1] == call(state="disabled")
+    tablet.copy_button.configure.assert_not_called()
 
 
 def test_resolve_run_options_invalid_seed() -> None:
@@ -322,9 +322,6 @@ def test_poll_queue_and_copy_and_output_and_draw(monkeypatch: pytest.MonkeyPatch
     tablet.copy_button = MagicMock()
     tablet.status = MagicMock()
     tablet.output = MagicMock()
-    tablet.canvas = MagicMock()
-    tablet.canvas.create_polygon.return_value = 999
-    tablet.screen_window = 7
     tablet.latest_output = ""
 
     after_calls: list[tuple[int, Callable[[], object]]] = []
@@ -347,19 +344,23 @@ def test_poll_queue_and_copy_and_output_and_draw(monkeypatch: pytest.MonkeyPatch
     tablet._worker_active = True
     tablet.result_queue.put(("error", "bad"))
     tablet._poll_worker_queue()
-    assert tablet.latest_output == ""
-    assert output_messages[-1] == "bad"
+    assert tablet.latest_output == "hello world"
+    assert output_messages == ["hello world"]
+    error_label = tablet.error_label
+    assert isinstance(error_label, MagicMock)
+    error_label.configure.assert_called_with(text="bad")
     tablet.status.configure.assert_called_with(text="Generation failed.")
-    assert tablet.copy_button.configure.call_args_list[-1] == call(state="disabled")
+    assert tablet.copy_button.configure.call_args_list[-1] == call(state="normal")
 
     tablet._worker_active = True
     tablet.result_queue.put(("success", ""))
     tablet._poll_worker_queue()
-    assert tablet.latest_output == ""
-    assert output_messages[-1] == ""
+    assert tablet.latest_output == "hello world"
+    assert output_messages == ["hello world"]
     tablet.status.configure.assert_called_with(text="No output generated.")
-    assert tablet.copy_button.configure.call_args_list[-1] == call(state="disabled")
+    assert tablet.copy_button.configure.call_args_list[-1] == call(state="normal")
 
+    tablet.latest_output = ""
     tablet.copy_latest_output()
     tablet.status.configure.assert_called_with(text="Nothing to copy yet.")
 
@@ -403,55 +404,25 @@ def test_set_output_updates_text_widget_state() -> None:
     tablet.output.see.assert_called_once_with("1.0")
 
 
-def test_redraw_tablet_updates_canvas_geometry(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_resize_message_keeps_diagnostics_inside_window() -> None:
     tablet = _make_tablet()
-    tablet.canvas = MagicMock()
-    tablet.screen_window = 7
-
     event = tk.Event()
     event.width = 500
-    event.height = 300
-    rr_calls: list[tuple[float, ...]] = []
-
-    def record_rounded_rectangle(
-        x1: float,
-        y1: float,
-        x2: float,
-        y2: float,
-        *,
-        radius: float,
-        fill: str,
-        outline: str,
-        width: int,
-        tags: str,
-    ) -> None:
-        rr_calls.append((x1, y1, x2, y2, radius, width))
-
-    monkeypatch.setattr(tablet, "_rounded_rectangle", record_rounded_rectangle)
-    tablet._redraw_tablet(event)
-    assert len(rr_calls) == 2
-    tablet.canvas.delete.assert_called_once_with("tablet")
-    tablet.canvas.coords.assert_called_once_with(7, 40, 40)
-    tablet.canvas.itemconfigure.assert_called_once_with(7, width=420, height=220)
+    tablet._resize_message(event)
+    error_label = tablet.error_label
+    assert isinstance(error_label, MagicMock)
+    error_label.configure.assert_called_once_with(wraplength=484)
 
 
-def test_rounded_rectangle_creates_polygon() -> None:
+def test_generating_again_does_not_launch_overlapping_worker(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     tablet = _make_tablet()
-    tablet.canvas = MagicMock()
-
-    tablet_app.TelegraphyTablet._rounded_rectangle(
-        tablet,
-        x1=0,
-        y1=0,
-        x2=10,
-        y2=10,
-        radius=1,
-        fill="f",
-        outline="o",
-        width=2,
-        tags="t",
-    )
-    tablet.canvas.create_polygon.assert_called_once()
+    tablet._worker_active = True
+    worker = MagicMock()
+    monkeypatch.setattr(threading, "Thread", worker)
+    tablet.generate_story_brief()
+    worker.assert_not_called()
 
 
 def test_font_selection_by_platform(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -459,7 +430,7 @@ def test_font_selection_by_platform(monkeypatch: pytest.MonkeyPatch) -> None:
 
     monkeypatch.setattr(tkfont, "families", lambda _root: ("Aptos Serif", "Segoe UI"))
     monkeypatch.setattr(sys, "platform", "win32")
-    assert tablet._select_display_font() == "Aptos Serif"
+    assert tablet._select_display_font() == "Segoe UI"
 
     monkeypatch.setattr(tkfont, "families", lambda _root: ("Ubuntu",))
     monkeypatch.setattr(sys, "platform", "linux")

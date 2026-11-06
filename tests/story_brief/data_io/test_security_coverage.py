@@ -224,9 +224,10 @@ def test_load_json_reads_from_traversable_text_payload() -> None:
 
 def test_validated_load_path_rejects_nul_bytes_for_traversable_name() -> None:
     traversable = _NamedTraversable("titles\x00.json")
+    typed_traversable = cast(Traversable, traversable)
 
     with pytest.raises(ValueError, match="NUL bytes"):
-        data_io._validated_load_path(cast(Traversable, traversable))
+        data_io._validated_load_path(typed_traversable)
 
 
 def test_validated_load_path_rejects_parent_traversal_for_filesystem_path() -> None:

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import math
 import queue
 import sys
 import threading
@@ -48,6 +49,19 @@ TABLET_OUTER_OUTLINE_COLOR: Final = "#A6A6A6"
 TABLET_MIDDLE_OUTLINE_COLOR: Final = "#1f2937"
 
 
+def _parse_timeout_seconds(raw_timeout: str) -> float:
+    """Parse a positive, finite CLI timeout for argparse."""
+    try:
+        timeout = float(raw_timeout)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(
+            "--timeout must be a finite number greater than zero"
+        ) from exc
+    if not math.isfinite(timeout) or timeout <= 0:
+        raise argparse.ArgumentTypeError("--timeout must be a finite number greater than zero")
+    return timeout
+
+
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Launch the Telegraphy desktop GUI.",
@@ -60,7 +74,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--date", help="Date forwarded to the CLI (YYYY-MM-DD).")
     parser.add_argument(
         "--timeout",
-        type=float,
+        type=_parse_timeout_seconds,
         default=DEFAULT_CLI_TIMEOUT_SECONDS,
         help="Seconds to wait for CLI completion before showing a timeout error.",
     )
@@ -253,7 +267,7 @@ class TelegraphyTablet(tk.Tk):
             relief="flat",
             padx=16,
             pady=16,
-            font=("Consolas", 11),
+            font=(self.font_family, 11),
             undo=False,
         )
         self.output.pack(side="left", fill="both", expand=True)
@@ -380,18 +394,16 @@ class TelegraphyTablet(tk.Tk):
         self.generate_button.configure(state="disabled")
         self.copy_button.configure(state="disabled")
         self._worker_active = True
-        self._poll_worker_queue()
 
         resolved_options = self._resolve_run_options()
-        if resolved_options is None:
-            self._poll_worker_queue()
-            return
-        self.run_options = resolved_options
-        self.status.configure(text="Generating...")
-        self._set_output("Kendall is warming her sweet ass up...")
+        if resolved_options is not None:
+            self.run_options = resolved_options
+            self.status.configure(text="Generating...")
+            self._set_output("Kendall is warming her sweet ass up...")
 
-        worker = threading.Thread(target=self._run_cli_worker, daemon=True)
-        worker.start()
+            worker = threading.Thread(target=self._run_cli_worker, daemon=True)
+            worker.start()
+        self._poll_worker_queue()
 
     def _run_cli_worker(self) -> None:
         try:

@@ -30,11 +30,10 @@ def test_resolve_run_options_preserves_existing_values_on_empty_input() -> None:
 
 
 def test_build_cli_command_appends_seed_and_date_when_provided() -> None:
-    assert build_cli_command(RunOptions(seed=7, date="2025-02-03"))[-4:] == [
+    assert build_cli_command(RunOptions(seed=7, date="2025-02-03"))[-3:] == [
         "--seed",
         "7",
-        "--date",
-        "2025-02-03",
+        "--date=2025-02-03",
     ]
 
 
@@ -44,30 +43,26 @@ def test_cli_result_dataclass_fields() -> None:
     assert result.message == "ok"
 
 
-def test_decode_output_prefers_fallback_when_preferred_encoding_is_invalid(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.setattr(cli_runner, "getpreferredencoding", lambda _do_setlocale: "bad-encoding")
-    assert "�" in cli_runner.decode_output(b"\xff")
+def test_run_story_brief_cli_uses_explicit_utf8_io(monkeypatch: pytest.MonkeyPatch) -> None:
+    observed: dict[str, object] = {}
 
+    def fake_run(command: list[str], **kwargs: object) -> SimpleNamespace:
+        observed["command"] = command
+        observed.update(kwargs)
+        return SimpleNamespace(returncode=0, stdout=" café ", stderr="")
 
-def test_decode_output_uses_utf8_when_preferred_encoding_is_blank(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.setattr(cli_runner, "getpreferredencoding", lambda _do_setlocale: "")
-    assert cli_runner.decode_output("hello".encode("utf-8")) == "hello"
-
-
-def test_run_story_brief_cli_success(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(
-        subprocess,
-        "run",
-        lambda *args, **kwargs: SimpleNamespace(returncode=0, stdout=b" done ", stderr=b""),
-    )
+    monkeypatch.setenv("PYTHONIOENCODING", "latin-1")
+    monkeypatch.setattr(subprocess, "run", fake_run)
     result = cli_runner.run_story_brief_cli(
         RunOptions(seed=1, date="2025-01-01", timeout_seconds=3)
     )
-    assert result == CliRunResult(status="success", message="done")
+    assert result == CliRunResult(status="success", message="café")
+    assert observed["text"] is True
+    assert observed["encoding"] == "utf-8"
+    assert observed["errors"] == "replace"
+    child_environment = observed["env"]
+    assert isinstance(child_environment, dict)
+    assert child_environment["PYTHONIOENCODING"] == "utf-8"
 
 
 def test_run_story_brief_cli_uses_stderr_then_stdout_then_unknown(
@@ -76,21 +71,21 @@ def test_run_story_brief_cli_uses_stderr_then_stdout_then_unknown(
     monkeypatch.setattr(
         subprocess,
         "run",
-        lambda *args, **kwargs: SimpleNamespace(returncode=9, stdout=b" out ", stderr=b" err "),
+        lambda *args, **kwargs: SimpleNamespace(returncode=9, stdout=" out ", stderr=" err "),
     )
     assert cli_runner.run_story_brief_cli(RunOptions()).message == "err"
 
     monkeypatch.setattr(
         subprocess,
         "run",
-        lambda *args, **kwargs: SimpleNamespace(returncode=9, stdout=b" out ", stderr=b" "),
+        lambda *args, **kwargs: SimpleNamespace(returncode=9, stdout=" out ", stderr=" "),
     )
     assert cli_runner.run_story_brief_cli(RunOptions()).message == "out"
 
     monkeypatch.setattr(
         subprocess,
         "run",
-        lambda *args, **kwargs: SimpleNamespace(returncode=9, stdout=b" ", stderr=b" "),
+        lambda *args, **kwargs: SimpleNamespace(returncode=9, stdout=" ", stderr=" "),
     )
     assert (
         cli_runner.run_story_brief_cli(RunOptions()).message == cli_runner.UNKNOWN_FAILURE_MESSAGE

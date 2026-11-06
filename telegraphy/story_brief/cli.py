@@ -143,17 +143,33 @@ def _write_stdout(write: Callable[[], None]) -> bool:
         write()
         sys.stdout.flush()
     except OSError as exc:
-        if not isinstance(exc, BrokenPipeError) and not (
-            sys.platform == "win32"
-            and exc.errno == errno.EINVAL
-            and stat.S_ISFIFO(os.fstat(sys.stdout.fileno()).st_mode)
-        ):
-            raise
+        if not isinstance(exc, BrokenPipeError):
+            if sys.platform != "win32" or exc.errno != errno.EINVAL:
+                raise
+            if not stat.S_ISFIFO(os.fstat(sys.stdout.fileno()).st_mode):
+                raise
         # Prevent a second pipe error when Python flushes stdout during shutdown.
         with open(os.devnull, "w") as sink:
             os.dup2(sink.fileno(), sys.stdout.fileno())
         return False
     return True
+
+
+def _save_story_brief(args: argparse.Namespace, fields: StoryFields, markdown: str) -> int:
+    """Save the generated brief and report file creation failures to the caller."""
+    try:
+        _write_story_markdown(
+            args.output_dir,
+            args.filename,
+            _build_generated_filename(fields),
+            markdown,
+            force=args.force,
+        )
+    except (OutputPathError, OutputWriteError) as exc:
+        return _print_error(str(exc))
+    except OSError as exc:  # pragma: no cover
+        return _print_error(f"Error creating output directory: {exc}")
+    return 0 if _write_stdout(lambda: print("Generated story brief.")) else 1
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -191,19 +207,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.print_only:
         return 0 if _write_stdout(lambda: print(markdown)) else 1
 
-    try:
-        _write_story_markdown(
-            args.output_dir,
-            args.filename,
-            _build_generated_filename(fields),
-            markdown,
-            force=args.force,
-        )
-    except (OutputPathError, OutputWriteError) as exc:
-        return _print_error(str(exc))
-    except OSError as exc:  # pragma: no cover
-        return _print_error(f"Error creating output directory: {exc}")
-    return 0 if _write_stdout(lambda: print("Generated story brief.")) else 1
+    return _save_story_brief(args, fields, markdown)
 
 
 __all__ = ["build_parser", "main"]

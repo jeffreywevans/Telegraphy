@@ -52,7 +52,7 @@ def runtime_details(root: tk.Misc) -> dict[str, object]:
 def main() -> int:
     """Run a standalone CI preflight without sharing an interpreter with pytest."""
     root: tk.Tk | None = None
-    loaded = False
+    loaded_root: tk.Tk | None = None
     details: dict[str, object] = {
         "python": sys.version,
         "executable": sys.executable,
@@ -62,7 +62,7 @@ def main() -> int:
         root = tk.Tcl()
         details.update(runtime_details(root))
         root.loadtk()
-        loaded = True
+        loaded_root = root
         root.withdraw()
         ensure_focus_commands(root)
         details.update(runtime_details(root))
@@ -74,8 +74,8 @@ def main() -> int:
         print(json.dumps(details, indent=2))
         return 1
     finally:
-        if loaded and root is not None:
-            root.destroy()
+        if loaded_root is not None:
+            loaded_root.destroy()
     print(json.dumps(details, indent=2))
     return 0
 

@@ -54,7 +54,6 @@ EXPECTED_GENERATED_FIELD_KEYS = frozenset(
         "word_count_target",
     }
 )
-MAX_SEXUAL_SCENE_TAG_GROUPS = 10
 UNSUPPORTED_CONFIG_ALIAS_KEYS = (
     "sexual_content_options",
     "sexual_content_weights",
@@ -156,12 +155,6 @@ def validate_sexual_scene_tag_groups(config: dict[str, Any]) -> None:
         raise ValueError("config.sexual_scene_tag_groups must be a non-empty object")
     if len(groups) < 2:
         raise ValueError("config.sexual_scene_tag_groups must contain at least 2 groups")
-    if len(groups) > MAX_SEXUAL_SCENE_TAG_GROUPS:
-        raise ValueError(
-            "config.sexual_scene_tag_groups must contain at most "
-            f"{MAX_SEXUAL_SCENE_TAG_GROUPS} groups"
-        )
-
     for group_name, tags in groups.items():
         if not isinstance(group_name, str) or not group_name.strip():
             raise ValueError("config.sexual_scene_tag_groups keys must be non-empty strings")
@@ -381,17 +374,9 @@ def _raise_for_missing_required_presence_options(
     if not missing_presence:
         return
 
-    presence_display_aliases = {
-        "off_page": "fade_to_black",
-        "on_page_brief": "suggestive",
-        "on_page_full": "explicit",
-    }
-    missing_presence_display = sorted(
-        presence_display_aliases.get(presence, presence) for presence in missing_presence
-    )
     raise ValueError(
         "config.sexual_scene_required_tag_groups_by_presence is missing "
-        f"required presence options: {', '.join(missing_presence_display)}"
+        f"required presence options: {', '.join(missing_presence)}"
     )
 
 

@@ -12,7 +12,6 @@ from telegraphy.story_brief.generate_story_brief import get_normalized_story_dat
 from telegraphy.story_brief.linting import lint_story_data
 from telegraphy.story_brief.schema_validation_weather import validate_weather
 from telegraphy.story_brief.validation import (
-    MAX_SEXUAL_SCENE_TAG_GROUPS,
     UNSUPPORTED_CONFIG_ALIAS_ERROR_PREFIX,
     UNSUPPORTED_CONFIG_ALIAS_KEYS,
     validate_story_data,
@@ -226,7 +225,7 @@ def test_schema_validation_rejects_single_sexual_scene_tag_group(
         validate_story_data(titles, entities, prompts, weather, config, partner_distributions)
 
 
-def test_schema_validation_rejects_too_many_sexual_scene_tag_groups(
+def test_schema_validation_accepts_additional_sexual_scene_tag_groups(
     story_dataset_payloads: DatasetPayloads,
 ) -> None:
     titles = story_dataset_payloads["titles"]
@@ -235,16 +234,10 @@ def test_schema_validation_rejects_too_many_sexual_scene_tag_groups(
     weather = story_dataset_payloads["weather"]
     config = story_dataset_payloads["config"]
     partner_distributions = story_dataset_payloads["partner_distributions"]
-    config["sexual_scene_tag_groups"] = {
-        f"group_{index}": [f"tag_{index}_a", f"tag_{index}_b"]
-        for index in range(MAX_SEXUAL_SCENE_TAG_GROUPS + 1)
-    }
-
-    with pytest.raises(
-        ValueError,
-        match=rf"at most {MAX_SEXUAL_SCENE_TAG_GROUPS} groups",
-    ):
-        validate_story_data(titles, entities, prompts, weather, config, partner_distributions)
+    config["sexual_scene_tag_groups"].update(
+        {f"group_{index}": [f"tag_{index}_a", f"tag_{index}_b"] for index in range(20)}
+    )
+    validate_story_data(titles, entities, prompts, weather, config, partner_distributions)
 
 
 @pytest.mark.parametrize(
@@ -817,7 +810,7 @@ def _set_minimal_partner_distributions(partner_distributions: dict[str, Any]) ->
             ),
             (
                 r"config\.sexual_scene_required_tag_groups_by_presence is missing required "
-                r"presence options: explicit, fade_to_black, implied, suggestive"
+                r"presence options: implied, off_page, on_page_brief, on_page_full"
             ),
         ),
         (

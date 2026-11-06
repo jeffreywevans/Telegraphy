@@ -26,6 +26,9 @@ share/python-wheels/
 *.egg
 MANIFEST
 
+# Temporary output files left behind by interrupted writes
+.*.tmp
+
 # PyInstaller
 *.manifest
 *.spec

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import random
 import secrets
 import sys
@@ -136,14 +137,28 @@ def _build_generated_filename(fields: StoryFields) -> str:
 
 def main(argv: Sequence[str] | None = None) -> int:
     """Run the story brief CLI and return an exit code."""
+    try:
+        exit_code = _run(argv)
+        # Flush here so buffered pipe failures are handled before interpreter shutdown.
+        sys.stdout.flush()
+        return exit_code
+    except BrokenPipeError:
+        # Prevent a second pipe error when Python flushes stdout during shutdown.
+        with open(os.devnull, "w") as sink:
+            os.dup2(sink.fileno(), sys.stdout.fileno())
+        return 1
+
+
+def _run(argv: Sequence[str] | None = None) -> int:
+    """Parse arguments, generate a brief, and emit the requested output."""
     parser = build_parser()
     args = parser.parse_args(list(argv) if argv is not None else None)
 
     try:
         data: StoryData = get_normalized_story_data()
-    except DataDirError as exc:  # pragma: no cover
+    except DataDirError as exc:
         return _print_error(f"Failed to load story brief dataset file. {exc}")
-    except ValueError as exc:  # pragma: no cover
+    except ValueError as exc:
         return _print_error(str(exc))
 
     rng = _build_rng(args.seed)

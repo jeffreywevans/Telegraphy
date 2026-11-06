@@ -56,6 +56,43 @@ def test_each_required_file_reports_its_own_missing_filename(
 
 
 @pytest.mark.parametrize("filename", sorted(EXPECTED_FIELD_FILES))
+@pytest.mark.parametrize("deeply_nested", [False, True])
+def test_invalid_json_reports_filename_without_a_cli_traceback(
+    filename: str,
+    deeply_nested: bool,
+    cli_dataset_factory: Callable[[str], Path],
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    dataset = cli_dataset_factory("invalid-json")
+    # Python 3.14's C decoder can exceed the Python recursion limit before failing.
+    depth = 100_000
+    content = "[" * depth + "0" + "]" * depth if deeply_nested else '{"invalid": }'
+    (dataset / filename).write_text(content, encoding="utf-8")
+    expected_message = "nesting depth" if deeply_nested else "Invalid JSON"
+    expected_cause = RecursionError if deeply_nested else json.JSONDecodeError
+
+    with pytest.raises(data_io.DataDirError, match=filename) as error:
+        data_io.load_data(dataset)
+    assert expected_message in str(error.value)
+    assert isinstance(error.value.__cause__, expected_cause)
+    if not deeply_nested:
+        assert "line 1 column" in str(error.value)
+
+    monkeypatch.setenv(data_io.DATA_DIR_ENV_VAR, str(dataset))
+    data_io.clear_data_cache()
+    try:
+        assert cli.main(["--print-only"]) == 1
+        captured = capsys.readouterr()
+        assert captured.out == ""
+        assert filename in captured.err
+        assert expected_message in captured.err
+        assert "Traceback" not in captured.err
+    finally:
+        data_io.clear_data_cache()
+
+
+@pytest.mark.parametrize("filename", sorted(EXPECTED_FIELD_FILES))
 def test_each_file_rejects_non_object_json_without_a_cli_traceback(
     filename: str,
     cli_dataset_factory: Callable[[str], Path],

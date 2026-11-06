@@ -191,6 +191,14 @@ def test_write_and_force_overwrite_behavior(tmp_path: Path) -> None:
     assert third.returncode == 0
 
 
+@pytest.mark.parametrize("filename", ["run.sh", "brief", "brief.md.txt"])
+def test_explicit_filename_requires_markdown_extension(tmp_path: Path, filename: str) -> None:
+    result = run_cli("--seed", "42", "--filename", filename, cwd=tmp_path)
+
+    assert_cli_error_without_traceback(result, "filename must use the .md extension")
+    assert not (tmp_path / "output" / "story-seeds" / filename).exists()
+
+
 def test_default_output_dir_is_relative(tmp_path: Path) -> None:
     filename = "relative-default.md"
     result = run_cli("--seed", "42", "--filename", filename, "--force", cwd=tmp_path)

@@ -49,7 +49,10 @@ def build_parser() -> argparse.ArgumentParser:
         default=str(DEFAULT_OUTPUT_DIR),
         help="Directory where the markdown file will be written.",
     )
-    parser.add_argument("--filename", help="Optional explicit filename for the markdown file.")
+    parser.add_argument(
+        "--filename",
+        help="Optional explicit Markdown filename; must use the .md extension.",
+    )
     parser.add_argument(
         "--seed",
         type=int,

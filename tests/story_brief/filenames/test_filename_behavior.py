@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+import stat
 from datetime import date, datetime
 from pathlib import Path
 
@@ -10,6 +12,7 @@ from telegraphy.story_brief.filenames import (
     OutputWriteError,
     _apply_windows_reserved_name_guard,
     _build_safe_relative_path,
+    _open_temporary_output_file,
     _truncate_utf8_filename,
     _validate_user_filename_input,
     resolve_output_path,
@@ -149,11 +152,19 @@ def test_apply_windows_reserved_name_guard_keeps_non_reserved_names() -> None:
         ".hidden.md",
         "..",
         "name..md",
+        "run.sh",
+        "brief",
+        "brief.md.txt",
     ],
 )
 def test_validate_user_filename_input_rejects_unsafe_values(filename: str) -> None:
     with pytest.raises(ValueError):
         _validate_user_filename_input(filename)
+
+
+@pytest.mark.parametrize("filename", ["brief.md", "BRIEF.MD"])
+def test_validate_user_filename_input_accepts_markdown_extension(filename: str) -> None:
+    _validate_user_filename_input(filename)
 
 
 def test_build_safe_relative_path_rejects_home_and_traversal(tmp_path: Path) -> None:
@@ -217,6 +228,19 @@ def test_resolve_output_path_reports_invalid_filename(
         )
 
 
+def test_resolve_output_path_rejects_non_markdown_filename(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    with pytest.raises(OutputPathError, match=r"filename must use the \.md extension"):
+        resolve_output_path(
+            output_dir=Path("safe"),
+            filename="run.sh",
+            generated_filename="auto.md",
+        )
+
+
 def test_resolve_output_path_reports_invalid_output_filename_path_combination(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -244,6 +268,70 @@ def test_write_output_markdown_force_overwrites_existing_file(tmp_path: Path) ->
     assert output_path.read_text(encoding="utf-8") == "new"
 
 
+@pytest.mark.skipif(os.name == "nt", reason="POSIX umask and permission modes")
+@pytest.mark.parametrize(
+    ("file_umask", "expected_mode"),
+    [(0o077, 0o600), (0o022, 0o644), (0o002, 0o664), (0o000, 0o666)],
+)
+def test_write_output_markdown_honors_umask(
+    tmp_path: Path,
+    file_umask: int,
+    expected_mode: int,
+) -> None:
+    output_path = tmp_path / f"brief-{file_umask:03o}.md"
+    previous_umask = os.umask(file_umask)
+    try:
+        write_output_markdown(
+            output_path=output_path,
+            content="content",
+            trusted_base_dir=tmp_path,
+        )
+    finally:
+        os.umask(previous_umask)
+
+    assert stat.S_IMODE(output_path.stat().st_mode) == expected_mode
+
+
+@pytest.mark.skipif(os.name == "nt", reason="POSIX permission modes")
+def test_write_output_markdown_force_preserves_existing_mode(tmp_path: Path) -> None:
+    output_path = tmp_path / "shared.md"
+    output_path.write_text("old", encoding="utf-8")
+    output_path.chmod(0o640)
+
+    previous_umask = os.umask(0o077)
+    try:
+        write_output_markdown(
+            output_path=output_path,
+            content="new",
+            force=True,
+            trusted_base_dir=tmp_path,
+        )
+    finally:
+        os.umask(previous_umask)
+
+    assert output_path.read_text(encoding="utf-8") == "new"
+    assert stat.S_IMODE(output_path.stat().st_mode) == 0o640
+
+
+def test_open_temporary_output_file_retries_random_name_collision(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    collision = tmp_path / ".telegraphy-collision.tmp"
+    collision.write_text("occupied", encoding="utf-8")
+    tokens = iter(("collision", "available"))
+    monkeypatch.setattr(
+        "telegraphy.story_brief.filenames.secrets.token_hex",
+        lambda _size: next(tokens),
+    )
+
+    fd, temporary_path = _open_temporary_output_file(tmp_path)
+    os.close(fd)
+    temporary_path.unlink()
+
+    assert temporary_path.name == ".telegraphy-available.tmp"
+
+
 def test_write_output_markdown_preserves_existing_file_when_atomic_replace_fails(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -265,7 +353,7 @@ def test_write_output_markdown_preserves_existing_file_when_atomic_replace_fails
         )
 
     assert output_path.read_text(encoding="utf-8") == "old"
-    assert list(tmp_path.glob(".brief.md.*.tmp")) == []
+    assert list(tmp_path.glob(".telegraphy-*.tmp")) == []
 
 
 def test_write_output_markdown_does_not_mask_error_when_cleanup_fails(
@@ -327,12 +415,39 @@ def test_write_output_markdown_wraps_oserror(
         )
 
 
+def test_write_output_markdown_closes_descriptor_when_fdopen_fails(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    target = tmp_path / "brief.md"
+    closed_descriptors: list[int] = []
+    original_close = os.close
+
+    def fail_fdopen(*_args: object, **_kwargs: object) -> None:
+        raise OSError("fdopen failed")
+
+    def record_close(fd: int) -> None:
+        closed_descriptors.append(fd)
+        original_close(fd)
+
+    monkeypatch.setattr("telegraphy.story_brief.filenames.os.fdopen", fail_fdopen)
+    monkeypatch.setattr("telegraphy.story_brief.filenames.os.close", record_close)
+
+    with pytest.raises(OutputWriteError, match="fdopen failed"):
+        write_output_markdown(
+            output_path=target,
+            content="content",
+            trusted_base_dir=tmp_path,
+        )
+
+    assert len(closed_descriptors) == 1
+    assert list(tmp_path.glob(".telegraphy-*.tmp")) == []
+
+
 def test_write_output_markdown_without_onofollow_when_unavailable(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    import os
-
     target = tmp_path / "brief.md"
     captured_flags: list[int] = []
     original_open = os.open

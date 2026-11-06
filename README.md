@@ -249,7 +249,7 @@ The GUI is intentionally focused: it is a tablet-shaped desktop wrapper around t
 | `--seed <int>` | Use deterministic randomness for reproducible briefs; omit it to use OS-backed entropy. |
 | `--date YYYY-MM-DD` | Force the story date for scenario testing. |
 | `-o, --output-dir <path>` | Choose the output directory. Defaults to `output/story-seeds`. |
-| `--filename <name.md>` | Choose the output filename. |
+| `--filename <name.md>` | Choose the output filename; the final extension must be `.md`. |
 | `--force` | Allow overwriting an existing output file. |
 | `--validate-strict` | Validate date-range generation preconditions before generating. |
 | `--lint-dataset` | Run dataset lint diagnostics and exit. |
@@ -629,6 +629,10 @@ It also performs filename checks and sanitization, including:
 - Windows reserved device names;
 - UTF-8 byte-length limits;
 - atomic same-directory publication and explicit symbolic-link target rejection.
+
+On POSIX systems, newly created briefs use normal non-executable file permissions filtered by
+the current umask. Forced replacement preserves an existing destination's non-executable
+read/write permission mode.
 
 ## Development
 

@@ -15,7 +15,7 @@
 
 
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/jeffreywevans/Telegraphy/license)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/jeffreywevans/Telegraphy/blob/HEAD/LICENSE)
 
 Telegraphy is a Python package and command-line tool for generating structured story briefs from a versioned, data-driven canon dataset.
 
@@ -96,6 +96,9 @@ python -m pip install -e ".[dev]"
 
 The development extra installs the tools used by the repository:
 
+- `build`
+- `setuptools`
+- `packaging`
 - `pytest`
 - `pytest-cov`
 - `ruff`
@@ -285,14 +288,14 @@ weather: lousy
 sexual_content_level: none
 sexual_partner: null
 sexual_scene_tags: []
-word_count_target: 6000
+word_count_target: 9900
 ---
 
 # It's Only Profound if You're Not Stoned
 
 ## Story Draft
 
-*Write a story of approximately 6000 words using the YAML brief above.*
+*Write a story of approximately 9900 words using the YAML brief above.*
 ```
 
 ### Write to a specific directory
@@ -706,6 +709,7 @@ Current package facts:
 | Python | `>=3.14` |
 | Runtime dependency | `PyYAML>=6.0.3` |
 | Console script | `story-brief = telegraphy.story_brief.cli:main` |
+| GUI script | `telegraphy-gui = telegraphy.gui.tablet_app:main` |
 | License | MIT |
 
 ### Contribution expectations
@@ -756,11 +760,8 @@ Start here:
 - [GREETINGS.md](https://github.com/jeffreywevans/Telegraphy/blob/HEAD/GREETINGS.md): lightweight project-facing documentation artifact.
 - [SECURITY.md](https://github.com/jeffreywevans/Telegraphy/blob/HEAD/SECURITY.md): vulnerability reporting.
 - [docs/STORY-BRIEF-MAINTAINER.md](https://github.com/jeffreywevans/Telegraphy/blob/HEAD/docs/STORY-BRIEF-MAINTAINER.md): data strategy, regression coverage, dataset versioning, and maintenance rules.
-- [docs/Story Brief Generator Evaluation.md](https://github.com/jeffreywevans/Telegraphy/blob/HEAD/docs/Story%20Brief%20Generator%20Evaluation.md): current evaluation and constructive criticism.
 - [docs/requirements.md](https://github.com/jeffreywevans/Telegraphy/blob/HEAD/docs/requirements.md): runtime dependency policy.
 - [docs/requirements-dev.md](https://github.com/jeffreywevans/Telegraphy/blob/HEAD/docs/requirements-dev.md): development dependency policy.
-- [docs/dependabot_setup.md](https://github.com/jeffreywevans/Telegraphy/blob/HEAD/docs/dependabot_setup.md): dependency update automation.
-- [docs/review_2026-04-27.md](https://github.com/jeffreywevans/Telegraphy/blob/HEAD/docs/review_2026-04-27.md): code review notes and known follow-up items.
 
 ## Troubleshooting
 
@@ -844,4 +845,4 @@ Linting reports dataset health. Strict validation checks generation precondition
 
 ## License
 
-Telegraphy is released under the [MIT License](https://github.com/jeffreywevans/Telegraphy/license).
+Telegraphy is released under the [MIT License](https://github.com/jeffreywevans/Telegraphy/blob/HEAD/LICENSE).

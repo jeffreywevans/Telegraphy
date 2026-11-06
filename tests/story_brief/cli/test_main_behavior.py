@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import errno
 import os
 import sys
 from datetime import date
 from pathlib import Path
 from typing import NoReturn
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -267,3 +269,64 @@ def test_main_unknown_flag_exits_with_status_two() -> None:
     with pytest.raises(SystemExit) as exc_info:
         story_cli.main(["--unknown"])
     assert exc_info.value.code == 2
+
+
+@pytest.mark.parametrize("failure_on_flush", [False, True])
+@pytest.mark.parametrize(
+    ("platform", "error_number", "is_pipe", "handled"),
+    [
+        ("win32", errno.EINVAL, True, True),
+        ("win32", errno.EINVAL, False, False),
+        ("linux", errno.EINVAL, True, False),
+        ("win32", errno.EIO, True, False),
+        ("linux", errno.EPIPE, True, True),
+    ],
+)
+def test_main_handles_only_stdout_pipe_errors(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    failure_on_flush: bool,
+    platform: str,
+    error_number: int,
+    is_pipe: bool,
+    handled: bool,
+) -> None:
+    _mock_story_generation(monkeypatch)
+    read_fd, write_fd = os.pipe()
+    os.close(read_fd)
+    try:
+        with (tmp_path / "stdout.txt").open("w") as regular_file:
+            output_fd = write_fd if is_pipe else regular_file.fileno()
+            stream = MagicMock()
+            stream.fileno.return_value = output_fd
+            error = OSError(error_number, "simulated stdout failure")
+            if failure_on_flush:
+                stream.flush.side_effect = error
+            else:
+                stream.write.side_effect = error
+            monkeypatch.setattr(sys, "stdout", stream)
+            monkeypatch.setattr(sys, "platform", platform)
+
+            if handled:
+                assert story_cli.main(["--print-only"]) == 1
+                # The descriptor now points at devnull, allowing shutdown to flush safely.
+                assert os.write(output_fd, b"remaining buffered output") > 0
+            else:
+                with pytest.raises(OSError) as caught:
+                    story_cli.main(["--print-only"])
+                assert caught.value is error
+    finally:
+        os.close(write_fd)
+
+
+def test_main_does_not_suppress_generation_oserror(monkeypatch: pytest.MonkeyPatch) -> None:
+    error = OSError(errno.EINVAL, "generation failed")
+    monkeypatch.setattr(sys, "platform", "win32")
+
+    def fail_generation(*_args: object, **_kwargs: object) -> NoReturn:
+        raise error
+
+    monkeypatch.setattr(story_brief_module, "pick_story_fields", fail_generation)
+    with pytest.raises(OSError) as caught:
+        story_cli.main(["--print-only"])
+    assert caught.value is error

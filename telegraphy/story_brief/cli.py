@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import argparse
+import errno
 import os
 import random
 import secrets
+import stat
 import sys
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from datetime import date
 from pathlib import Path
 from typing import Any
@@ -135,22 +137,27 @@ def _build_generated_filename(fields: StoryFields) -> str:
     )
 
 
-def main(argv: Sequence[str] | None = None) -> int:
-    """Run the story brief CLI and return an exit code."""
+def _write_stdout(write: Callable[[], None]) -> bool:
+    """Emit and flush output, treating a closed stdout pipe as an ordinary failure."""
     try:
-        exit_code = _run(argv)
-        # Flush here so buffered pipe failures are handled before interpreter shutdown.
+        write()
         sys.stdout.flush()
-        return exit_code
-    except BrokenPipeError:
+    except OSError as exc:
+        if not isinstance(exc, BrokenPipeError) and not (
+            sys.platform == "win32"
+            and exc.errno == errno.EINVAL
+            and stat.S_ISFIFO(os.fstat(sys.stdout.fileno()).st_mode)
+        ):
+            raise
         # Prevent a second pipe error when Python flushes stdout during shutdown.
         with open(os.devnull, "w") as sink:
             os.dup2(sink.fileno(), sys.stdout.fileno())
-        return 1
+        return False
+    return True
 
 
-def _run(argv: Sequence[str] | None = None) -> int:
-    """Parse arguments, generate a brief, and emit the requested output."""
+def main(argv: Sequence[str] | None = None) -> int:
+    """Run the story brief CLI and return an exit code."""
     parser = build_parser()
     args = parser.parse_args(list(argv) if argv is not None else None)
 
@@ -165,7 +172,8 @@ def _run(argv: Sequence[str] | None = None) -> int:
 
     if args.lint_dataset:
         report = lint_story_data(data)
-        emit_lint_report(report)
+        if not _write_stdout(lambda: emit_lint_report(report)):
+            return 1
         return 1 if report.has_errors else 0
 
     if args.validate_strict:
@@ -181,8 +189,7 @@ def _run(argv: Sequence[str] | None = None) -> int:
         return _print_error(str(exc))
 
     if args.print_only:
-        print(markdown)
-        return 0
+        return 0 if _write_stdout(lambda: print(markdown)) else 1
 
     try:
         _write_story_markdown(
@@ -196,8 +203,7 @@ def _run(argv: Sequence[str] | None = None) -> int:
         return _print_error(str(exc))
     except OSError as exc:  # pragma: no cover
         return _print_error(f"Error creating output directory: {exc}")
-    print("Generated story brief.")
-    return 0
+    return 0 if _write_stdout(lambda: print("Generated story brief.")) else 1
 
 
 __all__ = ["build_parser", "main"]

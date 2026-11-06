@@ -2,13 +2,15 @@ from __future__ import annotations
 
 import os
 import re
-import tempfile
+import secrets
+import stat
 from datetime import date, datetime
 from pathlib import Path, PurePath
 
 DEFAULT_OUTPUT_DIR = Path("output") / "story-seeds"
 MAX_FILENAME_STEM_LENGTH = 120
 MAX_FILENAME_BYTES = 255
+DEFAULT_OUTPUT_FILE_MODE = 0o666
 SAFE_FILENAME_INPUT_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 ._-]{0,254}$")
 UNSAFE_FILENAME_CHARS = re.compile(r'[\x00-\x1f<>:"/\\|?*]+')
 PATH_SPLIT_PATTERN = re.compile(r"[\\/]+")
@@ -53,6 +55,8 @@ def _validate_user_filename_input(filename: str) -> None:
         raise ValueError("filename must not contain path separators")
     if filename in {".", ".."} or ".." in filename:
         raise ValueError("filename must not contain dot-segments")
+    if os.path.splitext(filename)[1].casefold() != ".md":
+        raise ValueError("filename must use the .md extension")
     if not SAFE_FILENAME_INPUT_PATTERN.fullmatch(filename):
         raise ValueError(
             "filename must be 1-255 characters, start with a letter or number, "
@@ -131,6 +135,28 @@ def _ensure_within_base(path: Path, trusted_base_dir: Path, message: str) -> Non
     """Raise OutputPathError when a resolved path escapes trusted_base_dir."""
     if not path.is_relative_to(trusted_base_dir):
         raise OutputPathError(message)
+
+
+def _open_temporary_output_file(parent: Path) -> tuple[int, Path]:
+    """Exclusively create a same-directory temporary file using normal output permissions."""
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
+    flags |= getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_BINARY", 0)
+
+    while True:
+        temporary_path = parent / f".telegraphy-{secrets.token_hex(16)}.tmp"
+        try:
+            fd = os.open(temporary_path, flags, DEFAULT_OUTPUT_FILE_MODE)
+        except FileExistsError:
+            continue
+        return fd, temporary_path
+
+
+def _set_temporary_output_mode(fd: int, path: Path, mode: int) -> None:
+    """Apply a preserved destination mode without reopening the temporary file."""
+    if hasattr(os, "fchmod"):
+        os.fchmod(fd, mode)
+        return
+    os.chmod(path, mode)  # pragma: no cover - Windows fallback
 
 
 def _build_safe_relative_path(path_raw: str, *, trusted_base_dir: Path) -> Path:
@@ -248,13 +274,25 @@ def write_output_markdown(
 
     temporary_path: Path | None = None
     try:
-        fd, temporary_name = tempfile.mkstemp(
-            dir=resolved_parent,
-            prefix=f".{candidate_output_path.name}.",
-            suffix=".tmp",
-        )
-        temporary_path = Path(temporary_name)
-        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+        existing_mode: int | None = None
+        if force:
+            try:
+                existing_mode = (
+                    stat.S_IMODE(candidate_output_path.stat(follow_symlinks=False).st_mode)
+                    & DEFAULT_OUTPUT_FILE_MODE
+                )
+            except FileNotFoundError:
+                pass
+
+        fd, temporary_path = _open_temporary_output_file(resolved_parent)
+        try:
+            handle = os.fdopen(fd, "w", encoding="utf-8")
+        except Exception:
+            os.close(fd)
+            raise
+        with handle:
+            if existing_mode is not None:
+                _set_temporary_output_mode(handle.fileno(), temporary_path, existing_mode)
             handle.write(content)
             handle.flush()
             os.fsync(handle.fileno())

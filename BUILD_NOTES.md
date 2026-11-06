@@ -1,16 +1,68 @@
-# Build Notes — 0.6.4
+# Build Notes — 0.6.5
+
+Prepared on 2026-11-05 from source baseline `8ebb469` on branch `work`. This is a
+locally validated release candidate; the release-preparation commit is the commit
+containing these notes, and remote PR checks remain pending.
+
+## Release contents
+
+- Strict calendar-date parsing across CLI, configuration, and partner availability data.
+- Safer generated-file handling, including atomic writes, symlink rejection, required
+  Markdown extensions, and process-umask permissions.
+- Development-only SBOM and coverage tooling removed from the runtime wheel.
+- Hardened GUI subprocess, timeout, polling, encoding, and font behavior.
+- Expanded story-choice datasets, strict-mypy-clean tests, and streamlined CI coverage.
+- Package metadata, README, changelog, generated SBOM, and publication workflow
+  synchronized for 0.6.5.
+
+## Validation
+
+- Python 3.14.4 on Linux; all 589 tests pass with 100% combined statement/branch coverage.
+- Ruff lint, full formatting check (74 files), strict mypy (62 sources), and byte-compilation pass.
+- Dataset lint reports no warnings or blocking gaps; strict seeded generation passes.
+- Source and wheel builds pass: `commuted_telegraphy-0.6.5.tar.gz` and
+  `commuted_telegraphy-0.6.5-py3-none-any.whl`.
+- Artifact metadata reports 0.6.5, the source archive contains the regenerated SBOM,
+  and the wheel contains all 15 JSON datasets without repository-only scripts.
+- The wheel installs in a clean Python 3.14 virtual environment outside the checkout
+  with only PyYAML 6.0.3; package compatibility checks pass.
+- Installed-wheel CLI help, print-only variants, dataset lint, strict generation,
+  copied-data overrides, overwrite refusal, and forced replacement pass.
+- A `0022` umask produces mode `0644`; the environment's default `0077` umask produces
+  mode `0600`, confirming that generated files honor the caller's policy.
+- Both GUI entry points accept `--help`; interactive window, generation, clipboard,
+  and display behavior remain untested in this headless environment.
+- Dangerous-pattern review found no shell execution, dynamic evaluation, unsafe YAML,
+  pickle, or OS command calls in package source. Subprocess calls use argument arrays.
+- Dependency review found no incompatible packages. Only the development environment's
+  Coverage 7.17.1 and Ruff 0.17.3 have newer patch releases; runtime PyYAML is current.
+- Read the required briefs for seeds/dates 1/1990-01-01, 42/2000-01-01, and
+  8675309/2014-01-09; YAML, Markdown, availability, and content-level invariants are coherent.
+- Version 0.6.5 is absent from both repository tags and PyPI before publication.
+
+## Manual publication
+
+After the PR is merged, create a GitHub tag `0.6.5` targeting the merged release
+commit, then publish a GitHub release for that tag. Publishing the release triggers
+the Upload Python Package workflow, which verifies tag/version agreement, builds the
+distributions, and uses PyPI trusted publishing. No tag, release, or deployment is
+created by this preparation task.
+
+## Historical build notes
+
+### Build 0.6.4
 
 Prepared on 2026-10-27 from the latest `main` branch, including the CodeQL and
 SonarQube configuration fixes.
 
-## Release contents
+#### Release contents
 
 - Lower-complexity position-group validation with unchanged diagnostics and behavior.
 - SonarQube analysis explicitly targets Python 3.14.
 - CodeQL can read workflow-run metadata and uses the latest pinned action update.
 - Package metadata, README, changelog, and generated SBOM synchronized to 0.6.4.
 
-## Validation
+#### Validation
 
 - Python 3.14.4 on Linux; all 532 tests pass with 99% combined statement/branch coverage.
 - Ruff lint, full formatting check (72 files), and strict package mypy pass.
@@ -20,14 +72,12 @@ SonarQube configuration fixes.
 - Wheel metadata, bundled README, and SBOM report 0.6.4; all 15 JSON datasets are packaged.
 - Interactive desktop GUI behavior remains untested in this headless environment.
 
-## Manual publication
+#### Manual publication
 
 Create a new GitHub tag `0.6.4` targeting the release-preparation commit on
 `main`, then publish a GitHub release for that tag. The Upload Python Package
 workflow verifies the tag against package metadata before publishing to PyPI.
 No tag, release, or deployment is created by this preparation task.
-
-## Historical build notes
 
 ### Build 0.6.3
 
@@ -159,12 +209,12 @@ version rather than independently inventorying a resolved release environment.
 ```bash
 python -m pip install -e ".[dev]"
 ruff check .
-mypy telegraphy
+mypy telegraphy scripts tests
 pytest -q
-python -m telegraphy.scripts.run_coverage_workflow
+python -m scripts.run_coverage_workflow
 python -m telegraphy.story_brief --lint-dataset
 python -m telegraphy.story_brief --validate-strict --seed 42 --date 2000-01-01 --print-only
-python -m telegraphy.scripts.generate_sbom
+python -m scripts.generate_sbom
 python -m build
 ```
 

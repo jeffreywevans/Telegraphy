@@ -15,7 +15,7 @@
 
 
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/jeffreywevans/Telegraphy/license)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/jeffreywevans/Telegraphy/blob/HEAD/LICENSE)
 
 Telegraphy is a Python package and command-line tool for generating structured story briefs from a versioned, data-driven canon dataset.
 
@@ -96,6 +96,9 @@ python -m pip install -e ".[dev]"
 
 The development extra installs the tools used by the repository:
 
+- `build`
+- `setuptools`
+- `packaging`
 - `pytest`
 - `pytest-cov`
 - `ruff`
@@ -221,10 +224,12 @@ The GUI is intentionally focused: it is a tablet-shaped desktop wrapper around t
 ### GUI behavior details
 
 - Uses your local Python interpreter (`sys.executable`) and inherited environment (`os.environ`) by design; this is convenient for virtualenv workflows, but also means local environment changes can alter behavior.
-- GUI CLI worker has a default 30-second timeout (override with `telegraphy-gui --timeout <seconds>`).
+- GUI CLI worker has a default 30-second timeout (override with
+  `telegraphy-gui --timeout <positive-seconds>`).
 - `telegraphy-gui --help` is supported without launching a window.
 - In headless environments, startup fails cleanly with a user-facing error instead of a tkinter traceback.
-- Decodes CLI output using your preferred locale encoding, then falls back to UTF-8 with replacement for robust display.
+- Forces UTF-8 for the child CLI streams and decodes them as UTF-8 with replacement for
+  robust display.
 - Never writes files directly; it always requests `--print-only` output from the CLI.
 - Clipboard copy only works after a successful generation.
 
@@ -244,7 +249,7 @@ The GUI is intentionally focused: it is a tablet-shaped desktop wrapper around t
 | `--seed <int>` | Use deterministic randomness for reproducible briefs; omit it to use OS-backed entropy. |
 | `--date YYYY-MM-DD` | Force the story date for scenario testing. |
 | `-o, --output-dir <path>` | Choose the output directory. Defaults to `output/story-seeds`. |
-| `--filename <name.md>` | Choose the output filename. |
+| `--filename <name.md>` | Choose the output filename; the final extension must be `.md`. |
 | `--force` | Allow overwriting an existing output file. |
 | `--validate-strict` | Validate date-range generation preconditions before generating. |
 | `--lint-dataset` | Run dataset lint diagnostics and exit. |
@@ -285,14 +290,14 @@ weather: lousy
 sexual_content_level: none
 sexual_partner: null
 sexual_scene_tags: []
-word_count_target: 6000
+word_count_target: 9900
 ---
 
 # It's Only Profound if You're Not Stoned
 
 ## Story Draft
 
-*Write a story of approximately 6000 words using the YAML brief above.*
+*Write a story of approximately 9900 words using the YAML brief above.*
 ```
 
 ### Write to a specific directory
@@ -559,10 +564,11 @@ remain ranges rather than being presented as installed versions; exact pins incl
 their version in the component package URL. It is a source dependency manifest, not
 an inventory of one particular installed environment.
 
-To regenerate the SBOM after dependency or version changes:
+To regenerate the SBOM after dependency or version changes, use a repository
+checkout with the development dependencies installed:
 
 ```bash
-python -m telegraphy.scripts.generate_sbom
+python -m scripts.generate_sbom
 ```
 
 The repository includes `sbom.cdx.json` in source distributions via `MANIFEST.in`.
@@ -624,6 +630,10 @@ It also performs filename checks and sanitization, including:
 - UTF-8 byte-length limits;
 - atomic same-directory publication and explicit symbolic-link target rejection.
 
+On POSIX systems, newly created briefs use normal non-executable file permissions filtered by
+the current umask. Forced replacement preserves an existing destination's non-executable
+read/write permission mode.
+
 ## Development
 
 Create and activate a virtual environment, then install the development extra:
@@ -637,7 +647,7 @@ Run the local quality checks:
 ```bash
 ruff check .
 ruff format --check .
-mypy telegraphy
+mypy telegraphy scripts tests
 pytest
 ```
 
@@ -701,10 +711,11 @@ Current package facts:
 | Field | Value |
 | --- | --- |
 | Package | `telegraphy` |
-| Current version | `0.6.4` |
+| Current version | `0.6.5` |
 | Python | `>=3.14` |
 | Runtime dependency | `PyYAML>=6.0.3` |
 | Console script | `story-brief = telegraphy.story_brief.cli:main` |
+| GUI script | `telegraphy-gui = telegraphy.gui.tablet_app:main` |
 | License | MIT |
 
 ### Contribution expectations
@@ -724,18 +735,19 @@ For generation changes, preserve deterministic seeded behavior unless the PR exp
 
 ## Release notes and status
 
-Current version: `0.6.4`.
+Current version: `0.6.5`.
 
 The 0.6 series introduces independent data files for every generated field, with a
 shared character dataset for protagonist and secondary-character selection.
-Version 0.6.4 reduces position-group validation complexity, configures SonarQube
-for Python 3.14, and fixes CodeQL workflow-run permissions.
+Version 0.6.5 tightens date and output-path validation, removes development tooling
+from the runtime wheel, hardens GUI subprocess handling, and streamlines CI coverage.
 
 Highlights:
 
 - replaced aggregate entities, prompts, and content configuration with focused field files;
 - kept the existing CLI, GUI, front-matter schema, and seeded output behavior;
-- added filename-specific layout errors and documented custom-dataset migration.
+- added filename-specific layout errors and documented custom-dataset migration;
+- expanded story-choice datasets and made the complete test suite strict-mypy clean.
 
 See [CHANGELOG.md](https://github.com/jeffreywevans/Telegraphy/blob/HEAD/CHANGELOG.md) for release notes.
 
@@ -755,11 +767,8 @@ Start here:
 - [GREETINGS.md](https://github.com/jeffreywevans/Telegraphy/blob/HEAD/GREETINGS.md): lightweight project-facing documentation artifact.
 - [SECURITY.md](https://github.com/jeffreywevans/Telegraphy/blob/HEAD/SECURITY.md): vulnerability reporting.
 - [docs/STORY-BRIEF-MAINTAINER.md](https://github.com/jeffreywevans/Telegraphy/blob/HEAD/docs/STORY-BRIEF-MAINTAINER.md): data strategy, regression coverage, dataset versioning, and maintenance rules.
-- [docs/Story Brief Generator Evaluation.md](https://github.com/jeffreywevans/Telegraphy/blob/HEAD/docs/Story%20Brief%20Generator%20Evaluation.md): current evaluation and constructive criticism.
 - [docs/requirements.md](https://github.com/jeffreywevans/Telegraphy/blob/HEAD/docs/requirements.md): runtime dependency policy.
 - [docs/requirements-dev.md](https://github.com/jeffreywevans/Telegraphy/blob/HEAD/docs/requirements-dev.md): development dependency policy.
-- [docs/dependabot_setup.md](https://github.com/jeffreywevans/Telegraphy/blob/HEAD/docs/dependabot_setup.md): dependency update automation.
-- [docs/review_2026-04-27.md](https://github.com/jeffreywevans/Telegraphy/blob/HEAD/docs/review_2026-04-27.md): code review notes and known follow-up items.
 
 ## Troubleshooting
 
@@ -843,4 +852,4 @@ Linting reports dataset health. Strict validation checks generation precondition
 
 ## License
 
-Telegraphy is released under the [MIT License](https://github.com/jeffreywevans/Telegraphy/license).
+Telegraphy is released under the [MIT License](https://github.com/jeffreywevans/Telegraphy/blob/HEAD/LICENSE).

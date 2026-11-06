@@ -21,8 +21,8 @@ class _FakeTraversable:
         return f"resource://{filename}"
 
 
-class _NameAsObjectTraversable:
-    def __init__(self, name: object) -> None:
+class _NamedTraversable:
+    def __init__(self, name: str) -> None:
         self.name = name
 
 
@@ -223,27 +223,20 @@ def test_load_json_reads_from_traversable_text_payload() -> None:
 
 
 def test_validated_load_path_rejects_nul_bytes_for_traversable_name() -> None:
-    traversable = _NameAsObjectTraversable("titles\x00.json")
+    traversable = _NamedTraversable("titles\x00.json")
+    typed_traversable = cast(Traversable, traversable)
 
     with pytest.raises(ValueError, match="NUL bytes"):
-        data_io._validated_load_path(cast(Traversable, traversable))
+        data_io._validated_load_path(typed_traversable)
 
 
-def test_validated_load_path_rejects_parent_traversal_for_traversable_name() -> None:
-    traversable = _NameAsObjectTraversable("../titles.json")
-
+def test_validated_load_path_rejects_parent_traversal_for_filesystem_path() -> None:
+    path = Path.cwd() / ".." / "titles.json"
     with pytest.raises(ValueError, match="parent-directory traversal"):
-        data_io._validated_load_path(cast(Traversable, traversable))
+        data_io._validated_load_path(path)
 
 
 def test_validated_load_path_rejects_non_absolute_path_instance() -> None:
     relative_path = Path("relative.json")
     with pytest.raises(ValueError, match="non-absolute filesystem path"):
         data_io._validated_load_path(relative_path)
-
-
-def test_validated_load_path_coerces_non_string_name_attribute() -> None:
-    traversable = _NameAsObjectTraversable(12345)
-    typed_traversable = cast(Traversable, traversable)
-
-    assert data_io._validated_load_path(typed_traversable) is typed_traversable

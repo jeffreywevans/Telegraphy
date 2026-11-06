@@ -93,6 +93,7 @@ def test_init_and_configure_style_and_build(monkeypatch: pytest.MonkeyPatch) -> 
 
     canvas = make_widget()
     text = make_widget()
+    text_options: dict[str, object] = {}
     button = make_widget()
     status = make_widget()
     scrollbar = make_widget()
@@ -100,7 +101,12 @@ def test_init_and_configure_style_and_build(monkeypatch: pytest.MonkeyPatch) -> 
     monkeypatch.setattr(tk, "Canvas", lambda *_args, **_kwargs: canvas)
     monkeypatch.setattr(tk, "Frame", make_widget)
     monkeypatch.setattr(tk, "Label", make_widget)
-    monkeypatch.setattr(tk, "Text", lambda *_args, **_kwargs: text)
+
+    def make_text(*_args: object, **kwargs: object) -> _FakeWidget:
+        text_options.update(kwargs)
+        return text
+
+    monkeypatch.setattr(tk, "Text", make_text)
     monkeypatch.setattr(ttk, "Button", lambda *_args, **_kwargs: button)
     monkeypatch.setattr(ttk, "Label", lambda *_args, **_kwargs: status)
     monkeypatch.setattr(ttk, "Scrollbar", lambda *_args, **_kwargs: scrollbar)
@@ -116,6 +122,7 @@ def test_init_and_configure_style_and_build(monkeypatch: pytest.MonkeyPatch) -> 
     assert tablet.seed_var.get() == "123"
     assert tablet.date_var.get() == "2000-01-01"
     assert isinstance(tablet.result_queue, queue.Queue)
+    assert text_options["font"] == ("Chosen Font", 11)
     style.theme_use.assert_called_once_with("clam")
     assert style.configure.call_args_list == [
         call(
@@ -173,7 +180,7 @@ def test_generate_story_brief_starts_worker_and_starts_polling(
     assert poll_called == [True]
 
 
-def test_generate_story_brief_invalid_seed_starts_poll_but_not_worker(
+def test_generate_story_brief_invalid_seed_polls_once_but_does_not_start_worker(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     tablet = _make_tablet()
@@ -201,7 +208,7 @@ def test_generate_story_brief_invalid_seed_starts_poll_but_not_worker(
 
     tablet.generate_story_brief()
 
-    assert poll_called == [True, True]
+    assert poll_called == [True]
     assert not thread_called
     assert tablet._worker_active is True
     assert tablet.generate_button.configure.call_args_list == [call(state="disabled")]
@@ -244,7 +251,7 @@ def test_generate_story_brief_invalid_seed_queue_message_is_consumed(
     assert tablet._worker_active is False
     assert tablet.generate_button.configure.call_args_list[-1] == call(state="normal")
     assert tablet.copy_button.configure.call_args_list[0] == call(state="disabled")
-    assert len(after_calls) == 1
+    assert after_calls == []
 
     assert tablet.result_queue.empty()
     assert "Invalid seed" in output_messages[-1]
@@ -503,6 +510,22 @@ def test_main_invokes_mainloop(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(tablet_app, "TelegraphyTablet", FakeTablet)
     assert tablet_app.main(["--seed", "7"]) == 0
     assert called == ["7", "loop"]
+
+
+@pytest.mark.parametrize("timeout", ["0", "-1", "nan", "inf", "-inf", "not-a-number"])
+def test_gui_parser_rejects_non_positive_or_non_finite_timeout(timeout: str) -> None:
+    parser = tablet_app._build_parser()
+
+    with pytest.raises(SystemExit) as exc_info:
+        parser.parse_args(["--timeout", timeout])
+
+    assert exc_info.value.code == 2
+
+
+def test_gui_parser_accepts_positive_finite_timeout() -> None:
+    args = tablet_app._build_parser().parse_args(["--timeout", "0.25"])
+
+    assert args.timeout == 0.25
 
 
 def test_main_headless_tcl_error(

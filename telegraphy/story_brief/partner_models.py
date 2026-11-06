@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import math
-import re
 from dataclasses import dataclass
 from datetime import date
 from typing import AbstractSet, cast
 
-_ISO_DATE_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+from .date_parsing import parse_iso_calendar_date
+
 _ISO_DATE_ERROR = "must be an ISO date (YYYY-MM-DD)"
 
 
@@ -70,17 +70,9 @@ class PartnerDistributionDataset:
     by_character: dict[str, CharacterPartnerDistribution]
 
 
-def _has_iso_date_shape(raw_text: str) -> bool:
-    return _ISO_DATE_PATTERN.fullmatch(raw_text) is not None
-
-
 def _parse_iso_date(raw: object, *, field: str) -> date:
-    _reject_when(not isinstance(raw, str), f"{field} {_ISO_DATE_ERROR}")
-    raw_text = cast(str, raw)
-    _reject_when(not _has_iso_date_shape(raw_text), f"{field} {_ISO_DATE_ERROR}")
-
     try:
-        return date.fromisoformat(raw_text)
+        return parse_iso_calendar_date(raw)
     except ValueError as error:
         raise ValueError(f"{field} {_ISO_DATE_ERROR}") from error
 

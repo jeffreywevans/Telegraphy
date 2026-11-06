@@ -7,7 +7,6 @@ import queue
 import sys
 import threading
 import time
-import tkinter as tk
 from collections.abc import Iterator
 from unittest.mock import MagicMock
 
@@ -145,7 +144,21 @@ def test_generating_preserves_last_result_and_copy(
     app.update()
 
 
-def test_reading_pane_allows_keyboard_focus_traversal(app: TelegraphyTablet) -> None:
-    event = tk.Event()
-    assert app._focus_next_control(event) == "break"
-    assert app._focus_previous_control(event) == "break"
+@pytest.mark.parametrize("copy_enabled", [False, True])
+def test_reading_pane_allows_keyboard_focus_traversal(
+    app: TelegraphyTablet,
+    copy_enabled: bool,
+) -> None:
+    app.copy_button.configure(state="normal" if copy_enabled else "disabled")
+    app.output.focus_force()
+    app.update()
+    assert app.focus_get() == app.output
+    app.output.event_generate("<Tab>")
+    app.update()
+    assert app.focus_get() == app.input_entries[0]
+    app.output.focus_force()
+    app.update()
+    app.output.event_generate("<Shift-Tab>")
+    app.update()
+    expected = app.copy_button if copy_enabled else app.generate_button
+    assert app.focus_get() == expected

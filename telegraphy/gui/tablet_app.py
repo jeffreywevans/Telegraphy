@@ -22,6 +22,7 @@ from telegraphy.gui.models import (
     resolve_run_options,
 )
 from telegraphy.gui.preview import brief_preview
+from telegraphy.gui.runtime import ensure_focus_commands
 
 
 def _read_app_version() -> str:
@@ -80,6 +81,7 @@ class TelegraphyTablet(tk.Tk):
 
     def __init__(self, run_options: RunOptions | None = None) -> None:
         super().__init__()
+        ensure_focus_commands(self)
         self._dpi_cache: int | None = None
         self.title(APP_TITLE)
         width = self._default_window_width()
@@ -96,6 +98,7 @@ class TelegraphyTablet(tk.Tk):
 
         self._configure_styles()
         self._build_shell()
+        self._apply_minimum_size()
 
     def _pixels_per_inch(self) -> int:
         if self._dpi_cache is not None:
@@ -113,13 +116,37 @@ class TelegraphyTablet(tk.Tk):
         return self._scaled_pixels(WINDOW_WIDTH)
 
     def _minimum_window_width(self) -> int:
-        return self._scaled_pixels(MIN_WINDOW_WIDTH)
+        return (
+            self._layout_minimum[0]
+            if "_layout_minimum" in self.__dict__
+            else self._scaled_pixels(MIN_WINDOW_WIDTH)
+        )
 
     def _default_window_height(self) -> int:
         return self._scaled_pixels(WINDOW_HEIGHT)
 
     def _minimum_window_height(self) -> int:
-        return self._scaled_pixels(MIN_WINDOW_HEIGHT)
+        return (
+            self._layout_minimum[1]
+            if "_layout_minimum" in self.__dict__
+            else self._scaled_pixels(MIN_WINDOW_HEIGHT)
+        )
+
+    def _apply_minimum_size(self) -> None:
+        """Reserve readable document space after measuring native fonts and controls."""
+        self.update_idletasks()
+        reading_font = tkfont.Font(self, font=self.output.cget("font"))
+        reading_height = max(201, reading_font.metrics("linespace") * 12 + 52)
+        chrome_height = self.winfo_reqheight() - self.output.winfo_reqheight()
+        self._layout_minimum = (
+            max(
+                self._scaled_pixels(MIN_WINDOW_WIDTH),
+                self.toolbar.winfo_reqwidth() + 48,
+                reading_font.measure("0") * 48 + 64,
+            ),
+            max(self._scaled_pixels(MIN_WINDOW_HEIGHT), chrome_height + reading_height),
+        )
+        self.minsize(*self._layout_minimum)
 
     def _select_display_font(self) -> str:
         available_fonts = {name.lower() for name in tkfont.families(self)}
@@ -204,12 +231,14 @@ class TelegraphyTablet(tk.Tk):
 
     def _build_controls(self) -> None:
         toolbar = tk.Frame(self.screen, bg=theme.SURFACE, padx=14, pady=12)
+        self.toolbar = toolbar
         toolbar.pack(fill="x")
         toolbar.columnconfigure(4, weight=1)
         self.seed_var = tk.StringVar(
             value=str(self.run_options.seed) if self.run_options.seed is not None else "",
         )
         self.date_var = tk.StringVar(value=self.run_options.date or "")
+        self.input_entries: list[ttk.Entry] = []
         for column, label, variable, width in (
             (0, "Seed (optional)", self.seed_var, 10),
             (2, "Date (YYYY-MM-DD)", self.date_var, 14),
@@ -222,12 +251,14 @@ class TelegraphyTablet(tk.Tk):
                 font=(self.font_family, 9),
                 anchor="w",
             ).grid(row=0, column=column, sticky="w", padx=(0, 14), pady=(0, 5))
-            ttk.Entry(
+            entry = ttk.Entry(
                 toolbar,
                 width=width,
                 textvariable=variable,
                 font=(self.font_family, 11),
-            ).grid(row=1, column=column, sticky="ew", padx=(0, 14))
+            )
+            entry.grid(row=1, column=column, sticky="ew", padx=(0, 14))
+            self.input_entries.append(entry)
         self.generate_button = ttk.Button(
             toolbar,
             text="Generate brief",

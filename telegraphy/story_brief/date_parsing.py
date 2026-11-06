@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from datetime import date
 
-_ISO_CALENDAR_DATE_PATTERN = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}")
+_ISO_CALENDAR_DATE_PATTERN = re.compile(r"\d{4}-\d{2}-\d{2}")
 _ISO_CALENDAR_DATE_ERROR = "date must be an ISO calendar date (YYYY-MM-DD)"
 
 

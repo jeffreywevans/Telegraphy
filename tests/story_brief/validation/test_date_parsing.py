@@ -23,6 +23,7 @@ def test_parse_iso_calendar_date_accepts_exact_calendar_date() -> None:
         "2000-W01-1",
         " 2000-01-01",
         "2000-01-01 ",
+        "٢٠٠٠-٠١-٠١",
     ],
 )
 def test_parse_iso_calendar_date_rejects_other_iso_forms(raw: str) -> None:

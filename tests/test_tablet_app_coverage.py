@@ -406,6 +406,35 @@ def test_set_output_updates_text_widget_state() -> None:
     tablet.output.see.assert_called_once_with("1.0")
 
 
+def test_set_output_tags_metadata_title_and_heading() -> None:
+    tablet = _make_tablet()
+    tablet.output = MagicMock()
+    text = "---\\ntitle: Example\\n---\\n# Story Title\\n## Story Draft"
+
+    tablet_app.TelegraphyTablet._set_output(tablet, text)
+
+    assert tablet.output.tag_add.call_args_list == [
+        call("metadata", "1.0", "1.end"),
+        call("metadata", "2.0", "2.end"),
+        call("metadata", "3.0", "3.end"),
+        call("title", "4.0", "4.end"),
+        call("heading", "5.0", "5.end"),
+    ]
+
+
+def test_focus_navigation_handles_missing_neighbor() -> None:
+    tablet = _make_tablet()
+    tablet.output = MagicMock()
+    tablet.output.tk_focusNext.return_value = None
+    tablet.output.tk_focusPrev.return_value = None
+    event = tk.Event()
+
+    assert tablet._focus_next_control(event) == "break"
+    assert tablet._focus_previous_control(event) == "break"
+    tablet.output.tk_focusNext.assert_called_once_with()
+    tablet.output.tk_focusPrev.assert_called_once_with()
+
+
 def test_resize_message_keeps_diagnostics_inside_window() -> None:
     tablet = _make_tablet()
     event = tk.Event()

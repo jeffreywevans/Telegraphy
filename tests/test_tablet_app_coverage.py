@@ -167,7 +167,7 @@ def test_generate_story_brief_starts_worker_and_starts_polling(
     tablet.generate_button.configure.assert_called_once_with(state="disabled")
     tablet.copy_button.configure.assert_called_once_with(state="disabled")
     tablet.status.configure.assert_called_once_with(text="Generating...")
-    set_output.assert_called_once_with("Kendall is warming her sweet ass up...")
+    set_output.assert_called_once_with("Generating story brief...")
     assert thread_record == {"target": tablet._run_cli_worker, "daemon": True, "started": True}
     assert tablet._worker_active is True
     assert poll_called == [True]

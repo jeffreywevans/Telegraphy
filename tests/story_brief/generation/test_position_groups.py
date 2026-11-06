@@ -57,7 +57,9 @@ def test_position_group_selection_uses_weight_then_uniform_variants(
 
 
 def test_packaged_positions_are_sorted_and_total_100_percent() -> None:
-    raw = get_data()["config"]["sexual_scene_tag_groups"]["position"]
+    groups = get_data()["config"]["sexual_scene_tag_groups"]
+    assert isinstance(groups, dict)
+    raw = groups["position"]
     assert list(raw) == sorted(raw)
     assert len(raw) == 16
     assert sum(entry["weight"] for entry in raw.values()) == 100
@@ -73,11 +75,11 @@ def test_packaged_positions_are_sorted_and_total_100_percent() -> None:
         ({}, "non-empty object"),
         ({"": {"weight": 2, "variants": ["a"]}}, "names must be non-empty"),
         ({"a": []}, "expected weight and variants"),
-        ({"a": {"weight": True, "variants": ["a"]}}, "weight must be between"),
-        ({"a": {"weight": "2", "variants": ["a"]}}, "weight must be between"),
-        ({"a": {"weight": float("nan"), "variants": ["a"]}}, "weight must be between"),
-        ({"a": {"weight": 0, "variants": ["a"]}}, "weight must be between"),
-        ({"a": {"weight": 33, "variants": ["a"]}}, "weight must be between"),
+        ({"a": {"weight": True, "variants": ["a"]}}, "weight must be greater"),
+        ({"a": {"weight": "2", "variants": ["a"]}}, "weight must be greater"),
+        ({"a": {"weight": float("nan"), "variants": ["a"]}}, "weight must be greater"),
+        ({"a": {"weight": 0, "variants": ["a"]}}, "weight must be greater"),
+        ({"a": {"weight": 101, "variants": ["a"]}}, "weight must be greater"),
         ({"a": {"weight": 2, "variants": []}}, "non-empty string list"),
         ({"a": {"weight": 2, "variants": "a"}}, "non-empty string list"),
         ({"a": {"weight": 2, "variants": [1]}}, "non-empty string list"),
@@ -113,3 +115,12 @@ def test_invalid_position_groups_are_rejected_when_loading_dataset(
     payloads = load_data(dataset)
     with pytest.raises(ValueError, match="total 100 percent"):
         _build_story_data(payloads)
+
+
+@pytest.mark.parametrize("weights", [(100,), (0.5, 99.5), (40, 60)])
+def test_position_weights_accept_valid_percentages(weights: tuple[float, ...]) -> None:
+    raw = {
+        str(index): {"weight": weight, "variants": ["tag"]} for index, weight in enumerate(weights)
+    }
+    normalized = normalize_position_groups(raw)
+    assert tuple(group["weight"] for group in normalized.values()) == weights

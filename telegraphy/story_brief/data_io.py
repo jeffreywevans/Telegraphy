@@ -8,7 +8,7 @@ from functools import lru_cache
 from importlib.resources import files
 from importlib.resources.abc import Traversable
 from pathlib import Path
-from typing import Any, Final, cast
+from typing import Final
 
 from .dataset_layout import DATA_FILENAMES as DATA_FILENAMES
 from .dataset_layout import assemble_dataset_sections
@@ -21,7 +21,7 @@ _PACKAGE_DATA_RESOURCE: Final = "telegraphy.story_brief.data"
 
 
 class DataDirError(RuntimeError):
-    """Raised when the configured data directory is invalid or unreachable."""
+    """Raised when the data directory or a required dataset file cannot be loaded."""
 
 
 _ALLOWED_FILENAMES: Final[frozenset[str]] = frozenset(DATA_FILENAMES.values())
@@ -189,7 +189,7 @@ def data_file(filename: str) -> Path | Traversable:
     return _data_file(filename)
 
 
-def _load_json(path: Path | Traversable) -> Any:
+def _load_json(path: Path | Traversable) -> object:
     path = _validated_load_path(path)
     if isinstance(path, Path):
         flags = os.O_RDONLY
@@ -206,18 +206,24 @@ def _load_json(path: Path | Traversable) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def load_json(path: Path | Traversable) -> Any:
+def load_json(path: Path | Traversable) -> object:
     """Load JSON from a pathlib.Path or Traversable resource."""
     return _load_json(path)
 
 
 def _load_required_dataset_files(
     data_dir: Path | Traversable,
-) -> dict[str, Any]:
-    payloads = {
-        key: _load_json(_data_file_from_dir(data_dir, filename))
-        for key, filename in DATA_FILENAMES.items()
-    }
+) -> dict[str, dict[str, object]]:
+    payloads: dict[str, object] = {}
+    for key, filename in DATA_FILENAMES.items():
+        try:
+            payloads[key] = _load_json(_data_file_from_dir(data_dir, filename))
+        except json.JSONDecodeError as exc:
+            raise DataDirError(f"Invalid JSON in dataset file {filename!r}: {exc}") from exc
+        except RecursionError as exc:
+            raise DataDirError(
+                f"Dataset file {filename!r} exceeds the supported JSON nesting depth."
+            ) from exc
     return assemble_dataset_sections(payloads)
 
 
@@ -233,7 +239,7 @@ def _load_failure_location() -> str:
     return "data directory"
 
 
-def load_data(data_dir: Path | Traversable | None = None) -> dict[str, Any]:
+def load_data(data_dir: Path | Traversable | None = None) -> dict[str, dict[str, object]]:
     """Load field files and assemble the backward-compatible in-memory sections."""
     selected_data_dir = resolve_data_dir() if data_dir is None else data_dir
     try:
@@ -247,17 +253,17 @@ def load_data(data_dir: Path | Traversable | None = None) -> dict[str, Any]:
 
 
 @lru_cache(maxsize=1)
-def _get_data_cached() -> dict[str, Any]:
+def _get_data_cached() -> dict[str, dict[str, object]]:
     return load_data()
 
 
-def get_data() -> dict[str, Any]:
+def get_data() -> dict[str, dict[str, object]]:
     return copy.deepcopy(_get_data_cached())
 
 
 @lru_cache(maxsize=1)
 def _get_normalized_story_data_cached() -> StoryData:
-    return cast(StoryData, _build_story_data(_get_data_cached()))
+    return _build_story_data(_get_data_cached())
 
 
 def get_normalized_story_data() -> StoryData:

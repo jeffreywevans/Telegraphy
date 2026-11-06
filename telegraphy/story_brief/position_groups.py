@@ -36,9 +36,11 @@ def _normalize_position_group(name: str, entry: object) -> PositionGroup:
         isinstance(weight, bool)
         or not isinstance(weight, (int, float))
         or not math.isfinite(weight)
-        or not 1 <= weight <= 32
+        or not 0 < weight <= 100
     ):
-        raise ValueError(f"position group {name}: weight must be between 1 and 32 percent")
+        raise ValueError(
+            f"position group {name}: weight must be greater than 0 and at most 100 percent"
+        )
     variants = entry["variants"]
     if (
         not isinstance(variants, list)

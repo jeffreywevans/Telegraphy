@@ -1,14 +1,13 @@
 from __future__ import annotations
 
-from typing import Any
-
 from ._constants import PROMPT_LIST_KEYS
 from .generation_helpers import stable_sorted_pool
 from .position_groups import normalize_position_groups
 from .schema_validation import validate_story_data
+from .story_data import StoryData
 
 
-def _build_story_data(dataset_payloads: dict[str, Any]) -> dict[str, Any]:
+def _build_story_data(dataset_payloads: dict[str, dict[str, object]]) -> StoryData:
     """Normalize validated story dataset payloads into runtime selection structures."""
     titles = dataset_payloads["titles"]
     entities = dataset_payloads["entities"]
@@ -27,9 +26,11 @@ def _build_story_data(dataset_payloads: dict[str, Any]) -> dict[str, Any]:
     )
     normalized_config = validated.normalized_config
 
-    normalized_titles = tuple(stable_sorted_pool(str(value) for value in titles["titles"]))
+    normalized_titles = tuple(
+        stable_sorted_pool(str(value) for value in _list_values(titles["titles"]))
+    )
     prompt_lists = {
-        key: tuple(stable_sorted_pool(str(value) for value in prompts[key]))
+        key: tuple(stable_sorted_pool(str(value) for value in _list_values(prompts[key])))
         for key in PROMPT_LIST_KEYS
     }
 
@@ -66,9 +67,14 @@ def _build_story_data(dataset_payloads: dict[str, Any]) -> dict[str, Any]:
         "titles": normalized_titles,
         "character_availability": tuple(validated.character_availability),
         "setting_availability": tuple(validated.setting_availability),
-        **prompt_lists,
+        "central_conflicts": prompt_lists["central_conflicts"],
+        "inciting_pressures": prompt_lists["inciting_pressures"],
+        "ending_types": prompt_lists["ending_types"],
+        "style_guidance": prompt_lists["style_guidance"],
         "weather_comment": str(weather.get("weather_comment", "")),
-        "weather": tuple(stable_sorted_pool(str(value) for value in weather["weather"])),
+        "weather": tuple(
+            stable_sorted_pool(str(value) for value in _list_values(weather["weather"]))
+        ),
         "date_start": validated.date_start,
         "date_end": validated.date_end,
         "sexual_content_presence_options": sexual_content_presence_options,
@@ -104,3 +110,10 @@ def _build_story_data(dataset_payloads: dict[str, Any]) -> dict[str, Any]:
             for protagonist, distribution in validated.partner_distributions.by_character.items()
         },
     }
+
+
+def _list_values(value: object) -> list[object]:
+    """Narrow validated JSON arrays for normalization."""
+    if not isinstance(value, list):
+        raise ValueError("Expected a validated JSON array")
+    return value

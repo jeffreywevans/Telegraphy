@@ -122,6 +122,35 @@ def test_print_only_writes_nothing(tmp_path: Path) -> None:
     assert list(tmp_path.iterdir()) == []
 
 
+@pytest.mark.parametrize("unbuffered", [False, True])
+def test_print_only_handles_closed_pipe(unbuffered: bool) -> None:
+    read_fd, write_fd = os.pipe()
+    os.close(read_fd)
+    try:
+        result = subprocess.run(
+            [
+                sys.executable,
+                *(["-u"] if unbuffered else []),
+                "-m",
+                ENTRYPOINT,
+                "--seed",
+                "42",
+                "--print-only",
+            ],
+            cwd=REPO_ROOT,
+            stdout=write_fd,
+            stderr=subprocess.PIPE,
+            text=True,
+            check=False,
+            timeout=CLI_TIMEOUT_SECONDS,
+        )
+    finally:
+        os.close(write_fd)
+
+    assert result.returncode == 1
+    assert result.stderr == ""
+
+
 def test_print_only_with_explicit_date_sets_time_period(tmp_path: Path) -> None:
     result = run_cli("--seed", "42", "--date", "2000-01-01", "--print-only", cwd=tmp_path)
     assert result.returncode == 0
@@ -302,3 +331,22 @@ def test_cli_handles_missing_dataset_override_without_traceback(tmp_path: Path) 
         data_dir=missing_dir,
     )
     assert_cli_error_without_traceback(result, "Failed to load story brief dataset file")
+
+
+@pytest.mark.parametrize("deeply_nested", [False, True])
+def test_cli_reports_invalid_dataset_json_without_traceback(
+    deeply_nested: bool,
+    cli_dataset_factory: Callable[[str], Path],
+    tmp_path: Path,
+) -> None:
+    dataset = cli_dataset_factory("invalid-json")
+    content = "[" * 100_000 + "0" + "]" * 100_000 if deeply_nested else '{"invalid": }'
+    (dataset / "weather.json").write_text(content, encoding="utf-8")
+
+    result = run_cli("--print-only", cwd=tmp_path, data_dir=dataset)
+
+    assert result.returncode == 1
+    assert result.stdout == ""
+    assert_cli_error_without_traceback(result, "weather.json")
+    assert ("nesting depth" if deeply_nested else "Invalid JSON") in result.stderr
+    assert "RecursionError" not in result.stderr

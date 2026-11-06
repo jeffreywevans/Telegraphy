@@ -280,23 +280,37 @@ That command produces Markdown shaped like this:
 
 ```markdown
 ---
-title: It's Only Profound if You're Not Stoned
-protagonist: Cremeans
-secondary_character: Bill Davenport
-time_period: '2000-01-01'
-setting: Lenovo Center - Raleigh, NC, USA
-weather: lousy
-sexual_content_level: none
-sexual_partner: null
-sexual_scene_tags: []
-word_count_target: 9900
+title: The Benefits of Posing for Playboy
+protagonist: Jeremy Evans
+secondary_character: Sarah Malcolm
+time_period: '2003-01-25'
+setting: Commonwealth Stadium – Edmonton, AB, Canada
+weather: great
+central_conflict: The protagonist’s sense of self starts dissolving inside the band’s
+  found-family machinery.
+inciting_pressure: Kathy wants the guys to care more about fashion
+ending_type: bittersweet
+style_guidance: cinematic third-person with escalating tension, personal safety fear,
+  and dark accusations.
+sexual_content_level: on_page_full
+sexual_partner: third_party_female
+sexual_scene_tags:
+- backstage
+- marathon
+- detached
+- affection
+- delight
+- downward_doggy
+word_count_target: 9500
 ---
 
-# It's Only Profound if You're Not Stoned
+Interpret the YAML and write a deliciously wild short story, based on the material. You may indulge yourself in every regard. Use the canon, and writing style guidelines. Before writing the final story, use your writing style-book guidelines: 1. Scene headers use slug format. 2. Dialogue appears only in CHARACTER NAME blocks. 3. No dialogue appears inside prose paragraphs. 4. Character names in dialogue blocks are ALL CAPS.
+
+# The Benefits of Posing for Playboy
 
 ## Story Draft
 
-*Write a story of approximately 9900 words using the YAML brief above.*
+*Write a story of approximately 9500 words using the YAML brief above.*
 ```
 
 ### Write to a specific directory

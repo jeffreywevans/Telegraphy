@@ -9,7 +9,6 @@ import tkinter as tk
 from pathlib import Path
 
 
-
 def _noop() -> None:
     """Default cleanup used before Tk has loaded successfully."""
     return None

@@ -2,15 +2,15 @@
   "$schema": "https://cyclonedx.org/schema/bom-1.6.schema.json",
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:4b31a524-e60d-5655-891e-bc1173414c9c",
+  "serialNumber": "urn:uuid:11bb2a5d-960d-5eb5-b80c-c6360ce3aa6f",
   "version": 1,
   "metadata": {
     "component": {
-      "bom-ref": "pkg:pypi/commuted-telegraphy@0.6.5",
+      "bom-ref": "pkg:pypi/commuted-telegraphy@0.7.0",
       "type": "application",
       "name": "Commuted_Telegraphy",
-      "version": "0.6.5",
-      "purl": "pkg:pypi/commuted-telegraphy@0.6.5",
+      "version": "0.7.0",
+      "purl": "pkg:pypi/commuted-telegraphy@0.7.0",
       "licenses": [
         {
           "license": {
@@ -37,7 +37,7 @@
   ],
   "dependencies": [
     {
-      "ref": "pkg:pypi/commuted-telegraphy@0.6.5",
+      "ref": "pkg:pypi/commuted-telegraphy@0.7.0",
       "dependsOn": [
         "pkg:pypi/pyyaml"
       ]

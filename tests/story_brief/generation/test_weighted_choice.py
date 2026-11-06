@@ -56,8 +56,9 @@ def test_weighted_choice_invalid_inputs(
     expected_exc: type[Exception],
 ) -> None:
     rng = random.Random(1)
+    typed_weights = cast(list[float], weights)
     with pytest.raises(expected_exc):
-        weighted_choice(rng, options, cast(list[float], weights))
+        weighted_choice(rng, options, typed_weights)
 
 
 def test_weighted_choice_never_selects_zero_weight_option() -> None:
@@ -249,9 +250,6 @@ def test_pick_sexual_scene_tags_rejects_unknown_optional_group() -> None:
 
 def test_pick_tags_from_selected_groups_rejects_unknown_group() -> None:
     rng = random.Random(1)
+    data = _partial_story_data({"sexual_scene_tag_groups": {"known": ("tag",)}})
     with pytest.raises(ValueError, match="Unknown sexual scene tag group"):
-        pick_tags_from_selected_groups(
-            rng,
-            ["missing"],
-            _partial_story_data({"sexual_scene_tag_groups": {"known": ("tag",)}}),
-        )
+        pick_tags_from_selected_groups(rng, ["missing"], data)

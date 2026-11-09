@@ -311,7 +311,12 @@ class TelegraphyTablet(tk.Tk):
         scrollbar.pack(side="right", fill="y")
         self.output.configure(yscrollcommand=scrollbar.set)
         self.output.tag_configure(
-            "heading", foreground=theme.FROST, font=(self.font_family, 18, "bold"), spacing1=18
+            "heading",
+            foreground=theme.FROST,
+            font=(self.font_family, 18, "bold"),
+            underline=True,
+            spacing1=18,
+            spacing3=0,
         )
         self.output.tag_configure(
             "title", foreground=theme.TEXT, font=(self.font_family, 25, "bold"), spacing3=12
@@ -415,10 +420,17 @@ class TelegraphyTablet(tk.Tk):
     def _set_output(self, text: str) -> None:
         self.output.configure(state="normal")
         self.output.delete("1.0", "end")
-        display_lines = [line.removeprefix("## ").removeprefix("# ") for line in text.splitlines()]
+        lines: list[str] = []
+        after_heading = False
+        for line in text.splitlines():
+            if after_heading and not line.strip():
+                continue
+            lines.append(line)
+            after_heading = line.startswith("## ")
+        display_lines = [line.removeprefix("## ").removeprefix("# ") for line in lines]
         self.output.insert("1.0", "\n".join(display_lines))
         in_metadata = False
-        for number, line in enumerate(text.splitlines(), start=1):
+        for number, line in enumerate(lines, start=1):
             if line == "---":
                 in_metadata = not in_metadata
             if in_metadata or line == "---":

@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+from unittest.mock import MagicMock
+
 import pytest
 
 from telegraphy.gui.preview import brief_preview
+from telegraphy.gui.tablet_app import TelegraphyTablet
 
 
 def test_preview_formats_fields_without_losing_instructions() -> None:
@@ -37,3 +40,24 @@ def test_preview_preserves_unrecognized_output(markdown: str) -> None:
 
 def test_preview_supports_an_empty_metadata_object() -> None:
     assert brief_preview("---\n{}\n---").startswith("# Story brief")
+
+
+def test_display_removes_heading_gaps_and_keeps_section_tags_aligned() -> None:
+    app = MagicMock(spec=TelegraphyTablet)
+    app.output = MagicMock()
+    text = (
+        "# Title\n\nMetadata\n\n## Characters & setting\n\n \n"
+        "Protagonist: Alex\n\n## Conflict\n\nAn oath."
+    )
+
+    TelegraphyTablet._set_output(app, text)
+
+    app.output.insert.assert_called_once_with(
+        "1.0",
+        "Title\n\nMetadata\n\nCharacters & setting\nProtagonist: Alex\n\nConflict\nAn oath.",
+    )
+    assert app.output.tag_add.call_args_list == [
+        (("title", "1.0", "1.end"),),
+        (("heading", "5.0", "5.end"),),
+        (("heading", "8.0", "8.end"),),
+    ]

@@ -724,7 +724,7 @@ Current package facts:
 | Field | Value |
 | --- | --- |
 | Package | `telegraphy` |
-| Current version | `0.7.0` |
+| Current version | `0.7.1` |
 | Python | `>=3.14` |
 | Runtime dependency | `PyYAML>=6.0.3` |
 | Console script | `story-brief = telegraphy.story_brief.cli:main` |
@@ -748,20 +748,20 @@ For generation changes, preserve deterministic seeded behavior unless the PR exp
 
 ## Release notes and status
 
-Current version: `0.7.0`.
+Current version: `0.7.1`.
 
-The 0.7 series centers on the desktop experience. Version 0.7.0 replaces the
-old tablet-style shell with a Nord-themed reading workspace, improves native
-cross-platform sizing and keyboard navigation, and adds Tcl/Tk runtime diagnostics
-for more reliable GUI startup and CI verification.
+The 0.7 series centers on the desktop experience. Version 0.7.1 refines the
+Nord-themed reading workspace, corrects partner availability boundaries, makes
+new story-brief files private by default on POSIX systems, and refreshes the
+build and review workflows for Python 3.15.
 
 Highlights:
 
-- replaced the decorative tablet shell with a spacious Nord reading workspace;
-- separated GUI theme, preview formatting, and Tcl/Tk runtime diagnostics into focused modules;
-- improved DPI-aware sizing, platform font selection, focus traversal, clipboard behavior, and headless failure reporting;
-- hardened CLI stdout handling on Windows without suppressing unrelated errors;
-- expanded GUI regression and native-window coverage while retaining deterministic story generation and the existing data schema.
+- tightened reading-workspace spacing and underlined its major section headings;
+- aligned the Jim Brown/Kendall Weatherby and Sarah Malcolm/Gilley eras with partner availability;
+- changed new POSIX story-brief output to owner-only permissions while preserving forced-replacement modes;
+- repaired the manual Claude review workflow and pinned CodeQL actions to immutable revisions;
+- updated the shared build interpreter to Python 3.15.0 and refreshed pinned GitHub Actions.
 
 See [CHANGELOG.md](https://github.com/jeffreywevans/Telegraphy/blob/HEAD/CHANGELOG.md) for release notes.
 

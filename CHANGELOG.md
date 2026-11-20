@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-11-20
+
+### Changed
+- Tighten GUI section spacing and underline the major reading-workspace headings.
+- Run the shared build environment on Python 3.15.0 and update pinned GitHub Actions revisions.
+- Make manually dispatched Claude reviews require an explicit pull-request number and post the resulting review to that pull request.
+
+### Fixed
+- Align Jim Brown's Kendall Weatherby era and Sarah Malcolm's Gilley era with those partners' configured availability dates.
+- Remove dead pull-request logic from the manual Claude workflow and pin CodeQL actions to immutable revisions.
+
+### Security
+- Create new story briefs with owner-only permissions on POSIX systems while preserving an existing file's read/write mode during forced replacement.
+- Disable persisted checkout credentials in the Claude review workflow and use its scoped GitHub token directly.
+
 ## [0.7.0] - 2026-11-06
 
 ### Added
@@ -283,7 +298,8 @@ This release marks the transition from a single-purpose generator script into a 
 - Refactored story brief generation into focused modules (CLI, data loading, validation, linting, etc.).
 - Hardened output-path handling and filename generation.
 
-[Unreleased]: https://github.com/jeffreywevans/Telegraphy/compare/0.7.0...HEAD
+[Unreleased]: https://github.com/jeffreywevans/Telegraphy/compare/0.7.1...HEAD
+[0.7.1]: https://github.com/jeffreywevans/Telegraphy/compare/0.7.0...0.7.1
 [0.7.0]: https://github.com/jeffreywevans/Telegraphy/compare/0.6.5...0.7.0
 [0.6.5]: https://github.com/jeffreywevans/Telegraphy/compare/0.6.4...0.6.5
 [0.5.2]: https://github.com/jeffreywevans/Telegraphy/compare/v0.5.1...v0.5.2

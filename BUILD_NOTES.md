@@ -1,11 +1,76 @@
-# Build Notes — 0.7.0
+# Build Notes — 0.7.1
+
+Prepared on 2026-11-20 from source baseline `6f91bfeabfe0d986cab32897dad07b51a08d9473`
+on `main`. This patch release tightens generated-file privacy, corrects two partner-era
+boundaries, refines the desktop workspace, and repairs and refreshes build/review automation.
+
+## Release contents
+
+- Create new POSIX story briefs with owner-only permissions and preserve an existing
+  destination's read/write mode during forced replacement.
+- Align Jim Brown's Kendall Weatherby era and Sarah Malcolm's Gilley era with the
+  partners' configured availability dates.
+- Tighten GUI section spacing and underline the reading workspace's major headings.
+- Repair manual Claude pull-request reviews, disable persisted checkout credentials,
+  and pin CodeQL actions to immutable revisions.
+- Update pinned GitHub Actions and use Python 3.15.0 for the shared build environment.
+- Synchronize package metadata, README, changelog, and generated CycloneDX SBOM to 0.7.1.
+
+## Validation
+
+- Python 3.15.0 on Linux; the full headless suite passes with 659 tests passed and six
+  display-dependent tests skipped. All six display-dependent tests pass separately
+  against Xvfb, for 665 passing tests across the two runs.
+- Combined line/branch coverage is 99.60%, above the 90% release threshold.
+- Dataset lint reports no blocking gaps or warnings; strict seeded validation passes.
+- Ruff lint, full Ruff formatting (81 files), strict mypy (69 source files), actionlint,
+  and whitespace checks pass.
+- Source and wheel builds pass. Both archives contain all 15 JSON datasets and contain
+  no `.env`, zip, log, coverage, or test-result files.
+- A clean Python 3.15 environment installs the wheel outside the checkout. CLI help,
+  unseeded and seeded generation, date-specific and strict generation, dataset lint,
+  copied-data overrides, output creation, overwrite rejection, and forced replacement pass.
+- New and forcibly replaced briefs use mode `0600` in the POSIX smoke test.
+- The installed GUI reports version 0.7.1. Native-window tests and an end-to-end flow
+  covering generation, preview, clipboard copy, status updates, and failure recovery pass.
+  A captured 1167×833 render was inspected for layout, spacing, headings, and error text.
+- Security review found no `shell=True`, dynamic `eval`/`exec`, pickle, unsafe
+  `yaml.load`, or `os.system` usage in package Python source, no tracked secret-file
+  names, and no mutable GitHub Actions references. Existing output-path security tests pass.
+- `PyYAML>=6.0.3` remains the only runtime dependency. The isolated release environment
+  reports no outdated packages, and the generated SBOM records the declared dependency.
+- Three required seeded briefs were read. Their YAML and Markdown are well formed, their
+  dated characters and partners are available, and no obvious degenerate output was found.
+- Remote GitHub Actions, CodeQL, and publication remain required gates before the public
+  release is declared complete.
+
+## Release artifacts
+
+- `commuted_telegraphy-0.7.1-py3-none-any.whl`
+  (`sha256:03f017fafb3a42970a7d3824aee28a1f8690866883c07a948638fde98ed5249c`)
+- `commuted_telegraphy-0.7.1.tar.gz`
+  (`sha256:289484adea31b1afe0fb866305cd7d5591756a5b6d8d14ab75c2abdfe804fc8b`)
+
+These local artifacts validate the source tree. The publication workflow rebuilds them
+from the tagged commit before trusted publishing to PyPI.
+
+## Publication
+
+After the 0.7.1 preparation commit is merged and remote checks are green, create tag
+`0.7.1` on the exact `main` commit and publish a GitHub release for that tag. Publishing
+the release triggers tag/version verification, fresh artifact builds, and PyPI trusted
+publishing. Version 0.7.1 was not present on PyPI during release preparation.
+
+## Historical build notes
+
+### Build 0.7.0
 
 Prepared on 2026-11-06 from source baseline `e73a10cd1e63a86bfdb92d1a533313d74f65b540`
 on `main`. This release is a feature-level GUI/runtime update over 0.6.5. The release
 preparation updates package metadata, README status, changelog, SBOM identity, and
 this build record. No tag or GitHub release is created by this preparation.
 
-## Release contents
+#### Release contents
 
 - Replace the decorative tablet shell with a spacious Nord-themed reading workspace.
 - Add focused GUI modules for theme configuration, brief-preview formatting, and
@@ -18,7 +83,7 @@ this build record. No tag or GitHub release is created by this preparation.
 - Expand cross-platform GUI/runtime regression coverage and CI diagnostics.
 - Synchronize package metadata, README, changelog, and generated CycloneDX SBOM to 0.7.0.
 
-## Validation
+#### Validation
 
 - The pre-release code baseline is green in GitHub Actions and SonarQube, with no
   reported errors and 100% line and condition coverage; the current suite contains
@@ -39,15 +104,13 @@ this build record. No tag or GitHub release is created by this preparation.
 - The publication workflow independently checks tag/package-version agreement and
   builds the source distribution and wheel before PyPI trusted publishing.
 
-## Manual publication
+#### Manual publication
 
 After the final 0.7.0 preparation head is green, create a GitHub tag `0.7.0`
 (or `v0.7.0`; the publication workflow accepts either form) targeting that exact
 commit, then publish a GitHub release for the tag. Publishing the release triggers
 the Upload Python Package workflow, which verifies tag/version agreement, builds
 the distributions, and publishes through PyPI trusted publishing.
-
-## Historical build notes
 
 ### Build 0.6.4
 

@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Fixed
 - Align Jim Brown's Kendall Weatherby era and Sarah Malcolm's Gilley era with those partners' configured availability dates.
 - Remove dead pull-request logic from the manual Claude workflow and pin CodeQL actions to immutable revisions.
+- Enforce the dataset JSON nesting limit consistently across Python 3.15 platforms.
 
 ### Security
 - Create new story briefs with owner-only permissions on POSIX systems while preserving an existing file's read/write mode during forced replacement.

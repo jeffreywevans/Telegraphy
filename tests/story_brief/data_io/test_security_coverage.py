@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import unicodedata
 from collections.abc import Callable
@@ -220,6 +221,20 @@ def test_load_json_reads_from_traversable_text_payload() -> None:
     traversable = _JsonTextTraversable('{"answer": 42}')
 
     assert data_io._load_json(cast(Traversable, traversable)) == {"answer": 42}
+
+
+def test_json_nesting_limit_ignores_structural_characters_inside_strings() -> None:
+    literal_brackets = "[{" * (data_io._MAX_JSON_NESTING_DEPTH + 1)
+
+    data_io._validate_json_nesting(json.dumps({"literal": literal_brackets}))
+
+
+def test_json_nesting_limit_rejects_excessive_arrays() -> None:
+    depth = data_io._MAX_JSON_NESTING_DEPTH + 1
+    payload = "[" * depth + "0" + "]" * depth
+
+    with pytest.raises(RecursionError, match="supported depth"):
+        data_io._validate_json_nesting(payload)
 
 
 def test_validated_load_path_rejects_nul_bytes_for_traversable_name() -> None:

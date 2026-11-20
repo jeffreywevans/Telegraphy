@@ -643,7 +643,7 @@ It also performs filename checks and sanitization, including:
 - UTF-8 byte-length limits;
 - atomic same-directory publication and explicit symbolic-link target rejection.
 
-On POSIX systems, newly created briefs use normal non-executable file permissions filtered by
+On POSIX systems, newly created briefs use owner-only read/write permissions (`0600`) filtered by
 the current umask. Forced replacement preserves an existing destination's non-executable
 read/write permission mode.
 

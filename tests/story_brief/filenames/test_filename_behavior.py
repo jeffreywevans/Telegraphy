@@ -271,7 +271,7 @@ def test_write_output_markdown_force_overwrites_existing_file(tmp_path: Path) ->
 @pytest.mark.skipif(os.name == "nt", reason="POSIX umask and permission modes")
 @pytest.mark.parametrize(
     ("file_umask", "expected_mode"),
-    [(0o077, 0o600), (0o022, 0o644), (0o002, 0o664), (0o000, 0o666)],
+    [(0o277, 0o400), (0o077, 0o600), (0o022, 0o600), (0o002, 0o600), (0o000, 0o600)],
 )
 def test_write_output_markdown_honors_umask(
     tmp_path: Path,

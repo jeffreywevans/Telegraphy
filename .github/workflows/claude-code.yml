@@ -2,12 +2,15 @@ name: Claude Code
 
 on:
   workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Pull request number to review
+        required: true
+        type: number
 
 permissions:
   contents: read
   pull-requests: write
-  issues: write
-  id-token: write
 
 env:
   # Opt all JavaScript-based actions into Node.js 24 ahead of the GitHub-hosted runner default change.
@@ -17,9 +20,10 @@ jobs:
   claude-code:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Run Claude Code Action
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -29,14 +33,16 @@ jobs:
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          track_progress: true
+          github_token: ${{ github.token }}
           prompt: |
             REPO: ${{ github.repository }}
-            PR NUMBER: ${{ github.event.pull_request.number }}
+            PR NUMBER: ${{ inputs.pr_number }}
 
             Review this pull request. Cover: correctness, logic errors, edge cases,
             security concerns, and adherence to existing patterns in the codebase.
             Be specific — cite file and line. Don't summarize what the code does;
             focus on problems and suggestions.
+            Fetch the requested pull request with gh pr view and gh pr diff,
+            then post your findings to that pull request with gh pr comment.
           claude_args: |
-            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
+            --allowedTools "Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"

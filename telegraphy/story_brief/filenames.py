@@ -10,7 +10,8 @@ from pathlib import Path, PurePath
 DEFAULT_OUTPUT_DIR = Path("output") / "story-seeds"
 MAX_FILENAME_STEM_LENGTH = 120
 MAX_FILENAME_BYTES = 255
-DEFAULT_OUTPUT_FILE_MODE = 0o666
+DEFAULT_OUTPUT_FILE_MODE: int = 0o600
+OUTPUT_READ_WRITE_MASK: int = 0o666
 SAFE_FILENAME_INPUT_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 ._-]{0,254}$")
 UNSAFE_FILENAME_CHARS = re.compile(r'[\x00-\x1f<>:"/\\|?*]+')
 PATH_SPLIT_PATTERN = re.compile(r"[\\/]+")
@@ -279,7 +280,7 @@ def write_output_markdown(
             try:
                 existing_mode = (
                     stat.S_IMODE(candidate_output_path.stat(follow_symlinks=False).st_mode)
-                    & DEFAULT_OUTPUT_FILE_MODE
+                    & OUTPUT_READ_WRITE_MASK
                 )
             except FileNotFoundError:
                 pass
@@ -291,10 +292,10 @@ def write_output_markdown(
             os.close(fd)
             raise
         with handle:
-            if existing_mode is not None:
-                _set_temporary_output_mode(handle.fileno(), temporary_path, existing_mode)
             handle.write(content)
             handle.flush()
+            if existing_mode is not None:
+                _set_temporary_output_mode(handle.fileno(), temporary_path, existing_mode)
             os.fsync(handle.fileno())
 
         if force:

@@ -10,6 +10,7 @@ boundaries, refines the desktop workspace, and repairs and refreshes build/revie
   destination's read/write mode during forced replacement.
 - Align Jim Brown's Kendall Weatherby era and Sarah Malcolm's Gilley era with the
   partners' configured availability dates.
+- Enforce the dataset JSON nesting limit consistently across Python 3.15 platforms.
 - Tighten GUI section spacing and underline the reading workspace's major headings.
 - Repair manual Claude pull-request reviews, disable persisted checkout credentials,
   and pin CodeQL actions to immutable revisions.
@@ -18,10 +19,10 @@ boundaries, refines the desktop workspace, and repairs and refreshes build/revie
 
 ## Validation
 
-- Python 3.15.0 on Linux; the full headless suite passes with 659 tests passed and six
+- Python 3.15.0 on Linux; the full headless suite passes with 661 tests passed and six
   display-dependent tests skipped. All six display-dependent tests pass separately
-  against Xvfb, for 665 passing tests across the two runs.
-- Combined line/branch coverage is 99.60%, above the 90% release threshold.
+  against Xvfb, for 667 passing tests across the two runs.
+- Combined line/branch coverage is 99.45%, above the 90% release threshold.
 - Dataset lint reports no blocking gaps or warnings; strict seeded validation passes.
 - Ruff lint, full Ruff formatting (81 files), strict mypy (69 source files), actionlint,
   and whitespace checks pass.
@@ -47,9 +48,7 @@ boundaries, refines the desktop workspace, and repairs and refreshes build/revie
 ## Release artifacts
 
 - `commuted_telegraphy-0.7.1-py3-none-any.whl`
-  (`sha256:03f017fafb3a42970a7d3824aee28a1f8690866883c07a948638fde98ed5249c`)
 - `commuted_telegraphy-0.7.1.tar.gz`
-  (`sha256:289484adea31b1afe0fb866305cd7d5591756a5b6d8d14ab75c2abdfe804fc8b`)
 
 These local artifacts validate the source tree. The publication workflow rebuilds them
 from the tagged commit before trusted publishing to PyPI.

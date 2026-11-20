@@ -18,6 +18,7 @@ from .story_data import StoryData
 DATA_DIR_ENV_VAR: Final = "TELEGRAPHY_DATA_DIR"
 _CONFIGURED_DATA_DIR_LABEL: Final = "configured data directory (TELEGRAPHY_DATA_DIR)"
 _PACKAGE_DATA_RESOURCE: Final = "telegraphy.story_brief.data"
+_MAX_JSON_NESTING_DEPTH: Final = 256
 
 
 class DataDirError(RuntimeError):
@@ -200,8 +201,34 @@ def _load_json(path: Path | Traversable) -> object:
             os.close(fd)
             raise
         with handle:
-            return json.load(handle)
-    return json.loads(path.read_text(encoding="utf-8"))
+            payload = handle.read()
+    else:
+        payload = path.read_text(encoding="utf-8")
+    _validate_json_nesting(payload)
+    return json.loads(payload)
+
+
+def _validate_json_nesting(payload: str) -> None:
+    """Reject excessive object/array nesting consistently across Python builds."""
+    depth = 0
+    in_string = False
+    escaped = False
+    for character in payload:
+        if in_string:
+            if escaped:
+                escaped = False
+            elif character == "\\":
+                escaped = True
+            elif character == '"':
+                in_string = False
+        elif character == '"':
+            in_string = True
+        elif character in "[{":
+            depth += 1
+            if depth > _MAX_JSON_NESTING_DEPTH:
+                raise RecursionError("JSON nesting exceeds the supported depth")
+        elif character in "]}" and depth:
+            depth -= 1
 
 
 def load_json(path: Path | Traversable) -> object:

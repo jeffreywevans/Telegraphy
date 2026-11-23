@@ -223,10 +223,11 @@ def test_load_json_reads_from_traversable_text_payload() -> None:
     assert data_io._load_json(cast(Traversable, traversable)) == {"answer": 42}
 
 
-def test_json_nesting_limit_ignores_structural_characters_inside_strings() -> None:
+@pytest.mark.parametrize("prefix", ["", 'escaped quote: ", escaped backslash: \\'])
+def test_json_nesting_limit_ignores_structural_characters_inside_strings(prefix: str) -> None:
     literal_brackets = "[{" * (data_io._MAX_JSON_NESTING_DEPTH + 1)
 
-    data_io._validate_json_nesting(json.dumps({"literal": literal_brackets}))
+    data_io._validate_json_nesting(json.dumps({"literal": prefix + literal_brackets}))
 
 
 def test_json_nesting_limit_rejects_excessive_arrays() -> None:

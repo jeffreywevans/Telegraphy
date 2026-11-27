@@ -121,7 +121,7 @@ If adding only a few tests during a change window, prioritize:
    - at least one setting,
    - at least two distinct characters.
 3. Add diagnostics for dead windows/unreachable availability records.
-4. Keep CI coverage across supported Python versions.
+4. Keep CI coverage on the Python version pinned in `.python-version`.
 5. Add lightweight representative seed/date regression checks.
 
 ### Definition of done for story-brief changes

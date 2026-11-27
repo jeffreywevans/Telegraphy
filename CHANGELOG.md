@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+- Require Python 3.15.2 or newer and pin build and publish workflows to Python 3.15.2.
+
 ## [0.7.1] - 2026-11-20
 
 ### Changed

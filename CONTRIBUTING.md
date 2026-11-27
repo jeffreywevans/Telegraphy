@@ -4,7 +4,7 @@ Thanks for contributing to Telegraphy.
 
 ## Development setup
 
-1. Use Python 3.14 or newer.
+1. Use Python 3.15.2 or newer. Use the version in `.python-version` to match CI.
 2. Create and activate a virtual environment.
 3. Install the project with development dependencies:
 
@@ -26,7 +26,7 @@ pytest
 For the full suite in a consistent environment, run:
 
 ```bash
-tox -e py314
+tox -e py315
 ```
 
 If you change generation logic, add or update tests in `tests/` to cover both success and failure cases.

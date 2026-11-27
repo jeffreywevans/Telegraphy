@@ -10,7 +10,7 @@ This file defines coding, testing, and review expectations for AI coding agents 
 - Treat every change as production-grade.
 
 ## Python Standards
-- Target Python 3.14+ syntax unless the repository specifies otherwise.
+- Target Python 3.15 syntax and support Python 3.15.2 as the minimum runtime.
 - Use type hints for all public functions, methods, and module-level constants.
 - Avoid Any unless unavoidable; prefer precise types (TypedDict, Protocol, generics, enums). All code must pass `mypy --strict`.
 - Keep functions small and single-purpose.

@@ -6,6 +6,8 @@ import subprocess
 import sys
 import tomllib
 import zipfile
+from email import policy
+from email.parser import BytesParser
 from pathlib import Path
 from typing import Any, cast
 from urllib.parse import unquote
@@ -47,7 +49,8 @@ def test_project_metadata_declares_release_metadata() -> None:
     assert project["license"] == "MIT"
     assert project["license-files"] == ["LICENSE"]
     assert "License :: OSI Approved :: MIT License" not in project["classifiers"]
-    assert project["requires-python"] == ">=3.14"
+    assert project["requires-python"] == ">=3.15.2"
+    assert (PROJECT_ROOT / ".python-version").read_text(encoding="utf-8").strip() == "3.15.2"
     assert any(dep.casefold().startswith("pyyaml") for dep in project["dependencies"])
     assert project["urls"]["Repository"] == "https://github.com/jeffreywevans/Telegraphy.git"
 
@@ -139,6 +142,11 @@ def test_built_wheel_excludes_repository_tooling(tmp_path: Path) -> None:
 
     with zipfile.ZipFile(wheels[0]) as wheel:
         archived_paths = wheel.namelist()
+        metadata_path = next(
+            path for path in archived_paths if path.endswith(".dist-info/METADATA")
+        )
+        metadata = BytesParser(policy=policy.default).parsebytes(wheel.read(metadata_path))
 
+    assert metadata["Requires-Python"] == ">=3.15.2"
     assert not any(path.startswith("telegraphy/scripts/") for path in archived_paths)
     assert not any(path.startswith("scripts/") for path in archived_paths)

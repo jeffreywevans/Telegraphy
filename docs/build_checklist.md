@@ -5,6 +5,8 @@ Here’s the build-declaration checklist for use for **Telegraphy**. Think of it
 
 ### 1. Version identity
 
+Run release checks with Python 3.15.2, as pinned in `.python-version`.
+
 Every declared build must have one clear version number.
 
 Check and update:
